@@ -693,7 +693,7 @@ async function main() {
       path.join(screenshotsDir, "popup.png"),
       cardShell({
         title: "Look up any page across multiple web archives",
-        subtitle: "Click the PastPage icon on any tab to search archived versions — or paste a URL to look up any page directly.",
+        subtitle: "Click the PastPage icon on any tab to search archived versions. Paste a URL to look up any page directly.",
         chips: [],
         body: "",
         panel: buildPopupPanel(providerIcons)
@@ -765,7 +765,7 @@ async function main() {
       path.join(screenshotsDir, "history.png"),
       cardShell({
         title: "Every archive lookup, saved and searchable",
-        subtitle: "Keep a local record of every search — filter by domain, outcome, or date, and rerun any lookup with one click.",
+        subtitle: "Keep a local record of every search. Filter by domain, outcome, or date, and rerun any lookup with one click.",
         chips: [],
         body: "",
         panel: buildHistoryPanel()
