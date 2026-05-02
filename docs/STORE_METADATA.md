@@ -98,22 +98,24 @@ Certifications:
 
 ### Summary
 
-`Recover missing pages with Wayback Machine and other public web archives.`
+`Recover missing pages, open archived snapshots, and compare versions with the Wayback Machine on archive.org plus other web archives, cached pages, and preservation services.`
 
 ### Description
 
-`PastPage is a source-recovery extension for people who work with pages that disappear, move, or change. It helps you search the Wayback Machine on archive.org and other relevant web archives from the page you are already on, so you can find archived versions faster.`
+`PastPage helps you recover missing pages, open archived snapshots, and compare saved versions of a URL across multiple web archives.`
 
-`PastPage is especially useful for research, journalism, fact-checking, investigations, and careful citation work. It can react to broken pages, search multiple archives, retry cleaned URLs automatically, and surface archive sources that make sense for government pages or repository URLs.`
+`Use it when a page is gone, moved, blocked, or returns an error. PastPage can check the Wayback Machine on archive.org and other archive providers, then open the best available archived version or let you compare results across services.`
 
 `Key features`
 
-- `Recover archived pages from the toolbar, popup, or context menu.`
-- `Search the Wayback Machine and other web archives from one flow.`
-- `Find archived versions when a source changed after publication.`
-- `Help with 404 pages and other recoverable load failures.`
-- `Keep archive lookups local until the user explicitly starts them.`
+- `Recover broken or missing pages from web archives.`
+- `Open archived snapshots from the Wayback Machine and other providers.`
+- `Compare versions of the same URL across multiple archive services.`
+- `Use the toolbar, context menu, or in-page recovery prompts for fast access.`
+- `Keep a local lookup history in your browser for convenience.`
 - `No tracking. No analytics. No telemetry.`
+
+`PastPage does not require an account. It has no backend and no telemetry. Lookup requests are sent only to the archive services you choose to use.`
 
 ### Suggested Tags
 
