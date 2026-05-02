@@ -507,7 +507,7 @@ async function main() {
         title: "Tune how PastPage works for you",
         subtitle: "All settings stay in your browser. Control how results open, which archives to use, how the extension looks, and whether lookups are saved.",
         body: "PastPage puts you in control — adjust every detail to fit your workflow.",
-        chips: ["Local settings", "Optional history", "Provider controls"],
+        chips: [],
         panel: `
           <div class="grid twoCol">
             <div class="item">
