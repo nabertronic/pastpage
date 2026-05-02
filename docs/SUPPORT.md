@@ -1,6 +1,6 @@
 # Support
 
-PastPage is maintained by Nabert.
+PastPage is maintained by Alexander Nabert.
 
 ## Contact
 
