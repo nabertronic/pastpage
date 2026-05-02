@@ -1,11 +1,10 @@
 {
-  "generatedAt": "2026-05-02T17:14:28.391Z",
+  "generatedAt": "2026-05-02T17:26:24.168Z",
   "files": [
     "chrome/promo-tile-440x280.png",
-    "screenshots/popup-manual-lookup.png",
-    "screenshots/broken-page-fallback.png",
-    "screenshots/resolver-results.png",
-    "screenshots/options-privacy-settings.png",
+    "screenshots/popup.png",
+    "screenshots/broken-page.png",
+    "screenshots/resolver.png",
     "screenshots/history.png"
   ]
 }

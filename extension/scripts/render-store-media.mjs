@@ -287,28 +287,31 @@ function buildPopupPanel(icons) {
   return `
     <div style="position:relative;margin:-26px;min-height:600px;overflow:hidden;">
       <div style="position:absolute;inset:0;background:#fff;overflow:hidden;font-family:'Georgia',serif;">
+        <style>@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap');</style>
         <div style="background:#fff;border-bottom:1px solid #dfdfdf;text-align:center;padding:14px 24px 12px;">
-          <div style="font:400 34px/1 'Times New Roman','Old English Text MT',serif;color:#000;letter-spacing:-0.01em;">The New York Times</div>
+          <div style="font:400 36px/1 'UnifrakturMaguntia','Old English Text MT',serif;color:#000;">The New York Times</div>
         </div>
-        <div style="max-width:620px;padding:24px 36px 0;">
-          <h2 style="font:700 italic 38px/1.1 'Georgia',serif;color:#111;margin:0 0 18px;letter-spacing:-0.02em;">Yvonne Brill, a Pioneering Rocket<br>Scientist, Dies at 88</h2>
-          <div style="border-top:1px solid #dfdfdf;border-bottom:1px solid #dfdfdf;padding:12px 0;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
-            <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid #ccc;border-radius:999px;font:400 13px/1 ui-sans-serif,sans-serif;color:#333;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-              Share full article
+        <div style="display:flex;flex-direction:column;align-items:center;padding:24px 36px 0;">
+          <div style="width:100%;max-width:580px;">
+            <h2 style="font:700 italic 38px/1.1 'Georgia',serif;color:#111;margin:0 0 18px;letter-spacing:-0.02em;">Yvonne Brill, a Pioneering Rocket<br>Scientist, Dies at 88</h2>
+            <div style="border-top:1px solid #dfdfdf;border-bottom:1px solid #dfdfdf;padding:12px 0;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid #ccc;border-radius:999px;font:400 13px/1 ui-sans-serif,sans-serif;color:#333;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                Share full article
+              </div>
+              <div style="width:36px;height:36px;border:1px solid #ccc;border-radius:50%;display:grid;place-items:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              </div>
             </div>
-            <div style="width:36px;height:36px;border:1px solid #ccc;border-radius:50%;display:grid;place-items:center;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <div style="margin-bottom:16px;">
+              <div style="font:700 15px/1 ui-sans-serif,sans-serif;color:#333;text-decoration:underline;margin-bottom:4px;">By Douglas Martin</div>
+              <div style="font:400 14px/1 ui-sans-serif,sans-serif;color:#666;">March 30, 2013</div>
             </div>
+            <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">She was a brilliant rocket scientist who followed her husband from job to job and took eight years off from work to raise three children. &#x201C;The world&#x2019;s best mom,&#x201D; her son Matthew said.</p>
+            <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">Yvonne Brill, who died on Wednesday at 88 in Princeton, N.J., in the early 1970s invented a propulsion system to help keep communications satellites from slipping out of their orbits.</p>
+            <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">The system became the industry standard, and it was the achievement President Obama mentioned in 2011 in presenting her with the National Medal of Technology and Innovation.</p>
+            <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0;">Her personal and professional balancing act also won notice. In 1980, Harper&#x2019;s Bazaar magazine and the DeBeers Corporation gave her their Diamond Superwoman award for returning to a successful career after starting a family.</p>
           </div>
-          <div style="margin-bottom:16px;">
-            <div style="font:700 15px/1 ui-sans-serif,sans-serif;color:#333;text-decoration:underline;margin-bottom:4px;">By Douglas Martin</div>
-            <div style="font:400 14px/1 ui-sans-serif,sans-serif;color:#666;">March 30, 2013</div>
-          </div>
-          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">She was a brilliant rocket scientist who followed her husband from job to job and took eight years off from work to raise three children. &#x201C;The world&#x2019;s best mom,&#x201D; her son Matthew said.</p>
-          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">Yvonne Brill, who died on Wednesday at 88 in Princeton, N.J., in the early 1970s invented a propulsion system to help keep communications satellites from slipping out of their orbits.</p>
-          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">The system became the industry standard, and it was the achievement President Obama mentioned in 2011 in presenting her with the National Medal of Technology and Innovation.</p>
-          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0;">Her personal and professional balancing act also won notice. In 1980, Harper&#x2019;s Bazaar magazine and the DeBeers Corporation gave her their Diamond Superwoman award for returning to a successful career after starting a family.</p>
         </div>
       </div>
       <div style="
@@ -332,7 +335,7 @@ function buildPopupPanel(icons) {
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:10px;background:#ffd400;color:#17130a;border:1px solid rgba(23,19,10,0.18);font:700 15px/1 ui-sans-serif,sans-serif;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.9-1.9"/></svg>
             Check Archived Versions
           </div>
           <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:10px;background:white;color:#1c1917;border:1px solid #d6d3d1;font:600 15px/1 ui-sans-serif,sans-serif;">
@@ -488,81 +491,112 @@ function buildResolverPanel() {
   const targetUrl = "https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html";
   const archiveUrl = "https://web.archive.org/web/20230814120432/https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html";
 
-  const btnPrimary = (label) => `
-    <div style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;background:#ffd400;color:#17130a;border:1px solid rgba(23,19,10,0.18);font:600 13px/1 ui-sans-serif,sans-serif;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-      ${label}
-    </div>`;
-  const btnSecondary = (label) => `
-    <div style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;background:white;color:#44403c;border:1px solid #e7e5e4;font:500 13px/1 ui-sans-serif,sans-serif;">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      ${label}
+  const iconExternal = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+  const iconCopy = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  const iconFileSearch = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.3 16.3 15 18"/></svg>`;
+  const iconCheck = `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>`;
+
+  const BASE_BTN = "display:inline-flex;align-items:center;justify-content:center;gap:8px;height:32px;padding:0 10px;border-radius:6px;font:600 12px/1 ui-sans-serif,sans-serif;text-decoration:none;white-space:nowrap;";
+  const btnPrimary = (icon, label) => `<span style="${BASE_BTN}border:1px solid #fde047;background:#ffd400;color:#0c0a09;box-shadow:0 8px 24px rgba(255,212,0,0.22);">${icon}${label}</span>`;
+  const btnSecondary = (icon, label) => `<span style="${BASE_BTN}border:1px solid #d6d3d1;background:#fff;color:#0c0a09;">${icon}${label}</span>`;
+  const btnGhost = (icon, label) => `<span style="${BASE_BTN}border:1px solid transparent;background:transparent;color:#44403c;">${icon}${label}</span>`;
+
+  const snapshotCard = (provider, ts, url) => `
+    <div style="margin-top:12px;border-radius:6px;background:#f5f5f4;padding:8px;">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:0 4px;">
+        <p style="margin:0;font:600 12px/1 ui-sans-serif,sans-serif;color:#0c0a09;">${provider}</p>
+        <p style="margin:0;font:400 11px/1 ui-sans-serif,sans-serif;text-transform:uppercase;letter-spacing:0.12em;color:#78716c;">${ts}</p>
+      </div>
+      <p style="margin:8px 0 0;padding:0 4px;font:400 12px/1.5 ui-sans-serif,sans-serif;color:#44403c;word-break:break-all;">${url}</p>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnPrimary(iconExternal, "Open archived version")}${btnSecondary(iconCopy, "Copy archive link")}</div>
     </div>`;
 
-  const snapshotCard = (provider, ts, url, primary = false) => `
-    <div style="border-radius:8px;background:#f5f5f4;padding:8px;${primary ? "" : ""}">
-      <div style="display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:4px;">
-        <span style="font:600 12px/1 ui-sans-serif,sans-serif;color:#1c1917;">${provider}</span>
-        <span style="font:400 11px/1 ui-sans-serif,sans-serif;color:#78716c;letter-spacing:0.06em;text-transform:uppercase;">${ts}</span>
-      </div>
-      <p style="margin:0 0 8px;padding:0 4px;font:400 11px/1.5 ui-sans-serif,sans-serif;color:#57534e;word-break:break-all;">${url}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">${btnPrimary("Open archived version")}${btnSecondary("Copy archive link")}</div>
+  const manualSourceCard = (provider, url) => `
+    <div style="border-radius:6px;background:#f5f5f4;padding:8px;">
+      <p style="margin:0;padding:0 4px;font:600 12px/1 ui-sans-serif,sans-serif;color:#0c0a09;">${provider}</p>
+      <p style="margin:8px 0 0;padding:0 4px;font:400 12px/1.5 ui-sans-serif,sans-serif;color:#44403c;word-break:break-all;">${url}</p>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnGhost(iconExternal, `Check on ${provider}`)}${btnSecondary(iconCopy, "Copy archive link")}</div>
     </div>`;
+
+  const footerLinks = [
+    { label: "Settings",          icon: iconExternal },
+    { label: "History",           icon: iconExternal },
+    { label: "GitHub",            icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M15 6a9 9 0 0 0-9 9V3"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/></svg>` },
+    { label: "Chrome Web Store",  icon: iconExternal },
+    { label: "License",           icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 3v18"/><path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/><path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/><path d="M7 21h10"/></svg>` },
+    { label: "Privacy",           icon: iconExternal },
+    { label: "Support",           icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="m4.93 4.93 4.24 4.24"/><path d="m14.83 9.17 4.24-4.24"/><path d="m14.83 14.83 4.24 4.24"/><path d="m9.17 14.83-4.24 4.24"/><circle cx="12" cy="12" r="4"/></svg>` },
+    { label: "Send feedback",     icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>` },
+  ];
 
   return `
-    <div style="margin:-26px;overflow:hidden;background:radial-gradient(ellipse at top,rgba(245,200,0,0.06),transparent 55%),linear-gradient(160deg,#ffffff 0%,#f8f8f8 100%);padding:20px 24px;font-family:ui-sans-serif,system-ui,sans-serif;min-height:560px;">
-      <header style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;">
-        <div style="width:40px;height:40px;border-radius:8px;background:#ffd400;display:grid;place-items:center;flex-shrink:0;margin-top:2px;box-shadow:0 10px 30px rgba(255,212,0,0.28);">
+    <div style="margin:-26px;overflow:hidden;background:radial-gradient(ellipse at top,rgba(245,200,0,0.06),transparent 55%),linear-gradient(160deg,#ffffff 0%,#f8f8f8 100%);padding:24px 16px;font-family:ui-sans-serif,system-ui,sans-serif;min-height:560px;">
+      <header style="margin-bottom:24px;display:flex;align-items:flex-start;gap:12px;">
+        <div style="margin-top:2px;display:grid;height:40px;width:40px;flex-shrink:0;place-items:center;border-radius:6px;background:#ffd400;box-shadow:0 10px 30px rgba(255,212,0,0.28);">
           <svg aria-hidden="true" viewBox="0 0 1248 1248" width="21" height="21" style="display:block"><path fill="white" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
         </div>
         <div>
-          <h1 style="margin:0;font:600 22px/1.2 ui-sans-serif,sans-serif;color:#0c0a09;">Checking archived versions</h1>
-          <p style="margin:4px 0 0;font:400 13px/1.5 ui-sans-serif,sans-serif;color:#57534e;max-width:560px;">PastPage checks archived captures across multiple providers.</p>
+          <h1 style="margin:0;font:600 24px/1.3 ui-sans-serif,sans-serif;color:#0c0a09;">Checking archived versions</h1>
+          <p style="margin:4px 0 0;max-width:640px;font:400 14px/1.5 ui-sans-serif,sans-serif;color:#57534e;">PastPage checks archived captures across multiple providers.</p>
         </div>
       </header>
 
-      <div style="border-radius:8px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.95);padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-        <div style="display:flex;gap:12px;">
-          <div style="width:36px;height:36px;border-radius:8px;background:#ffd400;display:grid;place-items:center;flex-shrink:0;margin-top:2px;">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#17130a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="5" cy="17" r="3"/><path d="m9 21-1.5-1.5"/></svg>
-          </div>
-          <div style="min-width:0;flex:1;">
-            <h2 style="margin:0 0 4px;font:600 15px/1 ui-sans-serif,sans-serif;color:#0c0a09;">Current source</h2>
-            <p style="margin:0 0 10px;font:400 13px/1.5 ui-sans-serif,sans-serif;color:#57534e;">Checking archived versions for this page.</p>
-            <div style="border-radius:8px;background:#f5f5f4;padding:8px;">
-              <p style="margin:0 0 8px;padding:0 4px;font:400 11px/1.5 ui-sans-serif,sans-serif;color:#57534e;word-break:break-all;">${targetUrl}</p>
-              <div style="display:flex;gap:8px;">
-                ${btnPrimary("Open current page")}${btnSecondary("Copy URL")}
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- SourceSummary -->
+        <section style="border-radius:6px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.95);padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+          <div style="display:flex;gap:12px;">
+            <div style="margin-top:2px;display:grid;height:36px;width:36px;flex-shrink:0;place-items:center;border-radius:6px;background:#ffd400;">${iconFileSearch}</div>
+            <div style="min-width:0;">
+              <h2 style="margin:0;font:600 16px/1.4 ui-sans-serif,sans-serif;color:#0c0a09;">Current source</h2>
+              <p style="margin:4px 0 0;font:400 14px/1.5 ui-sans-serif,sans-serif;color:#57534e;">Checking archived versions for this page.</p>
+              <div style="margin-top:12px;border-radius:6px;background:#f5f5f4;padding:8px;">
+                <p style="margin:0;padding:0 4px;font:400 12px/1.5 ui-sans-serif,sans-serif;color:#44403c;word-break:break-all;">${targetUrl}</p>
+                <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnSecondary(iconExternal, "Open current page")}${btnSecondary(iconCopy, "Copy URL")}</div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <div style="border-radius:8px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.95);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-        <div style="display:flex;gap:12px;">
-          <div style="width:36px;height:36px;border-radius:8px;background:#ffd400;color:#17130a;display:grid;place-items:center;flex-shrink:0;margin-top:2px;">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <div style="min-width:0;flex:1;">
-            <h2 style="margin:0 0 2px;font:600 15px/1 ui-sans-serif,sans-serif;color:#0c0a09;">Archived version found on Wayback Machine</h2>
-            ${snapshotCard("Wayback Machine", "20230814120432", archiveUrl)}
-
-            <div style="border-top:1px solid #e7e5e4;margin-top:12px;padding-top:12px;">
-              <h3 style="margin:0 0 8px;font:600 13px/1 ui-sans-serif,sans-serif;color:#1c1917;">Other archived versions found</h3>
+        <!-- Found results -->
+        <section style="border-radius:6px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.95);padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:12px;">
+              <div style="margin-top:2px;display:grid;height:36px;width:36px;flex-shrink:0;place-items:center;border-radius:6px;background:#ffd400;">${iconCheck}</div>
+              <div style="min-width:0;">
+                <h2 style="margin:0;font:600 16px/1.4 ui-sans-serif,sans-serif;color:#0c0a09;">Archived version found on Wayback Machine</h2>
+                ${snapshotCard("Wayback Machine", "20230814120432", archiveUrl)}
+              </div>
+            </div>
+            <div style="border-top:1px solid #e7e5e4;padding-top:12px;display:flex;flex-direction:column;gap:8px;">
+              <h3 style="margin:0;font:600 14px/1 ui-sans-serif,sans-serif;color:#1c1917;">Other archived versions found</h3>
               ${snapshotCard("Archive.today", "20220601083211", "https://archive.ph/6ZkLm")}
             </div>
-
-            <div style="border-top:1px solid #e7e5e4;margin-top:12px;padding-top:12px;">
-              <h3 style="margin:0 0 8px;font:600 13px/1 ui-sans-serif,sans-serif;color:#1c1917;">Check Other archive sources</h3>
-              ${["Ghostarchive", "Arquivo.pt", "UK Web Archive"].map(name => `
-                <div style="border-radius:8px;background:#f5f5f4;padding:8px;margin-bottom:6px;">
-                  <div style="padding:0 4px;margin-bottom:8px;font:600 12px/1 ui-sans-serif,sans-serif;color:#1c1917;">${name}</div>
-                  <div style="display:flex;gap:8px;">${btnSecondary(`Check on ${name}`)}</div>
-                </div>`).join("")}
+            <div style="border-top:1px solid #e7e5e4;padding-top:12px;display:flex;flex-direction:column;gap:8px;">
+              <h3 style="margin:0;font:600 14px/1 ui-sans-serif,sans-serif;color:#1c1917;">Check Other archive sources</h3>
+              ${manualSourceCard("Ghostarchive", "https://ghostarchive.org/search?term=https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html")}
+              ${manualSourceCard("Arquivo.pt", "https://arquivo.pt/wayback/*/https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html")}
+              ${manualSourceCard("UK Web Archive", "https://webarchive.nationalarchives.gov.uk/ukgwa/*/https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html")}
             </div>
           </div>
-        </div>
+        </section>
+
+        <!-- ResearcherFooter -->
+        <footer style="border-top:1px solid #e7e5e4;padding-top:20px;">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            ${footerLinks.map(({ label, icon }) => `<span style="display:inline-flex;align-items:center;gap:6px;border-radius:6px;padding:4px 8px;color:#57534e;font:400 14px/1 ui-sans-serif,sans-serif;">${icon}${label}</span>`).join("")}
+          </div>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:8px;">
+            <div style="display:grid;height:32px;width:32px;flex-shrink:0;place-items:center;border-radius:6px;background:#ffd400;box-shadow:0 10px 24px rgba(255,212,0,0.2);">
+              <svg aria-hidden="true" viewBox="0 0 1248 1248" width="17" height="17" style="display:block"><path fill="white" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
+            </div>
+            <div>
+              <p style="margin:0;font:600 14px/1 ui-sans-serif,sans-serif;color:#0c0a09;">PastPage</p>
+              <p style="margin:4px 0 0;font:400 12px/1.4 ui-sans-serif,sans-serif;color:#78716c;">PastPage is an open source tool for journalists and researchers to surface archived versions of vanished or changed pages.</p>
+            </div>
+          </div>
+        </footer>
+
       </div>
     </div>`;
 }
@@ -657,7 +691,7 @@ async function main() {
   try {
     await screenshotHtml(
       page,
-      path.join(screenshotsDir, "popup-manual-lookup.png"),
+      path.join(screenshotsDir, "popup.png"),
       cardShell({
         title: "Look up any page across multiple web archives",
         subtitle: "Click the PastPage icon on any tab to search archived versions — or paste a URL to look up any page directly.",
@@ -669,7 +703,7 @@ async function main() {
 
     await screenshotHtml(
       page,
-      path.join(screenshotsDir, "broken-page-fallback.png"),
+      path.join(screenshotsDir, "broken-page.png"),
       cardShell({
         title: "Recover missing pages from the failure screen",
         subtitle: "PastPage detects error pages and offers archive recovery right where the original page failed.",
@@ -717,43 +751,13 @@ async function main() {
 
     await screenshotHtml(
       page,
-      path.join(screenshotsDir, "resolver-results.png"),
+      path.join(screenshotsDir, "resolver.png"),
       cardShell({
         title: "All archives searched — best match surfaced instantly",
         subtitle: "PastPage queries every enabled archive in parallel and shows the best available snapshot the moment results arrive.",
         chips: [],
         body: "",
         panel: buildResolverPanel()
-      })
-    );
-
-    await screenshotHtml(
-      page,
-      path.join(screenshotsDir, "options-privacy-settings.png"),
-      cardShell({
-        title: "Tune how PastPage works for you",
-        subtitle: "All settings stay in your browser. Control how results open, which archives to use, how the extension looks, and whether lookups are saved.",
-        body: "PastPage puts you in control — adjust every detail to fit your workflow.",
-        chips: [],
-        panel: `
-          <div class="grid twoCol">
-            <div class="item">
-              <strong>Recovery behavior</strong>
-              <span>Choose how archive results open and whether the resolver stays visible after finding a match.</span>
-            </div>
-            <div class="item">
-              <strong>Archive settings</strong>
-              <span>Enable or disable providers and reorder them to prioritize the archives most relevant to you.</span>
-            </div>
-            <div class="item">
-              <strong>Appearance</strong>
-              <span>Pick a light or dark notification bar, or set a custom color to match your taste.</span>
-            </div>
-            <div class="item">
-              <strong>History</strong>
-              <span>Save lookups locally for later reference, or keep the extension stateless — your choice.</span>
-            </div>
-          </div>`
       })
     );
 
@@ -778,10 +782,9 @@ async function main() {
     generatedAt: new Date().toISOString(),
     files: [
       "chrome/promo-tile-440x280.png",
-      "screenshots/popup-manual-lookup.png",
-      "screenshots/broken-page-fallback.png",
-      "screenshots/resolver-results.png",
-      "screenshots/options-privacy-settings.png",
+      "screenshots/popup.png",
+      "screenshots/broken-page.png",
+      "screenshots/resolver.png",
       "screenshots/history.png"
     ]
   };
