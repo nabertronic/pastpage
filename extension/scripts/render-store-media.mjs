@@ -455,27 +455,27 @@ async function main() {
       page,
       path.join(screenshotsDir, "resolver-results.png"),
       cardShell({
-        title: "Compare archive providers from one resolver",
-        subtitle: "Resolver results show the preferred archived version first and keep follow-up sources close at hand.",
-        body: "One lookup can compare Wayback Machine and other relevant web archives without leaving the workflow.",
-        chips: ["Preferred hit", "Additional matches", "URL-aware search"],
+        title: "All archives searched at once — original and cleaned URLs",
+        subtitle: "PastPage queries every enabled archive in parallel, using both the exact URL and optimised clean variants to surface results that a direct lookup would miss.",
+        body: "Parallel searches across all archives — no waiting, no manual switching.",
+        chips: ["Parallel queries", "URL cleaning", "Cache lookup"],
         panel: `
           <div class="grid twoCol">
             <div class="item">
-              <strong>Archived version found on Wayback Machine</strong>
-              <span>Preferred capture found and ready to open, with cleaned-URL handling when archives stored a simpler address.</span>
+              <strong>Parallel archive queries</strong>
+              <span>All enabled archives are searched simultaneously — results appear as they arrive, with no sequential waiting.</span>
             </div>
             <div class="item">
-              <strong>Other archive sources</strong>
-              <span>Additional providers stay visible for verification, comparison, and follow-up research.</span>
+              <strong>Original and clean URLs</strong>
+              <span>Each archive is queried with the exact URL and with a stripped, canonical version to catch captures stored under a simpler address.</span>
             </div>
             <div class="item">
-              <strong>Open archived version</strong>
-              <span>Open the best result directly, while the resolver can remain available based on user settings.</span>
+              <strong>Manual archive search</strong>
+              <span>For every archive without an automatic result, a direct search link is offered so nothing is left unexamined.</span>
             </div>
             <div class="item">
-              <strong>Copy archive link</strong>
-              <span>Capture direct archive URLs for citation, fact-checking, and evidence preservation workflows.</span>
+              <strong>Cache lookup (Yandex)</strong>
+              <span>Beyond classic archives, cached page sources are included in the search to maximise the chance of finding a saved version.</span>
             </div>
           </div>`
       })
