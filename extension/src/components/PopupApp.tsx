@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ExternalLink, ScanSearch, Settings } from "lucide-react";
+import { ChevronDown, History, ScanSearch, Settings } from "lucide-react";
 import { Button, LinkButton } from "./Button";
 import { explainDetectedError } from "../core/errors";
 import { createBrokenPageLookupRequest, createManualPageLookupRequest } from "../core/lookupRequest";
@@ -379,7 +379,7 @@ function PopupContent({
               void onOpenHistory();
             }}
           >
-            <ExternalLink aria-hidden="true" size={14} />
+            <History aria-hidden="true" size={14} />
             {t("common.history")}
           </LinkButton>
           <Button variant="quiet" size="sm" onClick={() => void onOpenOptions()}>
