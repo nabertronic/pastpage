@@ -601,7 +601,6 @@ function buildResolverPanel() {
 }
 
 async function renderPromoTile(page) {
-  const iconSvg = LOGO_MARK_SVG;
   await screenshotHtml(
     page,
     path.join(chromeDir, "promo-tile-440x280.png"),
@@ -610,68 +609,41 @@ async function renderPromoTile(page) {
         <head>
           <meta charset="utf-8" />
           <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
             body {
-              margin: 0;
               width: 440px;
               height: 280px;
               overflow: hidden;
-              font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-              background:
-                radial-gradient(circle at top right, rgba(255, 212, 0, 0.9), transparent 34%),
-                linear-gradient(135deg, #13100d 0%, #2f2415 55%, #5e4313 100%);
-              color: #fff8dd;
-            }
-            .frame {
-              width: 100%;
-              height: 100%;
-              padding: 24px;
-              display: grid;
-              grid-template-columns: 88px 1fr;
-              gap: 18px;
-              align-items: center;
-              box-sizing: border-box;
-            }
-            .badge {
-              width: 88px;
-              height: 88px;
-              border-radius: 22px;
-              background: rgba(255, 212, 0, 0.14);
-              border: 1px solid rgba(255, 248, 221, 0.22);
-              display: grid;
-              place-items: center;
-              box-shadow: 0 24px 40px rgba(0, 0, 0, 0.28);
-              backdrop-filter: blur(10px);
-            }
-            .badge svg { width: 54px; height: 54px; }
-            .eyebrow {
-              font: 700 11px/1.2 ui-sans-serif, system-ui, sans-serif;
-              letter-spacing: 0.18em;
-              text-transform: uppercase;
-              color: #ffe27a;
-              margin-bottom: 10px;
-            }
-            h1 {
-              margin: 0;
-              font-size: 34px;
-              line-height: 0.97;
-              letter-spacing: -0.03em;
-              max-width: 280px;
-            }
-            p {
-              margin: 12px 0 0;
-              font: 500 15px/1.45 ui-sans-serif, system-ui, sans-serif;
-              color: rgba(255, 248, 221, 0.9);
-              max-width: 290px;
+              background: #fafaf8;
+              font-family: ui-sans-serif, system-ui, sans-serif;
+              color: #0c0a09;
             }
           </style>
         </head>
         <body>
-          <div class="frame">
-            <div class="badge">${iconSvg}</div>
-            <div>
-              <div class="eyebrow">PastPage</div>
-              <h1>Recover missing pages fast</h1>
-              <p>Search Wayback Machine and other web archives from the page you are already viewing.</p>
+          <div style="display:grid; grid-template-columns:128px 1fr; height:280px;">
+
+            <!-- Left yellow column -->
+            <div style="background:#ffd400; display:flex; flex-direction:column; justify-content:space-between; padding:24px 20px;">
+              <svg aria-hidden="true" viewBox="0 0 1248 1248" width="38" height="38" style="display:block">
+                <path fill="#17130a" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/>
+              </svg>
+              <div style="font:700 13px/1.2 ui-sans-serif,sans-serif; letter-spacing:0.04em; color:#17130a;">Past<br>Page</div>
+            </div>
+
+            <!-- Right content column -->
+            <div style="padding:28px 28px 24px; display:flex; flex-direction:column; justify-content:space-between; border-left:3px solid #ffd400;">
+
+              <div>
+                <div style="font:600 11px/1 ui-sans-serif,sans-serif; letter-spacing:0.14em; text-transform:uppercase; color:#a8a29e; margin-bottom:14px;">Web archive recovery</div>
+                <h1 style="font:700 28px/1.08 ui-sans-serif,sans-serif; letter-spacing:-0.025em; color:#0c0a09; max-width:240px;">Recover any missing web page</h1>
+              </div>
+
+              <div>
+                <p style="font:400 13px/1.55 ui-sans-serif,sans-serif; color:#57534e; margin-bottom:16px;">Searches Wayback Machine, Archive.today, and 10 more archives in one click.</p>
+                <div style="border-top:1px solid #e7e5e4; padding-top:12px; font:400 11px/1 ui-sans-serif,sans-serif; letter-spacing:0.06em; text-transform:uppercase; color:#a8a29e;">No tracking. No analytics. No telemetry.</div>
+              </div>
+
             </div>
           </div>
         </body>
