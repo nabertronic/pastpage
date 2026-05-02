@@ -1,0 +1,12 @@
+node_modules/
+.wxt/
+.output/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.DS_Store
+archive/
+.claude/
+.vscode/

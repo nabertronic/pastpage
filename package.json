@@ -1,0 +1,19 @@
+{
+  "name": "pastpage",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "description": "PastPage source recovery browser extension workspace.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm --dir extension dev",
+    "dev:firefox": "pnpm --dir extension dev:firefox",
+    "build": "pnpm --dir extension build",
+    "build:firefox": "pnpm --dir extension build:firefox",
+    "test": "pnpm --dir extension test",
+    "typecheck": "pnpm --dir extension typecheck"
+  },
+  "workspaces": [
+    "extension"
+  ]
+}

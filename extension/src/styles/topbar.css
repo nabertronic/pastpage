@@ -1,0 +1,46 @@
+:host {
+  all: initial;
+  color-scheme: light dark;
+  --wf-banner-bg: #11100c;
+  --wf-banner-text: #fff9df;
+  --wf-banner-muted: #d7cfaa;
+  --wf-banner-border: #ffd400;
+  --wf-accent: #ffd400;
+  --wf-accent-ink: #17130a;
+  --wf-focus: #ffd400;
+  font-family:
+    "Aptos", "Helvetica Neue", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --wf-banner-bg: #f0f0f0;
+    --wf-banner-text: #111111;
+    --wf-banner-muted: #525252;
+    --wf-banner-border: #111111;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--wf-focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(255, 212, 0, 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

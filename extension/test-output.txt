@@ -1,0 +1,476 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.5 [39m[90m/Users/macbookair/Documents/PastPage/pastpage/extension[39m
+
+ [32m✓[39m tests/background/navigationErrors.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 612[2mms[22m[39m
+     [33m[2m✓[22m[39m ignores aborted top-level navigations [33m 576[2mms[22m[39m
+ [32m✓[39m tests/background/contextMenus.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 688[2mms[22m[39m
+     [33m[2m✓[22m[39m serializes overlapping context menu rebuilds [33m 580[2mms[22m[39m
+ [32m✓[39m tests/ui/TopBar.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 453[2mms[22m[39m
+[90mstderr[2m | tests/ui/OnboardingApp.test.tsx[2m > [22m[2mOnboardingApp[2m > [22m[2mrenders Firefox-specific pinning guidance with PastPage branding
+[22m[39mAn update to OnboardingApp inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstderr[2m | tests/ui/OnboardingApp.test.tsx[2m > [22m[2mOnboardingApp[2m > [22m[2muses the revised multi-archive capability copy
+[22m[39mAn update to OnboardingApp inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstderr[2m | tests/ui/OnboardingApp.test.tsx[2m > [22m[2mOnboardingApp[2m > [22m[2mswitches to German copy when the browser UI language is German
+[22m[39mAn update to OnboardingApp inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [31m❯[39m tests/ui/OnboardingApp.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 787[2mms[22m[39m
+     [33m[2m✓[22m[39m renders Firefox-specific pinning guidance with PastPage branding [33m 475[2mms[22m[39m
+     [32m✓[39m opens the settings page in a tab from the customize action[32m 178[2mms[22m[39m
+[31m     [31m×[31m uses the revised multi-archive capability copy[39m[32m 56[2mms[22m[39m
+     [32m✓[39m switches to German copy when the browser UI language is German[32m 74[2mms[22m[39m
+ [32m✓[39m tests/background/onboardingInstall.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 150[2mms[22m[39m
+ [32m✓[39m tests/core/lookup.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m tests/ui/PopupApp.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[33m 2306[2mms[22m[39m
+     [33m[2m✓[22m[39m shows the current popup copy and footer links [33m 555[2mms[22m[39m
+     [33m[2m✓[22m[39m lets you enter a custom URL and uses it for the resolver flow [33m 644[2mms[22m[39m
+     [33m[2m✓[22m[39m uses the custom URL for direct archive buttons [33m 351[2mms[22m[39m
+ [32m✓[39m tests/core/providers/wayback.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+[90mstderr[2m | tests/ui/FallbackApp.test.tsx[2m > [22m[2mFallbackApp[2m > [22m[2mrenders fallback actions
+[22m[39mAn update to FallbackApp inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [32m✓[39m tests/ui/FallbackApp.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 196[2mms[22m[39m
+ [32m✓[39m tests/core/providers/webGyotaku.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/platform/badge.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+[90mstderr[2m | tests/ui/ResolverApp.test.tsx[2m > [22m[2mResolverApp[2m > [22m[2mshows the actual cleaned URL step only when it is checked
+[22m[39mAn update to ResolverApp inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [32m✓[39m tests/ui/ResolverApp.test.tsx [2m([22m[2m9 tests[22m[2m)[22m[33m 3278[2mms[22m[39m
+     [33m[2m✓[22m[39m renders a not-found state for a broken-page lookup [33m 742[2mms[22m[39m
+     [33m[2m✓[22m[39m opens the first hit in a new tab and lists additional archive matches [33m 915[2mms[22m[39m
+     [33m[2m✓[22m[39m flushes buffered fallback matches into the UI as soon as Wayback misses [33m 985[2mms[22m[39m
+ [32m✓[39m tests/core/providers/archiveToday.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/core/providers/ukGovWebArchive.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/core/wayback.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/core/providers/permaCc.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/core/providers/arquivoPt.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/core/providers/locWebArchives.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/core/providers/ghostarchive.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/core/settings.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/platform/htmlDocument.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/core/urlPolicy.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/platform/archiveNavigation.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/core/lookupTarget.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/core/providers/snapshotValidation.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/core/errors.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/platform/storage.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/core/lookupRequest.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/core/i18n.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [31m❯[39m tests/ui/OptionsApp.test.tsx [2m([22m[2m16 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 6163[2mms[22m[39m
+     [33m[2m✓[22m[39m renders key settings [33m 1242[2mms[22m[39m
+     [32m✓[39m shows only the active browser review listing[32m 200[2mms[22m[39m
+     [33m[2m✓[22m[39m resets settings after confirmation [33m 374[2mms[22m[39m
+     [33m[2m✓[22m[39m saves the popup archive list toggle [33m 340[2mms[22m[39m
+     [32m✓[39m saves the popup archive icons toggle[32m 241[2mms[22m[39m
+     [32m✓[39m saves the context menu archive icons toggle[32m 251[2mms[22m[39m
+     [32m✓[39m saves deselected archives[32m 266[2mms[22m[39m
+[31m     [31m×[31m saves archive reordering from the arrow buttons[39m[33m 1707[2mms[22m[39m
+     [32m✓[39m applies and saves the selected light theme[32m 130[2mms[22m[39m
+     [32m✓[39m saves the selected Archive.today host[32m 154[2mms[22m[39m
+     [32m✓[39m saves the selected Wayback onion host[32m 130[2mms[22m[39m
+     [32m✓[39m opens Chrome shortcut settings from the shortcuts section[32m 178[2mms[22m[39m
+     [33m[2m✓[22m[39m opens Firefox shortcut settings from the shortcuts section [33m 370[2mms[22m[39m
+     [32m✓[39m does not reset settings when confirmation is cancelled[32m 209[2mms[22m[39m
+     [32m✓[39m checks updates directly on Chrome[32m 202[2mms[22m[39m
+     [32m✓[39m opens the Firefox add-ons manager for a manual update check[32m 163[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/ui/OnboardingApp.test.tsx[2m > [22mOnboardingApp[2m > [22muses the revised multi-archive capability copy
+[31m[1mTestingLibraryElementError[22m[39m: Unable to find an element with the text: Three ways PastPage helps. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33mclass[39m=[32m"min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,212,0,0.22),transparent_34%),linear-gradient(135deg,#fffdf2_0%,#f6f0d7_42%,#ffffff_100%)] px-4 py-6 text-stone-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,212,0,0.18),transparent_35%),linear-gradient(135deg,#12100b_0%,#1d1a10_48%,#0d0c09_100%)] dark:text-yellow-50"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"mx-auto max-w-5xl"[39m
+      [36m>[39m
+        [36m<header[39m
+          [33mclass[39m=[32m"mb-6 flex items-start gap-3"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-md bg-yellow-400 text-stone-950 shadow-[0_10px_30px_rgba(255,212,0,0.28)]"[39m
+            [33mstyle[39m=[32m"opacity: 0; transform: scale(0.92);"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mheight[39m=[32m"21"[39m
+              [33mstyle[39m=[32m"display: block;"[39m
+              [33mviewBox[39m=[32m"0 0 1248 1248"[39m
+              [33mwidth[39m=[32m"21"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M310 208
+           C310 197 319 188 330 188
+           L674 188
+           C846 188 962 302 962 486
+           C962 671 846 785 674 785
+           L535 785
+           L535 1038
+           C535 1049 526 1058 515 1058
+           L330 1058
+           C319 1058 310 1049 310 1038
+           Z
+           M476 490
+           L635 360
+           C642 354 653 359 653 369
+           L653 431
+           L772 431
+           C781 431 788 438 788 447
+           L788 533
+           C788 542 781 549 772 549
+           L653 549
+           L653 612
+           C653 622 642 627 635 621
+           Z"[39m
+                [33mfill[39m=[32m"#FFFFFF"[39m
+                [33mfill-rule[39m=[32m"evenodd"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<div>[39m
+            [36m<h1[39m
+              [33mclass[39m=[32m"text-2xl font-semibold tracking-normal"[39m
+            [36m>[39m
+              [0mWelcome to PastPage[0m
+            [36m</h1>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"mt-1 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300"[39m
+            [36m>[39m
+              [0mRecover missing pages, inspect changed ones, and keep archive search within reach.[0m
+            [36m</p>[39m
+          [36m</div>[39m
+        [36m</header>[39m
+        [36m<div[39m
+          [33mstyle[39m=[32m"opacity: 0; transform: translateY(8px);"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-5"[39m
+          [36m>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"rounded-md border border-stone-200 bg-white/95 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/92"[39m
+              [33mstyle[39m=[32m"opacity: 0; transform: translateY(6px);"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"min-w-0"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"max-w-2xl"[39m
+                [36m>[39m
+                  [36m<h2[39m
+                    [33mclass[39m=[32m"text-2xl font-semibold tracking-normal text-balance text-stone-950 dark:text-yellow-50"[39m
+                  [36m>[39m
+                    [0mWhen a page is gone or changed, find what was there.[0m
+                  [36m</h2>[39m
+                  [36m<p[39m
+                    [33mclass[39m=[32m"mt-3 max-w-xl text-sm leading-6 text-stone-600 dark:text-stone-300"[39m
+                  [36m>[39m
+                    [0mPastPage can react when a page fails locally in your browser, or help you manually check archived earlier versions on any page from the toolbar icon or context menu. It searches across multiple archives in a URL-aware flow so you can keep chasing the source trail.[0m
+                  [36m</p>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"mt-5 flex flex-wrap items-center gap-3"[39m
+                  [36m>[39m
+                    [36m<button[39m
+                      [33mclass[39m=[32m"inline-flex items-center gap-2 rounded-md px-1 py-1 text-sm font-semibold text-yellow-500 transition-colors hover:text-yellow-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400"[39m
+                      [33mtype[39m=[32m"button"[39m
+                    [36m>[39m
+                      [0mLearn how it works[0m
+                      [36m<svg[39m
+                        [33maria-hidden[39m=[32m"true"[39m
+                        [33mclass[39m=[32m"lucide lucide-arrow-down"[39m
+                        [33mfill[39m=[32m"none"[39m
+                        [33mheight[39m=[32m"16"[39m
+                        [33mstroke[39m=[32m"currentColor"[39m
+                        [33mstroke-linecap[39m=[32m"round"[39m
+                        [33mstroke-linejoin[39m=[32m"round"[39m
+                        [33mstroke-width[39m=[32m"2"[39m
+                        [33mviewBox[39m=[32m"0 0 24 24"[39m
+                        [33mwidth[39m=[32m"16"[39m
+                        [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                      [36m>[39m
+                        [36m<path[39m
+                          [33md[39m=[32m"M12 5v14"[39m
+                        [36m/>[39m
+                        [36m<path[39m
+                          [33md[39m=[32m"m19 12-7 7-7-7"[39m
+                        [36m/>[39m
+                      [36m</svg>[39m
+                    [36m</button>[39m
+                  [36m</div>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</section>[39m
+            [36m<section[39m
+              [33mclass[39m=[32m"rounded-md border border-stone-200 bg-white/95 p-5 shadow-sm dark:border-stone-800 dark:bg-stone-950/92"[39m
+              [33mid[39m=[32m"pin"[39m
+              [33mstyle[39m=[32m"opacity: 0; transform: translateY(6px);"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex flex-wrap items-baseline gap-2"[39m
+              [36m>[39m
+                [36m<h2[39m
+                  [33mclass[39m=[32m"text-base font-semibold text-stone-950 dark:text-yellow-50"[39m
+                [36m>[39m
+                  [0mPin the toolbar icon[0m
+                [36m</h2>[39m
+              [36m</div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"mt-1 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300"[39m
+              [36m>[39m
+  ...
+[90m [2m❯[22m Object.getElementError ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
+[90m [2m❯[22m ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/ui/OnboardingApp.test.tsx:[2m46:19[22m[39m
+    [90m 44|[39m     [34mrender[39m([33m<[39m[33mOnboardingApp[39m [33m/[39m[33m>[39m)[33m;[39m
+    [90m 45|[39m
+    [90m 46|[39m     expect(screen.getByText("Three ways PastPage helps")).toBeInTheDoc…
+    [90m   |[39m                   [31m^[39m
+    [90m 47|[39m     [34mexpect[39m(screen[33m.[39m[34mgetByText[39m([32m"Make it yours"[39m))[33m.[39m[34mtoBeInTheDocument[39m()[33m;[39m
+    [90m 48|[39m     expect(screen.queryByText("One step setup")).not.toBeInTheDocument…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/ui/OptionsApp.test.tsx[2m > [22mOptionsApp[2m > [22msaves archive reordering from the arrow buttons
+[31m[1mAssertionError[22m[39m: expected "vi.fn()" to be called with arguments: [ { 'pastPage.settings': { …(18) } } ][90m
+
+Received:
+
+[1m  1st vi.fn() call:
+
+[22m[33m@@ -4,16 +4,16 @@[90m
+[2m        "actionColor": "#ffd400",[22m
+[2m        "archiveDisplayOrder": [[22m
+[2m          "wayback",[22m
+[2m          "archive-today",[22m
+[2m          "ghostarchive",[22m
+[31m+         "yandex-cache",[90m
+[2m          "uk-gov-web-archive",[22m
+[2m          "perma-cc",[22m
+[2m          "loc-web-archives",[22m
+[2m          "arquivo-pt",[22m
+[2m          "web-gyotaku",[22m
+[32m-         "yandex-cache",[90m
+[2m          "archive-it",[22m
+[2m          "webcite",[22m
+[2m          "software-heritage",[22m
+[2m        ],[22m
+[2m        "archiveTodayHost": "archive.ph",[22m
+[39m[90m
+
+Number of calls: [1m1[22m
+[39m
+
+Ignored nodes: comments, script, style
+[36m<html[39m
+  [33mclass[39m=[32m"dark"[39m
+  [33mdata-theme[39m=[32m"dark"[39m
+[36m>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<main[39m
+        [33mclass[39m=[32m"min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(255,212,0,0.22),transparent_34%),linear-gradient(135deg,#fffdf2_0%,#f6f0d7_42%,#ffffff_100%)] px-4 py-6 text-stone-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,212,0,0.18),transparent_35%),linear-gradient(135deg,#12100b_0%,#1d1a10_48%,#0d0c09_100%)] dark:text-yellow-50"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mx-auto max-w-5xl"[39m
+        [36m>[39m
+          [36m<header[39m
+            [33mclass[39m=[32m"mb-6 flex items-start gap-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-md bg-yellow-400 text-stone-950 shadow-[0_10px_30px_rgba(255,212,0,0.28)]"[39m
+              [33mstyle[39m=[32m"opacity: 1; transform: none;"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mheight[39m=[32m"21"[39m
+                [33mstyle[39m=[32m"display: block;"[39m
+                [33mviewBox[39m=[32m"0 0 1248 1248"[39m
+                [33mwidth[39m=[32m"21"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M310 208
+           C310 197 319 188 330 188
+           L674 188
+           C846 188 962 302 962 486
+           C962 671 846 785 674 785
+           L535 785
+           L535 1038
+           C535 1049 526 1058 515 1058
+           L330 1058
+           C319 1058 310 1049 310 1038
+           Z
+           M476 490
+           L635 360
+           C642 354 653 359 653 369
+           L653 431
+           L772 431
+           C781 431 788 438 788 447
+           L788 533
+           C788 542 781 549 772 549
+           L653 549
+           L653 612
+           C653 622 642 627 635 621
+           Z"[39m
+                  [33mfill[39m=[32m"#FFFFFF"[39m
+                  [33mfill-rule[39m=[32m"evenodd"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</div>[39m
+            [36m<div>[39m
+              [36m<h1[39m
+                [33mclass[39m=[32m"text-2xl font-semibold tracking-normal"[39m
+              [36m>[39m
+                [0mSettings[0m
+              [36m</h1>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"mt-1 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300"[39m
+              [36m>[39m
+                [0mChoose how PastPage helps you recover missing sources.[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</header>[39m
+          [36m<div[39m
+            [33mstyle[39m=[32m"opacity: 1; transform: none;"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"space-y-4"[39m
+              [36m>[39m
+                [36m<section[39m
+                  [33mclass[39m=[32m"rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92"[39m
+                [36m>[39m
+                  [36m<h2[39m
+                    [33mclass[39m=[32m"text-base font-semibold"[39m
+                  [36m>[39m
+                    [0mRecovery behavior[0m
+                  [36m</h2>[39m
+                  [36m<div[39m
+                    [33mclass[39m=[32m"mt-4 grid gap-4"[39m
+                  [36m>[39m
+                    [36m<label[39m
+                      [33mclass[39m=[32m"grid gap-1.5 text-sm"[39m
+                    [36m>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"font-semibold text-stone-950 dark:text-yellow-50"[39m
+                        [33mid[39m=[32m"_r_1v_-label"[39m
+                      [36m>[39m
+                        [0mOpen archived pages[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"text-xs leading-5 text-stone-600 dark:text-stone-300"[39m
+                      [36m>[39m
+                        [0mKeep the original source visible while the archived copy opens separately.[0m
+                      [36m</span>[39m
+                      [36m<span[39m
+                        [33mclass[39m=[32m"relative"[39m
+                      [36m>[39m
+                        [36m<select[39m
+                          [33maria-labelledby[39m=[32m"_r_1v_-label"[39m
+                          [33mclass[39m=[32m"h-10 w-full appearance-none rounded-md border border-stone-300 bg-white px-3 pr-9 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"[39m
+                          [33mid[39m=[32m"_r_1v_"[39m
+                        [36m>[39m
+                          [36m<option[39m
+                            [33mvalue[39m=[32m"current-tab"[39m
+                          [36m>[39m
+                            [0mCurrent tab[0m
+                          [36m</option>[39m
+                          [36m<option[39m
+                            [33mvalue[39m=[32m"new-tab-foreground"[39m
+                          [36m>[39m
+                            [0mNew tab (foreground)[0m
+                          [36m</option>[39m
+                          [36m<option[39m
+                            [33mvalue[39m=[32m"new-tab-background"[39m
+                          [36m>[39m
+                            [0mNew tab (background)[0m
+                          [36m</option>[39m
+                          [36m<option[39m
+                            [33mvalue[39m=[32m"new-window"[39m
+                          [36m>[39m
+                            [0mNew window[0m
+                          [36m</option>[39m
+                        [36m</select>[39m
+                        [36m<svg[39m
+                          [33maria-hidden[39m=[32m"true"[39m
+                          [33mclass[39m=[32m"lucide lucide-chevron-down pointer-events-none absolute right-3 top-0 bottom-0 my-auto text-stone-500 dark:text-stone-300"[39m
+                          [33mfill[39m=[32m"none"[39m
+                          [33mheight[39m=[32m"16"[39m
+                          [33mstroke[39m=[32m"currentColor"[39m
+                          [33mstroke-linecap[39m=[32m"round"[39m
+                          [33mstroke-linejoin[39m=[32m"round"[39m
+                          [33mstroke-width[39m=[32m"2"[39m
+                          [33mviewBox[39m=[32m"0 0 24 24"[39m
+                         ...
+[36m [2m❯[22m tests/ui/OptionsApp.test.tsx:[2m178:41[22m[39m
+    [90m176|[39m
+    [90m177|[39m     [35mawait[39m [34mwaitFor[39m(() [33m=>[39m
+    [90m178|[39m       [34mexpect[39m(browser[33m.[39mstorage[33m.[39mlocal[33m.[39m[35mset[39m)[33m.[39m[34mtoHaveBeenCalledWith[39m({
+    [90m   |[39m                                         [31m^[39m
+    [90m179|[39m         [32m"pastPage.settings"[39m[33m:[39m {
+    [90m180|[39m           [33m...[39m[33mDEFAULT_SETTINGS[39m[33m,[39m
+[90m [2m❯[22m runWithExpensiveErrorDiagnosticsDisabled ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:[2m47:12[22m[39m
+[90m [2m❯[22m checkCallback ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:[2m124:77[22m[39m
+[90m [2m❯[22m Timeout.checkRealTimersCallback ../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:[2m118:16[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m28 passed[39m[22m[90m (30)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m151 passed[39m[22m[90m (153)[39m
+[2m   Start at [22m 23:13:30
+[2m   Duration [22m 8.38s[2m (transform 1.88s, setup 2.82s, import 6.15s, tests 14.94s, environment 24.48s)[22m
+

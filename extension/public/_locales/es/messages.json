@@ -1,0 +1,8 @@
+{
+  "extensionName": {
+    "message": "PastPage: Query 10+ Web Archives at Once"
+  },
+  "extensionDescription": {
+    "message": "Recupera páginas desaparecidas y compara versiones archivadas con Wayback Machine en archive.org y otros archivos web."
+  }
+}

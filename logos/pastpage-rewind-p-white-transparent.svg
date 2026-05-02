@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1248 1248" width="1248" height="1248" role="img" aria-labelledby="title desc">
+  <title id="title">PastPage Rewind P Logo</title>
+  <desc id="desc">A minimal white capital P with a transparent left-facing arrow cut out of the upper bowl.</desc>
+  <path
+    fill="#FFFFFF"
+    fill-rule="evenodd"
+    d="M310 208
+       C310 197 319 188 330 188
+       L674 188
+       C846 188 962 302 962 486
+       C962 671 846 785 674 785
+       L535 785
+       L535 1038
+       C535 1049 526 1058 515 1058
+       L330 1058
+       C319 1058 310 1049 310 1038
+       Z
+       M476 490
+       L635 360
+       C642 354 653 359 653 369
+       L653 431
+       L772 431
+       C781 431 788 438 788 447
+       L788 533
+       C788 542 781 549 772 549
+       L653 549
+       L653 612
+       C653 622 642 627 635 621
+       Z"/>
+</svg>

@@ -1,0 +1,21 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["vitest/globals"]
+  },
+  "include": [
+    ".wxt/wxt.d.ts",
+    "entrypoints",
+    "src",
+    "tests",
+    "playwright.config.ts",
+    "wxt.config.ts",
+    "vitest.config.ts"
+  ]
+}
