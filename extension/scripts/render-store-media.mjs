@@ -395,27 +395,27 @@ async function main() {
       page,
       path.join(screenshotsDir, "options-privacy-settings.png"),
       cardShell({
-        title: "Tune privacy, history, and archive behavior",
-        subtitle: "Settings stay local in the browser and let users control matching mode, provider order, history, and visual behavior.",
-        body: "PastPage exposes the key controls reviewers expect from a privacy-first archive workflow.",
+        title: "Tune how PastPage works for you",
+        subtitle: "All settings stay in your browser. Control how results open, which archives to use, how the extension looks, and whether lookups are saved.",
+        body: "PastPage puts you in control — adjust every detail to fit your workflow.",
         chips: ["Local settings", "Optional history", "Provider controls"],
         panel: `
           <div class="grid twoCol">
             <div class="item">
               <strong>Recovery behavior</strong>
-              <span>Choose how archive results open and whether the resolver stays open after a hit.</span>
+              <span>Choose how archive results open and whether the resolver stays visible after finding a match.</span>
             </div>
             <div class="item">
               <strong>Archive settings</strong>
-              <span>Enable providers, reorder them, and tailor archive behavior to the kinds of URLs you investigate.</span>
+              <span>Enable or disable providers and reorder them to prioritize the archives most relevant to you.</span>
+            </div>
+            <div class="item">
+              <strong>Appearance</strong>
+              <span>Pick a light or dark notification bar, or set a custom color to match your taste.</span>
             </div>
             <div class="item">
               <strong>History</strong>
-              <span>Save archive lookups locally, disable future history writing, or clear saved history from the extension UI.</span>
-            </div>
-            <div class="item">
-              <strong>Support and privacy</strong>
-              <span>Direct links to privacy, support, and source code stay available without depending on a separate backend.</span>
+              <span>Save lookups locally for later reference, or keep the extension stateless — your choice.</span>
             </div>
           </div>`
       })
