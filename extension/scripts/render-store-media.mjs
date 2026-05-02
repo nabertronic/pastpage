@@ -287,16 +287,28 @@ function buildPopupPanel(icons) {
   return `
     <div style="position:relative;margin:-26px;min-height:600px;overflow:hidden;">
       <div style="position:absolute;inset:0;background:#fff;overflow:hidden;font-family:'Georgia',serif;">
-        <div style="background:#fff;border-bottom:1px solid #e2e2e2;display:flex;align-items:center;justify-content:center;padding:10px 24px;position:relative;">
-          <div style="position:absolute;left:24px;font:400 11px/1 ui-sans-serif,sans-serif;color:#999;text-transform:uppercase;letter-spacing:0.08em;">Thursday, March 30, 2013</div>
-          <div style="font:700 30px/1 'Times New Roman',serif;color:#000;letter-spacing:-0.01em;">The New York Times</div>
+        <div style="background:#fff;border-bottom:1px solid #dfdfdf;text-align:center;padding:14px 24px 12px;">
+          <div style="font:400 34px/1 'Times New Roman','Old English Text MT',serif;color:#000;letter-spacing:-0.01em;">The New York Times</div>
         </div>
-        <div style="max-width:580px;padding:20px 32px;">
-          <div style="font:700 11px/1 ui-sans-serif,sans-serif;color:#333;letter-spacing:0.12em;text-transform:uppercase;border-bottom:2px solid #333;padding-bottom:6px;display:inline-block;margin-bottom:14px;">Science</div>
-          <h2 style="font:700 30px/1.1 'Georgia',serif;color:#111;margin:0 0 12px;letter-spacing:-0.01em;">Yvonne Brill, a Pioneering Rocket Scientist, Dies at 88</h2>
-          <div style="font:400 12px/1.4 ui-sans-serif,sans-serif;color:#666;margin-bottom:16px;border-bottom:1px solid #e2e2e2;padding-bottom:12px;">By WILLIAM GRIMES · Published March 30, 2013</div>
-          <p style="font:400 18px/1.7 'Georgia',serif;color:#333;margin:0 0 14px;">She made a mean beef stroganoff, followed her husband from job to job and took eight years off from work to raise three children. "The world's best mom," her son Matthew said.</p>
-          <p style="font:400 18px/1.7 'Georgia',serif;color:#333;margin:0;">But Yvonne Brill, who died on Wednesday in Princeton, N.J., was also a brilliant rocket scientist who in the early 1970s invented a propulsion system to keep communications satellites in the proper orbit.</p>
+        <div style="max-width:620px;padding:24px 36px 0;">
+          <h2 style="font:700 italic 38px/1.1 'Georgia',serif;color:#111;margin:0 0 18px;letter-spacing:-0.02em;">Yvonne Brill, a Pioneering Rocket<br>Scientist, Dies at 88</h2>
+          <div style="border-top:1px solid #dfdfdf;border-bottom:1px solid #dfdfdf;padding:12px 0;margin-bottom:14px;display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid #ccc;border-radius:999px;font:400 13px/1 ui-sans-serif,sans-serif;color:#333;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              Share full article
+            </div>
+            <div style="width:36px;height:36px;border:1px solid #ccc;border-radius:50%;display:grid;place-items:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <div style="font:700 15px/1 ui-sans-serif,sans-serif;color:#333;text-decoration:underline;margin-bottom:4px;">By Douglas Martin</div>
+            <div style="font:400 14px/1 ui-sans-serif,sans-serif;color:#666;">March 30, 2013</div>
+          </div>
+          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">She was a brilliant rocket scientist who followed her husband from job to job and took eight years off from work to raise three children. &#x201C;The world&#x2019;s best mom,&#x201D; her son Matthew said.</p>
+          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">Yvonne Brill, who died on Wednesday at 88 in Princeton, N.J., in the early 1970s invented a propulsion system to help keep communications satellites from slipping out of their orbits.</p>
+          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0 0 18px;">The system became the industry standard, and it was the achievement President Obama mentioned in 2011 in presenting her with the National Medal of Technology and Innovation.</p>
+          <p style="font:400 19px/1.75 'Georgia',serif;color:#111;margin:0;">Her personal and professional balancing act also won notice. In 1980, Harper&#x2019;s Bazaar magazine and the DeBeers Corporation gave her their Diamond Superwoman award for returning to a successful career after starting a family.</p>
         </div>
       </div>
       <div style="
@@ -472,6 +484,89 @@ function buildHistoryPanel() {
     </div>`;
 }
 
+function buildResolverPanel() {
+  const targetUrl = "https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html";
+  const archiveUrl = "https://web.archive.org/web/20230814120432/https://www.nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html";
+
+  const btnPrimary = (label) => `
+    <div style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;background:#ffd400;color:#17130a;border:1px solid rgba(23,19,10,0.18);font:600 13px/1 ui-sans-serif,sans-serif;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      ${label}
+    </div>`;
+  const btnSecondary = (label) => `
+    <div style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:7px;background:white;color:#44403c;border:1px solid #e7e5e4;font:500 13px/1 ui-sans-serif,sans-serif;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      ${label}
+    </div>`;
+
+  const snapshotCard = (provider, ts, url, primary = false) => `
+    <div style="border-radius:8px;background:#f5f5f4;padding:8px;${primary ? "" : ""}">
+      <div style="display:flex;align-items:center;gap:8px;padding:0 4px;margin-bottom:4px;">
+        <span style="font:600 12px/1 ui-sans-serif,sans-serif;color:#1c1917;">${provider}</span>
+        <span style="font:400 11px/1 ui-sans-serif,sans-serif;color:#78716c;letter-spacing:0.06em;text-transform:uppercase;">${ts}</span>
+      </div>
+      <p style="margin:0 0 8px;padding:0 4px;font:400 11px/1.5 ui-sans-serif,sans-serif;color:#57534e;word-break:break-all;">${url}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">${btnPrimary("Open archived version")}${btnSecondary("Copy archive link")}</div>
+    </div>`;
+
+  return `
+    <div style="margin:-26px;overflow:hidden;background:radial-gradient(ellipse at top,rgba(245,200,0,0.06),transparent 55%),linear-gradient(160deg,#ffffff 0%,#f8f8f8 100%);padding:20px 24px;font-family:ui-sans-serif,system-ui,sans-serif;min-height:560px;">
+      <header style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;">
+        <div style="width:40px;height:40px;border-radius:8px;background:#ffd400;display:grid;place-items:center;flex-shrink:0;margin-top:2px;box-shadow:0 10px 30px rgba(255,212,0,0.28);">
+          <svg aria-hidden="true" viewBox="0 0 1248 1248" width="21" height="21" style="display:block"><path fill="white" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
+        </div>
+        <div>
+          <h1 style="margin:0;font:600 22px/1.2 ui-sans-serif,sans-serif;color:#0c0a09;">Checking archived versions</h1>
+          <p style="margin:4px 0 0;font:400 13px/1.5 ui-sans-serif,sans-serif;color:#57534e;max-width:560px;">PastPage checks archived captures across multiple providers.</p>
+        </div>
+      </header>
+
+      <div style="border-radius:8px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.95);padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display:flex;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#ffd400;display:grid;place-items:center;flex-shrink:0;margin-top:2px;">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#17130a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v3"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><circle cx="5" cy="17" r="3"/><path d="m9 21-1.5-1.5"/></svg>
+          </div>
+          <div style="min-width:0;flex:1;">
+            <h2 style="margin:0 0 4px;font:600 15px/1 ui-sans-serif,sans-serif;color:#0c0a09;">Current source</h2>
+            <p style="margin:0 0 10px;font:400 13px/1.5 ui-sans-serif,sans-serif;color:#57534e;">Checking archived versions for this page.</p>
+            <div style="border-radius:8px;background:#f5f5f4;padding:8px;">
+              <p style="margin:0 0 8px;padding:0 4px;font:400 11px/1.5 ui-sans-serif,sans-serif;color:#57534e;word-break:break-all;">${targetUrl}</p>
+              <div style="display:flex;gap:8px;">
+                ${btnPrimary("Open current page")}${btnSecondary("Copy URL")}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-radius:8px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.95);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display:flex;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:#ffd400;color:#17130a;display:grid;place-items:center;flex-shrink:0;margin-top:2px;">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div style="min-width:0;flex:1;">
+            <h2 style="margin:0 0 2px;font:600 15px/1 ui-sans-serif,sans-serif;color:#0c0a09;">Archived version found on Wayback Machine</h2>
+            ${snapshotCard("Wayback Machine", "20230814120432", archiveUrl)}
+
+            <div style="border-top:1px solid #e7e5e4;margin-top:12px;padding-top:12px;">
+              <h3 style="margin:0 0 8px;font:600 13px/1 ui-sans-serif,sans-serif;color:#1c1917;">Other archived versions found</h3>
+              ${snapshotCard("Archive.today", "20220601083211", "https://archive.ph/6ZkLm")}
+            </div>
+
+            <div style="border-top:1px solid #e7e5e4;margin-top:12px;padding-top:12px;">
+              <h3 style="margin:0 0 8px;font:600 13px/1 ui-sans-serif,sans-serif;color:#1c1917;">Check Other archive sources</h3>
+              ${["Ghostarchive", "Arquivo.pt", "UK Web Archive"].map(name => `
+                <div style="border-radius:8px;background:#f5f5f4;padding:8px;margin-bottom:6px;">
+                  <div style="padding:0 4px;margin-bottom:8px;font:600 12px/1 ui-sans-serif,sans-serif;color:#1c1917;">${name}</div>
+                  <div style="display:flex;gap:8px;">${btnSecondary(`Check on ${name}`)}</div>
+                </div>`).join("")}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 async function renderPromoTile(page) {
   const iconSvg = LOGO_MARK_SVG;
   await screenshotHtml(
@@ -624,29 +719,11 @@ async function main() {
       page,
       path.join(screenshotsDir, "resolver-results.png"),
       cardShell({
-        title: "All archives searched at once — original and cleaned URLs",
-        subtitle: "PastPage queries every enabled archive in parallel, using both the exact URL and optimised clean variants to surface results that a direct lookup would miss.",
-        body: "Parallel searches across all archives — no waiting, no manual switching.",
+        title: "All archives searched — best match surfaced instantly",
+        subtitle: "PastPage queries every enabled archive in parallel and shows the best available snapshot the moment results arrive.",
         chips: [],
-        panel: `
-          <div class="grid twoCol">
-            <div class="item">
-              <strong>Parallel archive queries</strong>
-              <span>All enabled archives are searched simultaneously — results appear as they arrive, with no sequential waiting.</span>
-            </div>
-            <div class="item">
-              <strong>Original and clean URLs</strong>
-              <span>Each archive is queried with the exact URL and with a stripped, canonical version to catch captures stored under a simpler address.</span>
-            </div>
-            <div class="item">
-              <strong>Manual archive search</strong>
-              <span>For every archive without an automatic result, a direct search link is offered so nothing is left unexamined.</span>
-            </div>
-            <div class="item">
-              <strong>Cache lookup (Yandex)</strong>
-              <span>Beyond classic archives, cached page sources are included in the search to maximise the chance of finding a saved version.</span>
-            </div>
-          </div>`
+        body: "",
+        panel: buildResolverPanel()
       })
     );
 
@@ -685,7 +762,7 @@ async function main() {
       path.join(screenshotsDir, "history.png"),
       cardShell({
         title: "Every archive lookup, saved and searchable",
-        subtitle: "The history page gives a full view of past searches with outcomes, timestamps, confirmed snapshots, and filters.",
+        subtitle: "Browse saved archive lookups in a dedicated, filterable table view.",
         chips: [],
         body: "",
         panel: buildHistoryPanel()
