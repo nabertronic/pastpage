@@ -502,6 +502,11 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
 
 function OutcomeBadge({ outcome }: { outcome: HistoryOutcome }) {
   const { t } = useI18n();
+  const labels: Record<HistoryOutcome, "options.history.outcome.hit" | "options.history.outcome.miss" | "options.history.outcome.unknown"> = {
+    hit: "options.history.outcome.hit",
+    miss: "options.history.outcome.miss",
+    unknown: "options.history.outcome.unknown"
+  };
   const classes = {
     hit: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
     miss: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
@@ -519,16 +524,30 @@ function OutcomeBadge({ outcome }: { outcome: HistoryOutcome }) {
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${classes[outcome]}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${dotClasses[outcome]}`} />
-      {t(`options.history.outcome.${outcome}` as const)}
+      {t(labels[outcome])}
     </span>
   );
 }
 
 function TriggerChip({ trigger }: { trigger: HistoryTrigger }) {
   const { t } = useI18n();
+  const labels: Record<
+    HistoryTrigger,
+    | "options.history.trigger.broken-page"
+    | "options.history.trigger.manual-page"
+    | "options.history.trigger.context-menu"
+    | "options.history.trigger.provider-direct"
+    | "options.history.trigger.all-archives"
+  > = {
+    "broken-page": "options.history.trigger.broken-page",
+    "manual-page": "options.history.trigger.manual-page",
+    "context-menu": "options.history.trigger.context-menu",
+    "provider-direct": "options.history.trigger.provider-direct",
+    "all-archives": "options.history.trigger.all-archives"
+  };
   return (
     <span className="inline-flex rounded-full bg-stone-100 px-2 py-0.5 text-[11px] text-stone-600 dark:bg-stone-800 dark:text-stone-400">
-      {t(`options.history.trigger.${trigger}` as const)}
+      {t(labels[trigger])}
     </span>
   );
 }

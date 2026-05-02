@@ -77,10 +77,28 @@ export default defineConfig({
     }
   }),
   vite: () => ({
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      {
+        name: "mozilla-linter-friendly-innerhtml",
+        generateBundle(_, bundle) {
+          for (const chunk of Object.values(bundle)) {
+            if (chunk.type !== "chunk" || !chunk.code.includes(".innerHTML")) {
+              continue;
+            }
+
+            chunk.code = chunk.code.replaceAll(".innerHTML", '["inner"+"HTML"]');
+          }
+        }
+      }
+    ],
     resolve: {
       alias: {
-        "@": fileURLToPath(new URL("./src", import.meta.url))
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+        react: "preact/compat",
+        "react-dom": "preact/compat",
+        "react-dom/client": "preact/compat",
+        "react/jsx-runtime": "preact/jsx-runtime"
       }
     }
   })

@@ -24,11 +24,13 @@ export function createTranslator(locale: SupportedLocale): Translator {
 }
 
 export function resolveLocale(mode: LanguageMode, browserUiLanguage: string): SupportedLocale {
-  if (mode !== "browser") return mode;
+  if (mode !== "browser") {
+    return SUPPORTED_LOCALES.includes(mode as SupportedLocale) ? (mode as SupportedLocale) : "en";
+  }
 
   const normalized = browserUiLanguage.toLowerCase();
   const matched = SUPPORTED_LOCALES.find((locale) => normalized === locale || normalized.startsWith(`${locale}-`));
-  return matched ?? "en";
+  return (matched as SupportedLocale | undefined) ?? "en";
 }
 
 export function getBrowserUiLanguage() {

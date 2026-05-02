@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../lib/mini-zod";
 import type { DetectedError } from "./tabState";
 
 export const BrokenPageLookupRequestSchema = z.object({

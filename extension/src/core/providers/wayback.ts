@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../../lib/mini-zod";
 import { WAYBACK_CDX_ENDPOINT } from "../constants";
 import type { ProviderHostSettings, WaybackHost } from "../providerHosts";
 import { buildWaybackBaseUrl } from "../providerHosts";

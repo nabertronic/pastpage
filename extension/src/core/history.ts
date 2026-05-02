@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../lib/mini-zod";
 import { ProviderIdSchema } from "./providers/types";
 
 export const HistoryTriggerSchema = z.enum([

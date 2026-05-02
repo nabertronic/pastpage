@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../lib/mini-zod";
 
 export const WAYBACK_HOST_OPTIONS = [
   "web.archive.org",

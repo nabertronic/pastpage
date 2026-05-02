@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../../lib/mini-zod";
 import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshot } from "../tabState";
 import type { AutomaticArchiveProvider } from "./types";

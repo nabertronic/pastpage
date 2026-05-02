@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../lib/mini-zod";
 import {
   ArchiveTodayHostSchema,
   DEFAULT_PROVIDER_HOST_SETTINGS,

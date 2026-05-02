@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "../lib/mini-zod";
 import { HistoryTriggerSchema } from "./history";
 import { LookupRequestSchema } from "./lookupRequest";
 import { SettingsSchema } from "./settings";

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, History, ScanSearch, Settings } from "lucide-react";
+import { ChevronDown, ExternalLink, History, ScanSearch, Settings } from "lucide-react";
 import { Button, LinkButton } from "./Button";
 import { explainDetectedError } from "../core/errors";
 import { createBrokenPageLookupRequest, createManualPageLookupRequest } from "../core/lookupRequest";
