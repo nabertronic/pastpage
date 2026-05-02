@@ -766,7 +766,7 @@ async function main() {
       path.join(screenshotsDir, "history.png"),
       cardShell({
         title: "Every archive lookup, saved and searchable",
-        subtitle: "Browse saved archive lookups in a dedicated, filterable table view.",
+        subtitle: "Keep a local record of every search — filter by domain, outcome, or date, and rerun any lookup with one click.",
         chips: [],
         body: "",
         panel: buildHistoryPanel()
