@@ -8,7 +8,7 @@ This policy explains what PastPage stores locally, when data leaves the browser,
 
 ## Operator
 
-PastPage is maintained by Nabert.
+PastPage is maintained by Alexander Nabert.
 
 - Contact email: `nabert@pm.me`
 - Project repository: <https://github.com/nabertronic/pastpage>
