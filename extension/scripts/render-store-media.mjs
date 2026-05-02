@@ -428,25 +428,44 @@ async function main() {
       cardShell({
         title: "Recover missing pages from the failure screen",
         subtitle: "PastPage detects error pages and offers archive recovery right where the original page failed.",
-        chips: ["404 ready", "No account required", "Starts lookup on click"],
+        chips: [],
         notificationBar: PASTPAGE_TOPBAR_HTML,
-        body: "404 / Page Not Found",
+        body: "",
         panel: `
-          <p style="margin: 0 0 24px; font-size: 18px; line-height: 1.6; color: #57534e;">
-            We couldn't find that page. <span style="text-decoration: underline; color: #1c1917;">Back to home</span>.
-          </p>
-          <div style="
-            background: #f0ede6;
-            border-radius: 10px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            gap: 12px;
-            max-width: 560px;
-          ">
-            <span style="color: #78716c; font-size: 15px; flex: 1; font-family: ui-sans-serif, system-ui, sans-serif;">Search the site…</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <div style="margin: -26px; overflow: hidden; font-family: 'Georgia', serif; background: #fff;">
+            <nav style="background: #1a2744; padding: 0 28px; display: flex; align-items: center; gap: 0; height: 52px;">
+              <div style="display: flex; align-items: center; gap: 6px; color: #fff; font: 600 13px/1 ui-sans-serif, sans-serif; margin-right: 24px; opacity: 0.9;">
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect y="0" width="16" height="2"/><rect y="5" width="16" height="2"/><rect y="10" width="16" height="2"/></svg>
+                MENU
+              </div>
+              <div style="flex: 1; text-align: center; color: white; line-height: 1.1;">
+                <div style="font: 700 15px/1 'Georgia', serif; letter-spacing: 0.12em; text-transform: uppercase;">The White House</div>
+                <div style="font: 400 10px/1 ui-sans-serif, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; margin-top: 3px; opacity: 0.75;">Washington</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; color: #fff; font: 600 13px/1 ui-sans-serif, sans-serif; margin-left: 24px; opacity: 0.9;">
+                SEARCH
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+            </nav>
+            <nav style="background: #1a2744; border-top: 1px solid rgba(255,255,255,0.12); display: flex; justify-content: center; gap: 0;">
+              ${["NEWS","GALLERY","LIVESTREAM","INVESTMENTS","SAVE AMERICA","WH WIRE","CONTACT"].map(item =>
+                `<div style="color: rgba(255,255,255,0.88); font: 600 12px/1 ui-sans-serif, sans-serif; letter-spacing: 0.08em; padding: 13px 18px; white-space: nowrap;">${item}</div>`
+              ).join("")}
+            </nav>
+            <div style="padding: 72px 40px 64px; text-align: center;">
+              <h2 style="margin: 0 0 16px; font: 400 52px/1.1 'Georgia', serif; color: #1a1a1a; letter-spacing: -0.01em;">404 / Page Not Found</h2>
+              <p style="margin: 0 0 40px; font: 400 18px/1.6 ui-sans-serif, sans-serif; color: #444;">
+                We couldn't find that page. <span style="text-decoration: underline; color: #1a1a1a; cursor: pointer;">Back to home</span>.
+              </p>
+              <div style="
+                max-width: 540px; margin: 0 auto;
+                background: #edeae3; border-radius: 4px; height: 52px;
+                display: flex; align-items: center; padding: 0 18px; gap: 12px;
+              ">
+                <span style="flex: 1; font: 400 16px/1 ui-sans-serif, sans-serif; color: #888;">Search WhiteHouse.gov</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </div>
+            </div>
           </div>`
       })
     );
