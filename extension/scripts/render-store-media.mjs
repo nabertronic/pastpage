@@ -752,7 +752,7 @@ async function main() {
       page,
       path.join(screenshotsDir, "resolver.png"),
       cardShell({
-        title: "All archives searched — best match surfaced instantly",
+        title: "All archives searched. Best match surfaced instantly.",
         subtitle: "PastPage queries every enabled archive in parallel and shows the best available snapshot the moment results arrive.",
         chips: [],
         body: "",
