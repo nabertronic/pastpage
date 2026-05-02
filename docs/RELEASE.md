@@ -27,7 +27,7 @@ Update the release version consistently in:
 - Chrome and Firefox builds are generated separately.
 - Store metadata, screenshots, and support links must all use the `PastPage` name.
 - Do not ship placeholder or guessed store URLs in the extension UI.
-- Add store URLs to `extension/src/core/constants.ts` only after the corresponding listing is live.
+- Keep `extension/src/core/constants.ts` aligned with the live store listings.
 
 ## Regression Checks Worth Doing Before Publish
 

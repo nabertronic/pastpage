@@ -7,7 +7,7 @@ If an archived version of a disappeared or changed page still exists in a releva
 ## Install
 
 - Chrome Web Store: coming soon
-- Firefox Add-ons: coming soon
+- Firefox Add-ons: <https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/>
 - Development builds: package locally from this repository
 
 ## Why Install PastPage

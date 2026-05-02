@@ -129,7 +129,7 @@ Certifications:
 
 - Manifest includes `browser_specific_settings.gecko.id`.
 - Manifest includes `browser_specific_settings.gecko.data_collection_permissions.required = ["none"]`.
-- Listing URL is not live yet and should be filled in only after AMO creates the public page.
+- Public listing URL: <https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/>
 
 ## Media Checklist
 
@@ -154,3 +154,4 @@ Certifications:
 - Support: <https://github.com/nabertronic/pastpage/blob/main/docs/SUPPORT.md>
 - Reviewer notes: <https://github.com/nabertronic/pastpage/blob/main/docs/REVIEW_NOTES.md>
 - Firefox source notes: <https://github.com/nabertronic/pastpage/blob/main/docs/FIREFOX_SOURCE_PACKAGE.md>
+- Firefox Add-ons listing: <https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/>

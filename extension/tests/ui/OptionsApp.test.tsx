@@ -86,7 +86,7 @@ describe("OptionsApp", () => {
     expect(screen.queryByRole("button", { name: /show archive icons in context menu/i })).not.toBeInTheDocument();
   });
 
-  it("hides review listing links when no store listing is configured", async () => {
+  it("shows the Firefox review listing when a Firefox store URL is configured", async () => {
     (browser.runtime.getURL as unknown as ReturnType<typeof vi.fn>).mockReturnValue("chrome-extension://test/");
 
     const { rerender } = render(<OptionsApp />);
@@ -101,7 +101,10 @@ describe("OptionsApp", () => {
     const firefoxReviewSection = (await screen.findByRole("heading", { name: "Review the extension" })).closest("section");
 
     expect(firefoxReviewSection).not.toBeNull();
-    expect(within(firefoxReviewSection as HTMLElement).queryByRole("link", { name: "Firefox Add-ons" })).not.toBeInTheDocument();
+    expect(within(firefoxReviewSection as HTMLElement).getByRole("link", { name: "Firefox Add-ons" })).toHaveAttribute(
+      "href",
+      "https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/"
+    );
     expect(within(firefoxReviewSection as HTMLElement).queryByRole("link", { name: "Chrome Web Store" })).not.toBeInTheDocument();
   });
 

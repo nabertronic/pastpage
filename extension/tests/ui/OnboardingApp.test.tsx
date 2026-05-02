@@ -23,7 +23,10 @@ describe("OnboardingApp", () => {
     expect(screen.getByText("Open PastPage gear menu")).toBeInTheDocument();
     expect(screen.getByText("Pin to Toolbar")).toBeInTheDocument();
     expect(screen.queryByText("PASTPAGE")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Rate on Firefox" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Rate on Firefox" })).toHaveAttribute(
+      "href",
+      "https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/"
+    );
   });
 
   it("opens the settings page in a tab from the customize action", async () => {

@@ -7,7 +7,7 @@ export const DEFAULT_ACCENT_COLOR = "#ffd400";
 export const GITHUB_URL = "https://github.com/nabertronic/pastpage";
 export const SUPPORT_URL = "https://github.com/nabertronic/pastpage/blob/main/docs/SUPPORT.md";
 export const CHROME_WEB_STORE_URL = null;
-export const FIREFOX_ADDONS_URL = null;
+export const FIREFOX_ADDONS_URL = "https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/";
 export const LICENSE_URL = "https://github.com/nabertronic/pastpage/blob/main/LICENSE";
 export const PRIVACY_URL = "https://github.com/nabertronic/pastpage/blob/main/docs/PRIVACY.md";
 

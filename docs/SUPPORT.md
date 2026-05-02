@@ -7,6 +7,7 @@ PastPage is maintained by Alexander Nabert.
 - Email: `nabert@pm.me`
 - Project repository: <https://github.com/nabertronic/pastpage>
 - Issue tracker: <https://github.com/nabertronic/pastpage/issues>
+- Firefox Add-ons listing: <https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/>
 
 ## What To Include In A Support Request
 
