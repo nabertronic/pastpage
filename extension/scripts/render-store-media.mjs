@@ -68,6 +68,9 @@ const extensionDir = path.resolve(__dirname, "..");
 const artifactsDir = path.join(rootDir, "artifacts", "store-assets");
 const screenshotsDir = path.join(artifactsDir, "screenshots");
 const chromeDir = path.join(artifactsDir, "chrome");
+const chromeScreenshotsDir = path.join(chromeDir, "screenshots-1280x800");
+const chromeLocalizedDir = path.join(chromeDir, "localized-screenshots-1280x800");
+const chromeGlobalDir = path.join(chromeDir, "global-screenshots-1280x800");
 
 async function ensureDir(dir) {
   await fs.mkdir(dir, { recursive: true });
@@ -239,10 +242,93 @@ function cardShell({ title, subtitle, body, chips = [], panel, notificationBar =
     </html>`;
 }
 
-async function screenshotHtml(page, filePath, html, viewport = { width: 1440, height: 1024 }) {
+async function screenshotHtml(page, filePath, html, viewport = { width: 1440, height: 1024 }, options = { fullPage: true }) {
   await page.setViewportSize(viewport);
   await page.setContent(html);
-  await page.screenshot({ path: filePath, fullPage: true });
+  await page.screenshot({ path: filePath, fullPage: options.fullPage });
+}
+
+async function exportChromeScreenshot(page, sourcePath, outputPath, size = { width: 1280, height: 800 }) {
+  const image = await fs.readFile(sourcePath);
+  const mimeType = path.extname(sourcePath).toLowerCase() === ".jpg" ? "image/jpeg" : "image/png";
+  const dataUrl = `data:${mimeType};base64,${image.toString("base64")}`;
+
+  await page.setViewportSize(size);
+  await page.setContent(`<!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          * { box-sizing: border-box; }
+          body {
+            margin: 0;
+            width: ${size.width}px;
+            height: ${size.height}px;
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            background:
+              radial-gradient(circle at top right, rgba(255, 212, 0, 0.16), transparent 26%),
+              linear-gradient(180deg, #fffbeb 0%, #fffef8 48%, #f6f3ea 100%);
+          }
+          .frame {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 0;
+          }
+          img {
+            width: ${size.width}px;
+            height: ${size.height}px;
+            object-fit: contain;
+            display: block;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="frame">
+          <img src="${dataUrl}" alt="" />
+        </div>
+      </body>
+    </html>`);
+  await page.screenshot({ path: outputPath, type: "jpeg", quality: 92 });
+}
+
+async function exportChromeScreenshotPng(page, sourcePath, outputPath, size = { width: 1280, height: 800 }) {
+  const image = await fs.readFile(sourcePath);
+  const mimeType = path.extname(sourcePath).toLowerCase() === ".jpg" ? "image/jpeg" : "image/png";
+  const dataUrl = `data:${mimeType};base64,${image.toString("base64")}`;
+
+  await page.setViewportSize(size);
+  await page.setContent(`<!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          * { box-sizing: border-box; }
+          body {
+            margin: 0;
+            width: ${size.width}px;
+            height: ${size.height}px;
+            overflow: hidden;
+            background: #fffef8;
+            display: grid;
+            place-items: center;
+          }
+          img {
+            width: ${size.width}px;
+            height: ${size.height}px;
+            object-fit: contain;
+            display: block;
+          }
+        </style>
+      </head>
+      <body>
+        <img src="${dataUrl}" alt="" />
+      </body>
+    </html>`);
+  await page.screenshot({ path: outputPath });
 }
 
 async function loadProviderIcons() {
@@ -624,11 +710,11 @@ async function renderPromoTile(page) {
           <div style="display:grid; grid-template-columns:128px 1fr; height:280px;">
 
             <!-- Left yellow column -->
-            <div style="background:#ffd400; display:flex; flex-direction:column; justify-content:space-between; padding:24px 20px;">
+            <div style="background:#ffd400; display:flex; flex-direction:column; justify-content:flex-start; padding:24px 20px;">
               <svg aria-hidden="true" viewBox="0 0 1248 1248" width="38" height="38" style="display:block">
                 <path fill="#17130a" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/>
               </svg>
-              <div style="font:700 13px/1.2 ui-sans-serif,sans-serif; letter-spacing:0.04em; color:#17130a;">Past<br>Page</div>
+              <div style="margin-top:12px; font:800 20px/1 ui-sans-serif,sans-serif; letter-spacing:-0.02em; color:#17130a;">PastPage</div>
             </div>
 
             <!-- Right content column -->
@@ -636,25 +722,90 @@ async function renderPromoTile(page) {
 
               <div>
                 <div style="font:600 11px/1 ui-sans-serif,sans-serif; letter-spacing:0.14em; text-transform:uppercase; color:#a8a29e; margin-bottom:14px;">Web archive recovery</div>
-                <h1 style="font:700 28px/1.08 ui-sans-serif,sans-serif; letter-spacing:-0.025em; color:#0c0a09; max-width:240px;">Recover any missing web page</h1>
+                <h1 style="font:700 30px/1.02 ui-sans-serif,sans-serif; letter-spacing:-0.03em; color:#0c0a09; max-width:220px;">Recover missing pages</h1>
               </div>
 
               <div>
-                <p style="font:400 13px/1.55 ui-sans-serif,sans-serif; color:#57534e; margin-bottom:16px;">Searches Wayback Machine, Archive.today, and 10 more archives in one click.</p>
-                <div style="border-top:1px solid #e7e5e4; padding-top:12px; font:400 11px/1 ui-sans-serif,sans-serif; letter-spacing:0.06em; text-transform:uppercase; color:#a8a29e;">No tracking. No analytics. No telemetry.</div>
+                <p style="font:500 14px/1.45 ui-sans-serif,sans-serif; color:#57534e; margin-bottom:0; max-width:220px;">Search the Wayback Machine plus 10 more archives from the page you are viewing.</p>
               </div>
 
             </div>
           </div>
         </body>
       </html>`,
-    { width: 440, height: 280 }
+    { width: 440, height: 280 },
+    { fullPage: false }
+  );
+}
+
+async function renderMarqueeTile(page) {
+  await screenshotHtml(
+    page,
+    path.join(chromeDir, "marquee-tile-1400x560.png"),
+    `<!doctype html>
+      <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+              width: 1400px;
+              height: 560px;
+              overflow: hidden;
+              background:
+                radial-gradient(circle at 82% 18%, rgba(255, 212, 0, 0.22), transparent 22%),
+                linear-gradient(135deg, #fffdf6 0%, #f8f4e8 52%, #efe7d2 100%);
+              font-family: ui-sans-serif, system-ui, sans-serif;
+              color: #0c0a09;
+            }
+          </style>
+        </head>
+        <body>
+          <div style="display:grid; grid-template-columns: 336px 1fr; width:1400px; height:560px;">
+            <div style="background:#ffd400; padding:42px 38px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div style="display:grid; gap:18px;">
+                <div style="display:grid; place-items:center; width:112px; height:112px; border-radius:28px; background:rgba(12,10,9,0.08);">
+                  <svg aria-hidden="true" viewBox="0 0 1248 1248" width="56" height="56" style="display:block">
+                    <path fill="#17130a" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style="font:700 18px/1 ui-sans-serif,sans-serif; letter-spacing:0.16em; text-transform:uppercase; color:#17130a; opacity:0.72;">PastPage</div>
+                  <div style="margin-top:14px; font:800 54px/0.94 ui-sans-serif,sans-serif; letter-spacing:-0.04em; color:#17130a; max-width:220px;">Recover missing pages</div>
+                </div>
+              </div>
+              <div style="font:600 18px/1.4 ui-sans-serif,sans-serif; color:#17130a; max-width:220px;">
+                Search the Wayback Machine and other archives without leaving the page.
+              </div>
+            </div>
+
+            <div style="padding:48px 56px; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="font:700 15px/1 ui-sans-serif,sans-serif; letter-spacing:0.18em; text-transform:uppercase; color:#a16207;">Web archive recovery</div>
+                <h1 style="margin-top:18px; font:800 72px/0.96 ui-sans-serif,sans-serif; letter-spacing:-0.05em; color:#0c0a09; max-width:760px;">
+                  Find archived versions fast and rescue broken links.
+                </h1>
+                <p style="margin-top:22px; font:500 28px/1.4 ui-sans-serif,sans-serif; color:#57534e; max-width:780px;">
+                  PastPage checks multiple archive services from one workflow, opens archived versions quickly, and keeps alternate sources close at hand.
+                </p>
+              </div>
+
+              <div></div>
+            </div>
+          </div>
+        </body>
+      </html>`,
+    { width: 1400, height: 560 },
+    { fullPage: false }
   );
 }
 
 async function main() {
   await ensureDir(screenshotsDir);
   await ensureDir(chromeDir);
+  await ensureDir(chromeScreenshotsDir);
+  await ensureDir(chromeLocalizedDir);
+  await ensureDir(chromeGlobalDir);
   const providerIcons = await loadProviderIcons();
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
@@ -745,6 +896,39 @@ async function main() {
     );
 
     await renderPromoTile(page);
+    await renderMarqueeTile(page);
+
+    await exportChromeScreenshot(
+      page,
+      path.join(screenshotsDir, "popup.png"),
+      path.join(chromeScreenshotsDir, "popup-1280x800.jpg")
+    );
+    await exportChromeScreenshot(
+      page,
+      path.join(screenshotsDir, "broken-page.png"),
+      path.join(chromeScreenshotsDir, "broken-page-1280x800.jpg")
+    );
+    await exportChromeScreenshot(
+      page,
+      path.join(screenshotsDir, "resolver.png"),
+      path.join(chromeScreenshotsDir, "resolver-1280x800.jpg")
+    );
+    await exportChromeScreenshot(
+      page,
+      path.join(screenshotsDir, "history.png"),
+      path.join(chromeScreenshotsDir, "history-1280x800.jpg")
+    );
+
+    for (const [sourceName, targetBase] of [
+      ["popup.png", "popup-1280x800.png"],
+      ["broken-page.png", "broken-page-1280x800.png"],
+      ["resolver.png", "resolver-1280x800.png"],
+      ["history.png", "history-1280x800.png"]
+    ]) {
+      const sourcePath = path.join(screenshotsDir, sourceName);
+      await exportChromeScreenshotPng(page, sourcePath, path.join(chromeLocalizedDir, targetBase));
+      await exportChromeScreenshotPng(page, sourcePath, path.join(chromeGlobalDir, targetBase));
+    }
   } finally {
     await browser.close();
   }
@@ -753,6 +937,19 @@ async function main() {
     generatedAt: new Date().toISOString(),
     files: [
       "chrome/promo-tile-440x280.png",
+      "chrome/marquee-tile-1400x560.png",
+      "chrome/screenshots-1280x800/popup-1280x800.jpg",
+      "chrome/screenshots-1280x800/broken-page-1280x800.jpg",
+      "chrome/screenshots-1280x800/resolver-1280x800.jpg",
+      "chrome/screenshots-1280x800/history-1280x800.jpg",
+      "chrome/localized-screenshots-1280x800/popup-1280x800.png",
+      "chrome/localized-screenshots-1280x800/broken-page-1280x800.png",
+      "chrome/localized-screenshots-1280x800/resolver-1280x800.png",
+      "chrome/localized-screenshots-1280x800/history-1280x800.png",
+      "chrome/global-screenshots-1280x800/popup-1280x800.png",
+      "chrome/global-screenshots-1280x800/broken-page-1280x800.png",
+      "chrome/global-screenshots-1280x800/resolver-1280x800.png",
+      "chrome/global-screenshots-1280x800/history-1280x800.png",
       "screenshots/popup.png",
       "screenshots/broken-page.png",
       "screenshots/resolver.png",
