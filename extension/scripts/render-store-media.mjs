@@ -345,6 +345,133 @@ function buildPopupPanel(icons) {
     </div>`;
 }
 
+function buildHistoryPanel() {
+  const entries = [
+    {
+      outcome: "hit", border: "#34d399",
+      badge: { bg: "#d1fae5", color: "#065f46", dot: "#10b981", label: "Hit" },
+      domain: "nytimes.com", path: "/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html",
+      time: "3 hours ago", trigger: "Manual lookup",
+      snapshots: [
+        { provider: "Wayback Machine", ts: "20230814120432", url: "https://web.archive.org/web/20230814120432/https://nytimes.com/2013/03/31/science/space/yvonne-brill-rocket-scientist-dies-at-88.html" },
+        { provider: "Archive.today", ts: "20220601083211", url: "https://archive.ph/xKq2T" }
+      ]
+    },
+    {
+      outcome: "hit", border: "#34d399",
+      badge: { bg: "#d1fae5", color: "#065f46", dot: "#10b981", label: "Hit" },
+      domain: "whitehouse.gov", path: "/the-record/climate",
+      time: "1 day ago", trigger: "Broken page",
+      snapshots: [{ provider: "Wayback Machine", ts: "20230101094512", url: "https://web.archive.org/web/20230101094512/https://whitehouse.gov/the-record/climate" }]
+    },
+    {
+      outcome: "miss", border: "#d6d3d1",
+      badge: { bg: "#f5f5f4", color: "#57534e", dot: "#a8a29e", label: "No hit" },
+      domain: "washingtonpost.com", path: "/technology/2023/10/12/silicon-valley-ai-open-source-regulation",
+      time: "2 days ago", trigger: "Manual lookup",
+      snapshots: []
+    },
+    {
+      outcome: "hit", border: "#34d399",
+      badge: { bg: "#d1fae5", color: "#065f46", dot: "#10b981", label: "Hit" },
+      domain: "theguardian.com", path: "/technology/2023/aug/12/ai-chatbot-journalism-newspapers-trust",
+      time: "2 days ago", trigger: "Context menu",
+      snapshots: [{ provider: "Wayback Machine", ts: "20231015110044", url: "https://web.archive.org/web/20231015110044/https://theguardian.com/technology/2023/aug/12/ai-chatbot-journalism-newspapers-trust" }]
+    },
+    {
+      outcome: "unknown", border: "#fbbf24",
+      badge: { bg: "#fef3c7", color: "#92400e", dot: "#f59e0b", label: "Unknown" },
+      domain: "bbc.co.uk", path: "/news/world-us-canada-66847230",
+      time: "3 days ago", trigger: "Manual lookup",
+      snapshots: []
+    },
+  ];
+
+  const entryHtml = entries.map(e => {
+    const snapshotToggle = e.snapshots.length > 0
+      ? `<div style="display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:6px;font:400 11px/1 ui-sans-serif,sans-serif;color:#78716c;">
+           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+           ${e.snapshots.length} snapshot${e.snapshots.length > 1 ? "s" : ""}
+         </div>` : "";
+    return `
+      <li style="border-left:3px solid ${e.border};list-style:none;">
+        <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 20px;border-bottom:1px solid #f5f5f4;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;">
+              <div style="min-width:0;flex:1;">
+                <p style="margin:0;font:600 14px/1.3 ui-sans-serif,sans-serif;color:#0c0a09;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.domain}</p>
+                <p style="margin:2px 0 0;font:400 12px/1 ui-sans-serif,sans-serif;color:#78716c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.path}</p>
+              </div>
+              <time style="flex-shrink:0;font:400 12px/1 ui-sans-serif,sans-serif;color:#a8a29e;">${e.time}</time>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font:600 11px/1 ui-sans-serif,sans-serif;background:${e.badge.bg};color:${e.badge.color};">
+                <span style="width:6px;height:6px;border-radius:50%;background:${e.badge.dot};display:inline-block;"></span>
+                ${e.badge.label}
+              </span>
+              <span style="display:inline-flex;padding:2px 8px;border-radius:999px;font:400 11px/1 ui-sans-serif,sans-serif;background:#f5f5f4;color:#57534e;">${e.trigger}</span>
+              ${snapshotToggle}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid #e7e5e4;background:white;font:500 13px/1 ui-sans-serif,sans-serif;color:#44403c;flex-shrink:0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Rerun
+          </div>
+        </div>
+      </li>`;
+  }).join("");
+
+  return `
+    <div style="margin:-26px;overflow:hidden;background:radial-gradient(ellipse at top,rgba(245,200,0,0.06),transparent 55%),linear-gradient(160deg,#ffffff 0%,#f8f8f8 100%);padding:20px 24px;font-family:ui-sans-serif,system-ui,sans-serif;min-height:560px;">
+      <header style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;">
+        <div style="width:40px;height:40px;border-radius:8px;background:#ffd400;display:grid;place-items:center;flex-shrink:0;margin-top:2px;box-shadow:0 10px 30px rgba(255,212,0,0.28);">
+          <svg aria-hidden="true" viewBox="0 0 1248 1248" width="21" height="21" style="display:block"><path fill="white" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
+        </div>
+        <div>
+          <h1 style="margin:0;font:600 22px/1.2 ui-sans-serif,sans-serif;color:#0c0a09;">Archive Search History</h1>
+          <p style="margin:4px 0 0;font:400 13px/1.5 ui-sans-serif,sans-serif;color:#57534e;max-width:560px;">Browse saved archive lookups in a dedicated, filterable table view.</p>
+        </div>
+      </header>
+
+      <div style="border-radius:14px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.9);margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;">
+          <div style="display:flex;align-items:center;gap:24px;">
+            <div>
+              <p style="margin:0;font:600 22px/1 ui-sans-serif,sans-serif;color:#0c0a09;">47</p>
+              <p style="margin:3px 0 0;font:400 11px/1 ui-sans-serif,sans-serif;color:#78716c;">Stored search runs</p>
+            </div>
+            <div style="width:1px;height:36px;background:#e7e5e4;"></div>
+            <div>
+              <p style="margin:0;font:600 22px/1 ui-sans-serif,sans-serif;color:#0c0a09;">31</p>
+              <p style="margin:3px 0 0;font:400 11px/1 ui-sans-serif,sans-serif;color:#78716c;">Search runs with confirmed hits</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:1px solid #e7e5e4;background:white;font:500 13px/1 ui-sans-serif,sans-serif;color:#57534e;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Clear history
+          </div>
+        </div>
+      </div>
+
+      <div style="border-radius:14px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.92);margin-bottom:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+        <div style="display:flex;gap:8px;">
+          <div style="position:relative;flex:1;">
+            <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <div style="height:38px;border-radius:10px;border:1px solid #d6d3d1;background:white;padding:0 12px 0 34px;font:400 13px/38px ui-sans-serif,sans-serif;color:#a8a29e;">Search by source URL or archive URL</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;padding:0 12px;height:38px;border-radius:10px;border:1px solid #d6d3d1;background:white;font:500 13px/1 ui-sans-serif,sans-serif;color:#57534e;white-space:nowrap;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+            Filters
+          </div>
+        </div>
+      </div>
+
+      <div style="border-radius:14px;border:1px solid #e7e5e4;background:rgba(255,255,255,0.94);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+        <ul style="margin:0;padding:0;">${entryHtml}</ul>
+      </div>
+    </div>`;
+}
+
 async function renderPromoTile(page) {
   const iconSvg = LOGO_MARK_SVG;
   await screenshotHtml(
@@ -553,6 +680,18 @@ async function main() {
       })
     );
 
+    await screenshotHtml(
+      page,
+      path.join(screenshotsDir, "history.png"),
+      cardShell({
+        title: "Every archive lookup, saved and searchable",
+        subtitle: "The history page gives a full view of past searches with outcomes, timestamps, confirmed snapshots, and filters.",
+        chips: [],
+        body: "",
+        panel: buildHistoryPanel()
+      })
+    );
+
     await renderPromoTile(page);
   } finally {
     await browser.close();
@@ -565,7 +704,8 @@ async function main() {
       "screenshots/popup-manual-lookup.png",
       "screenshots/broken-page-fallback.png",
       "screenshots/resolver-results.png",
-      "screenshots/options-privacy-settings.png"
+      "screenshots/options-privacy-settings.png",
+      "screenshots/history.png"
     ]
   };
   await fs.writeFile(path.join(artifactsDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
