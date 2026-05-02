@@ -4,6 +4,10 @@ import path from "node:path";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 
+const LOGO_MARK_SVG = `<svg aria-hidden="true" viewBox="0 0 1248 1248" width="54" height="54" style="display:block">
+  <path fill="#FDC700" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/>
+</svg>`;
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const extensionDir = path.resolve(__dirname, "..");
 const extensionPath = path.resolve(extensionDir, ".output/chrome-mv3");
@@ -178,7 +182,7 @@ async function captureResolver(context, extensionId, baseUrl) {
 
 async function capturePromoTile() {
   const page = await chromium.launch({ headless: true }).then((browser) => browser.newPage());
-  const iconSvg = await fs.readFile(path.resolve(extensionDir, "public", "icon.svg"), "utf8");
+  const iconSvg = LOGO_MARK_SVG;
   await page.setViewportSize({ width: 440, height: 280 });
   await page.setContent(`<!doctype html>
     <html lang="en">
