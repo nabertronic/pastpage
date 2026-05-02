@@ -500,7 +500,7 @@ async function main() {
         title: "All archives searched at once — original and cleaned URLs",
         subtitle: "PastPage queries every enabled archive in parallel, using both the exact URL and optimised clean variants to surface results that a direct lookup would miss.",
         body: "Parallel searches across all archives — no waiting, no manual switching.",
-        chips: ["Parallel queries", "URL cleaning", "Cache lookup"],
+        chips: [],
         panel: `
           <div class="grid twoCol">
             <div class="item">
