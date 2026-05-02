@@ -245,6 +245,106 @@ async function screenshotHtml(page, filePath, html, viewport = { width: 1440, he
   await page.screenshot({ path: filePath, fullPage: true });
 }
 
+async function loadProviderIcons() {
+  const iconDir = path.join(extensionDir, "public", "provider-icons");
+  async function svgIcon(name) {
+    const raw = await fs.readFile(path.join(iconDir, `${name}.svg`), "utf8");
+    return raw
+      .replace(/width="[^"]*"/, 'width="20"')
+      .replace(/height="[^"]*"/, 'height="20"')
+      .replace("<svg ", '<svg style="display:block" ');
+  }
+  const ghostPng = await fs.readFile(path.join(iconDir, "ghostarchive.png"));
+  return {
+    wayback:      await svgIcon("wayback"),
+    archiveToday: await svgIcon("archive-today"),
+    ghostarchive: `<img src="data:image/png;base64,${ghostPng.toString("base64")}" width="20" height="20" style="display:block;object-fit:contain;">`,
+    permaCc:      await svgIcon("perma-cc"),
+    webGyotaku:   await svgIcon("web-gyotaku"),
+    yandexCache:  await svgIcon("yandex-cache"),
+    archiveIt:    await svgIcon("archive-it"),
+    webcite:      await svgIcon("webcite"),
+  };
+}
+
+function buildPopupPanel(icons) {
+  const providers = [
+    [icons.wayback,      "Wayback Machine"],
+    [icons.archiveToday, "Archive.today"],
+    [icons.ghostarchive, "Ghostarchive"],
+    [icons.permaCc,      "Perma.cc"],
+    [icons.webGyotaku,   "Web Gyotaku"],
+    [icons.yandexCache,  "Yandex Cache"],
+    [icons.archiveIt,    "Archive-It"],
+    [icons.webcite,      "WebCite"],
+  ];
+  const providerGrid = providers.map(([icon, name]) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;">
+      <div style="width:28px;height:28px;border-radius:6px;background:#f3f0ea;display:grid;place-items:center;flex-shrink:0;">${icon}</div>
+      <span style="font-size:13px;color:#1c1917;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</span>
+    </div>`).join("");
+
+  return `
+    <div style="position:relative;margin:-26px;min-height:600px;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:#fff;overflow:hidden;font-family:'Georgia',serif;">
+        <div style="background:#fff;border-bottom:1px solid #e2e2e2;display:flex;align-items:center;justify-content:center;padding:10px 24px;position:relative;">
+          <div style="position:absolute;left:24px;font:400 11px/1 ui-sans-serif,sans-serif;color:#999;text-transform:uppercase;letter-spacing:0.08em;">Thursday, March 30, 2013</div>
+          <div style="font:700 30px/1 'Times New Roman',serif;color:#000;letter-spacing:-0.01em;">The New York Times</div>
+        </div>
+        <div style="max-width:580px;padding:20px 32px;">
+          <div style="font:700 11px/1 ui-sans-serif,sans-serif;color:#333;letter-spacing:0.12em;text-transform:uppercase;border-bottom:2px solid #333;padding-bottom:6px;display:inline-block;margin-bottom:14px;">Science</div>
+          <h2 style="font:700 30px/1.1 'Georgia',serif;color:#111;margin:0 0 12px;letter-spacing:-0.01em;">Yvonne Brill, a Pioneering Rocket Scientist, Dies at 88</h2>
+          <div style="font:400 12px/1.4 ui-sans-serif,sans-serif;color:#666;margin-bottom:16px;border-bottom:1px solid #e2e2e2;padding-bottom:12px;">By WILLIAM GRIMES · Published March 30, 2013</div>
+          <p style="font:400 18px/1.7 'Georgia',serif;color:#333;margin:0 0 14px;">She made a mean beef stroganoff, followed her husband from job to job and took eight years off from work to raise three children. "The world's best mom," her son Matthew said.</p>
+          <p style="font:400 18px/1.7 'Georgia',serif;color:#333;margin:0;">But Yvonne Brill, who died on Wednesday in Princeton, N.J., was also a brilliant rocket scientist who in the early 1970s invented a propulsion system to keep communications satellites in the proper orbit.</p>
+        </div>
+      </div>
+      <div style="
+        position:absolute;top:12px;right:12px;width:375px;
+        background:radial-gradient(circle at top left,rgba(245,200,0,0.07),transparent 42%),#f8f8f8;
+        border-radius:14px;
+        box-shadow:0 24px 64px rgba(0,0,0,0.22),0 0 0 1px rgba(0,0,0,0.07);
+        padding:12px;font-family:ui-sans-serif,system-ui,sans-serif;
+      ">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:46px;height:46px;border-radius:11px;background:#ffd400;display:grid;place-items:center;flex-shrink:0;box-shadow:0 8px 20px rgba(255,212,0,0.28);">
+            <svg aria-hidden="true" viewBox="0 0 1248 1248" width="25" height="25" style="display:block"><path fill="white" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#0c0a09;line-height:1.2;">PastPage</div>
+            <div style="font-size:13px;color:#78716c;margin-top:2px;">Find archived versions of pages.</div>
+          </div>
+          <div style="margin-left:auto;border:1px solid #d6d3d1;border-radius:7px;padding:5px 10px;font-size:13px;color:#78716c;display:flex;align-items:center;gap:4px;background:white;white-space:nowrap;">
+            Tab <span style="font-size:10px;margin-left:2px;">▾</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:10px;background:#ffd400;color:#17130a;border:1px solid rgba(23,19,10,0.18);font:700 15px/1 ui-sans-serif,sans-serif;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+            Check Archived Versions
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:10px;background:white;color:#1c1917;border:1px solid #d6d3d1;font:600 15px/1 ui-sans-serif,sans-serif;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Open All Archives in Tabs
+          </div>
+        </div>
+        <div style="border-radius:10px;border:1px solid #e7e3db;background:white;padding:6px;margin-bottom:10px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">${providerGrid}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;border:1px solid #e5e2db;font:600 13px/1 ui-sans-serif,sans-serif;color:#ca8a04;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            History
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;border:1px solid #e5e2db;font:500 13px/1 ui-sans-serif,sans-serif;color:#57534e;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 async function renderPromoTile(page) {
   const iconSvg = LOGO_MARK_SVG;
   await screenshotHtml(
@@ -328,6 +428,7 @@ async function renderPromoTile(page) {
 async function main() {
   await ensureDir(screenshotsDir);
   await ensureDir(chromeDir);
+  const providerIcons = await loadProviderIcons();
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
 
@@ -338,87 +439,9 @@ async function main() {
       cardShell({
         title: "Look up any page across multiple web archives",
         subtitle: "Click the PastPage icon on any tab to search archived versions — or paste a URL to look up any page directly.",
-        chips: ["Works on any page", "Multiple archives", "No setup needed"],
+        chips: [],
         body: "",
-        panel: `
-          <div style="position: relative; margin: -26px; overflow: hidden; min-height: 340px; background: linear-gradient(180deg, #faf9f6 0%, #f2efe8 100%);">
-            <div style="padding: 28px 32px; opacity: 0.45; user-select: none; pointer-events: none;">
-              <div style="font: 600 11px/1 ui-sans-serif, sans-serif; color: #78716c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;">Reuters · World</div>
-              <div style="font: 700 26px/1.2 Georgia, serif; color: #1c1917; max-width: 580px; margin-bottom: 12px;">European leaders call for renewed diplomatic talks amid ongoing tensions</div>
-              <div style="font: 400 15px/1.65 ui-sans-serif, sans-serif; color: #57534e; max-width: 540px;">Senior officials from multiple countries gathered in Brussels on Monday to discuss a framework for renewed dialogue. The talks, described as preliminary, aim to establish communication channels that have been largely dormant since earlier this year...</div>
-            </div>
-            <div style="
-              position: absolute;
-              top: 14px;
-              right: 14px;
-              width: 340px;
-              background: radial-gradient(circle at top left, rgba(245,200,0,0.07), transparent 42%), #f8f8f8;
-              border-radius: 14px;
-              box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.07);
-              padding: 12px;
-              font-family: ui-sans-serif, system-ui, sans-serif;
-            ">
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: #ffd400; display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 8px 20px rgba(255,212,0,0.28);">
-                  <svg aria-hidden="true" viewBox="0 0 1248 1248" width="19" height="19" style="display:block"><path fill="#17130a" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
-                </div>
-                <div>
-                  <div style="font-size: 14px; font-weight: 600; color: #0c0a09;">PastPage</div>
-                  <div style="font-size: 12px; color: #78716c;">Search web archives</div>
-                </div>
-                <div style="margin-left: auto; border: 1px solid #e5e2db; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #78716c; display: flex; align-items: center; gap: 3px; white-space: nowrap; background: white;">
-                  Tab <span style="font-size: 10px; margin-left: 1px;">▾</span>
-                </div>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-                <div style="
-                  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
-                  padding: 9px 14px; border-radius: 8px; background: #ffd400; color: #17130a;
-                  border: 1px solid rgba(23,19,10,0.18); font: 700 14px/1 ui-sans-serif, sans-serif;
-                ">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                  Check Archived Versions
-                </div>
-                <div style="
-                  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
-                  padding: 9px 14px; border-radius: 8px; background: white; color: #1c1917;
-                  border: 1px solid #e5e2db; font: 600 14px/1 ui-sans-serif, sans-serif;
-                ">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  Open in All Archives
-                </div>
-              </div>
-              <div style="border-radius: 8px; border: 1px solid #e7e3db; background: rgba(255,255,255,0.95); padding: 8px; margin-bottom: 10px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px;">
-                  ${[
-                    ["WB", "Wayback Machine"],
-                    ["AT", "archive.today"],
-                    ["GA", "Ghostarchive"],
-                    ["PT", "Arquivo.pt"],
-                    ["LC", "Lib. of Congress"],
-                    ["UK", "UK Web Archive"]
-                  ].map(([abbr, name]) => `
-                    <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;">
-                      <div style="width:26px;height:26px;border-radius:5px;background:#f0ede6;display:grid;place-items:center;flex-shrink:0;">
-                        <span style="font-size:8px;font-weight:700;color:#78716c;letter-spacing:-0.02em;">${abbr}</span>
-                      </div>
-                      <span style="font-size:12px;color:#1c1917;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</span>
-                    </div>
-                  `).join("")}
-                </div>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:6px;border-radius:6px;background:transparent;border:1px solid #e5e2db;font:500 13px/1 ui-sans-serif,sans-serif;color:#78716c;">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  History
-                </div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:6px;border-radius:6px;background:transparent;border:1px solid #e5e2db;font:500 13px/1 ui-sans-serif,sans-serif;color:#78716c;">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                  Settings
-                </div>
-              </div>
-            </div>
-          </div>`
+        panel: buildPopupPanel(providerIcons)
       })
     );
 
