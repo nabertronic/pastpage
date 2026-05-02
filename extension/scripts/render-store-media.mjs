@@ -230,7 +230,7 @@ function cardShell({ title, subtitle, body, chips = [], panel, notificationBar =
             </div>
             ${notificationBar}
             <div class="panel">
-              <h2>${body}</h2>
+              ${body ? `<h2>${body}</h2>` : ""}
               ${panel}
             </div>
           </div>
@@ -332,6 +332,96 @@ async function main() {
   const page = await browser.newPage();
 
   try {
+    await screenshotHtml(
+      page,
+      path.join(screenshotsDir, "popup-manual-lookup.png"),
+      cardShell({
+        title: "Look up any page across multiple web archives",
+        subtitle: "Click the PastPage icon on any tab to search archived versions — or paste a URL to look up any page directly.",
+        chips: ["Works on any page", "Multiple archives", "No setup needed"],
+        body: "",
+        panel: `
+          <div style="position: relative; margin: -26px; overflow: hidden; min-height: 340px; background: linear-gradient(180deg, #faf9f6 0%, #f2efe8 100%);">
+            <div style="padding: 28px 32px; opacity: 0.45; user-select: none; pointer-events: none;">
+              <div style="font: 600 11px/1 ui-sans-serif, sans-serif; color: #78716c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px;">Reuters · World</div>
+              <div style="font: 700 26px/1.2 Georgia, serif; color: #1c1917; max-width: 580px; margin-bottom: 12px;">European leaders call for renewed diplomatic talks amid ongoing tensions</div>
+              <div style="font: 400 15px/1.65 ui-sans-serif, sans-serif; color: #57534e; max-width: 540px;">Senior officials from multiple countries gathered in Brussels on Monday to discuss a framework for renewed dialogue. The talks, described as preliminary, aim to establish communication channels that have been largely dormant since earlier this year...</div>
+            </div>
+            <div style="
+              position: absolute;
+              top: 14px;
+              right: 14px;
+              width: 340px;
+              background: radial-gradient(circle at top left, rgba(245,200,0,0.07), transparent 42%), #f8f8f8;
+              border-radius: 14px;
+              box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.07);
+              padding: 12px;
+              font-family: ui-sans-serif, system-ui, sans-serif;
+            ">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: #ffd400; display: grid; place-items: center; flex-shrink: 0; box-shadow: 0 8px 20px rgba(255,212,0,0.28);">
+                  <svg aria-hidden="true" viewBox="0 0 1248 1248" width="19" height="19" style="display:block"><path fill="#17130a" fill-rule="evenodd" d="M310 208 C310 197 319 188 330 188 L674 188 C846 188 962 302 962 486 C962 671 846 785 674 785 L535 785 L535 1038 C535 1049 526 1058 515 1058 L330 1058 C319 1058 310 1049 310 1038 Z M476 490 L635 360 C642 354 653 359 653 369 L653 431 L772 431 C781 431 788 438 788 447 L788 533 C788 542 781 549 772 549 L653 549 L653 612 C653 622 642 627 635 621 Z"/></svg>
+                </div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 600; color: #0c0a09;">PastPage</div>
+                  <div style="font-size: 12px; color: #78716c;">Search web archives</div>
+                </div>
+                <div style="margin-left: auto; border: 1px solid #e5e2db; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #78716c; display: flex; align-items: center; gap: 3px; white-space: nowrap; background: white;">
+                  Tab <span style="font-size: 10px; margin-left: 1px;">▾</span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                <div style="
+                  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
+                  padding: 9px 14px; border-radius: 8px; background: #ffd400; color: #17130a;
+                  border: 1px solid rgba(23,19,10,0.18); font: 700 14px/1 ui-sans-serif, sans-serif;
+                ">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Check Archived Versions
+                </div>
+                <div style="
+                  width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px;
+                  padding: 9px 14px; border-radius: 8px; background: white; color: #1c1917;
+                  border: 1px solid #e5e2db; font: 600 14px/1 ui-sans-serif, sans-serif;
+                ">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  Open in All Archives
+                </div>
+              </div>
+              <div style="border-radius: 8px; border: 1px solid #e7e3db; background: rgba(255,255,255,0.95); padding: 8px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px;">
+                  ${[
+                    ["WB", "Wayback Machine"],
+                    ["AT", "archive.today"],
+                    ["GA", "Ghostarchive"],
+                    ["PT", "Arquivo.pt"],
+                    ["LC", "Lib. of Congress"],
+                    ["UK", "UK Web Archive"]
+                  ].map(([abbr, name]) => `
+                    <div style="display:flex;align-items:center;gap:6px;padding:5px 6px;border-radius:6px;">
+                      <div style="width:26px;height:26px;border-radius:5px;background:#f0ede6;display:grid;place-items:center;flex-shrink:0;">
+                        <span style="font-size:8px;font-weight:700;color:#78716c;letter-spacing:-0.02em;">${abbr}</span>
+                      </div>
+                      <span style="font-size:12px;color:#1c1917;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:6px;border-radius:6px;background:transparent;border:1px solid #e5e2db;font:500 13px/1 ui-sans-serif,sans-serif;color:#78716c;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  History
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:6px;border-radius:6px;background:transparent;border:1px solid #e5e2db;font:500 13px/1 ui-sans-serif,sans-serif;color:#78716c;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  Settings
+                </div>
+              </div>
+            </div>
+          </div>`
+      })
+    );
+
     await screenshotHtml(
       page,
       path.join(screenshotsDir, "broken-page-fallback.png"),
