@@ -6,16 +6,16 @@ If an archived version of a disappeared or changed page still exists in a releva
 
 <p align="center">
   <br><br>
-  <a href="https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo">
+  <a href="https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo" style="text-decoration: none;">
     <picture>
       <source srcset="https://i.imgur.com/XBIE9pk.png" media="(prefers-color-scheme: dark)">
-      <img height="58" src="https://i.imgur.com/oGxig2F.png" alt="Chrome Web Store">
+      <img height="58" src="https://i.imgur.com/oGxig2F.png" alt="Chrome Web Store" style="display: block;">
     </picture>
   </a>
-  <a href="https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/">
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/" style="text-decoration: none;">
     <picture>
       <source srcset="https://i.imgur.com/ZluoP7T.png" media="(prefers-color-scheme: dark)">
-      <img height="58" src="https://i.imgur.com/4PobQqE.png" alt="Firefox Add-ons">
+      <img height="58" src="https://i.imgur.com/4PobQqE.png" alt="Firefox Add-ons" style="display: block;">
     </picture>
   </a>
   <br><br>
