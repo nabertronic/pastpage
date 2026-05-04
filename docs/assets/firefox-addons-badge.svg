@@ -1,0 +1,17 @@
+<svg width="220" height="72" viewBox="0 0 220 72" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Get the add-on for Firefox</title>
+  <desc id="desc">Dark badge linking to the Firefox Add-ons listing for PastPage.</desc>
+  <rect width="220" height="72" rx="14" fill="#111827"/>
+  <rect x="1" y="1" width="218" height="70" rx="13" stroke="#374151" stroke-width="2"/>
+  <path d="M38.91 17C34.66 18.88 31.17 22.07 28.99 26.08C25.89 31.76 25.54 39.04 28.06 45.05C31.35 52.92 39.18 57 46.44 57C54.49 57 61.42 51.51 63.57 43.66C65.28 37.43 63.57 30.65 59.09 25.83C56.07 22.58 52.02 20.2 47.61 18.95C48.09 20.64 48.01 22.43 47.38 24.07C45.99 22.96 44.42 22.1 42.74 21.53C43.13 24.27 42.35 27.06 40.58 29.19C38.54 31.65 35.45 33.02 32.27 32.87C31.79 36.71 33.12 40.77 35.94 43.44C39.3 46.64 44.44 47.84 48.97 46.51C54.77 44.81 58.94 38.7 58.01 32.57C57.54 29.48 56.16 26.63 54.08 24.35C57.89 26.42 60.95 29.79 62.68 33.87C63.77 29.61 63.15 25.09 60.97 21.32C58.01 16.17 52.33 13 46.33 13C43.76 13 41.23 13.58 38.91 14.68V17Z" fill="url(#firefoxGradient)"/>
+  <circle cx="46" cy="39" r="6" fill="#F3F4F6"/>
+  <text x="78" y="29" fill="#E5E7EB" font-family="Arial, Helvetica, sans-serif" font-size="11" letter-spacing="0.08em">GET THE ADD-ON FOR</text>
+  <text x="78" y="49" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Firefox</text>
+  <defs>
+    <linearGradient id="firefoxGradient" x1="27" y1="14" x2="65" y2="57" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB300"/>
+      <stop offset="0.45" stop-color="#FF7139"/>
+      <stop offset="1" stop-color="#8A2BE2"/>
+    </linearGradient>
+  </defs>
+</svg>

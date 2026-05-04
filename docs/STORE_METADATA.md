@@ -91,8 +91,7 @@ Certifications:
 
 ### Listing Status Notes
 
-- Chrome listing URL is not live yet.
-- Do not add a Chrome Web Store URL to the shipped extension until the item exists.
+- Chrome listing URL is live: <https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo>
 
 ## Firefox Add-ons
 
@@ -154,4 +153,5 @@ Certifications:
 - Support: <https://github.com/nabertronic/pastpage/blob/main/docs/SUPPORT.md>
 - Reviewer notes: <https://github.com/nabertronic/pastpage/blob/main/docs/REVIEW_NOTES.md>
 - Firefox source notes: <https://github.com/nabertronic/pastpage/blob/main/docs/FIREFOX_SOURCE_PACKAGE.md>
+- Chrome Web Store listing: <https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo>
 - Firefox Add-ons listing: <https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/>

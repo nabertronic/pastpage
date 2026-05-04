@@ -49,7 +49,7 @@ describe("OptionsApp", () => {
     expect(screen.getByRole("button", { name: "Reset to defaults" })).toBeInTheDocument();
     expect(screen.queryByText("Share PastPage")).not.toBeInTheDocument();
     expect(screen.getByText("Version and updates")).toBeInTheDocument();
-    expect(screen.getByText("Installed version: 1.0.0")).toBeInTheDocument();
+    expect(screen.getByText("Installed version: 1.0.1")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Check for updates" })).toBeInTheDocument();
     expect(screen.getByText("Sites to ignore")).toBeInTheDocument();
     expect(screen.getByText("Deutsch")).toBeInTheDocument();
@@ -86,14 +86,17 @@ describe("OptionsApp", () => {
     expect(screen.queryByRole("button", { name: /show archive icons in context menu/i })).not.toBeInTheDocument();
   });
 
-  it("shows the Firefox review listing when a Firefox store URL is configured", async () => {
+  it("shows the correct review listing for each browser when store URLs are configured", async () => {
     (browser.runtime.getURL as unknown as ReturnType<typeof vi.fn>).mockReturnValue("chrome-extension://test/");
 
     const { rerender } = render(<OptionsApp />);
     const chromeReviewSection = (await screen.findByRole("heading", { name: "Review the extension" })).closest("section");
 
     expect(chromeReviewSection).not.toBeNull();
-    expect(within(chromeReviewSection as HTMLElement).queryByRole("link", { name: "Chrome Web Store" })).not.toBeInTheDocument();
+    expect(within(chromeReviewSection as HTMLElement).getByRole("link", { name: "Chrome Web Store" })).toHaveAttribute(
+      "href",
+      "https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo"
+    );
     expect(within(chromeReviewSection as HTMLElement).queryByRole("link", { name: "Firefox Add-ons" })).not.toBeInTheDocument();
 
     (browser.runtime.getURL as unknown as ReturnType<typeof vi.fn>).mockReturnValue("moz-extension://test/");

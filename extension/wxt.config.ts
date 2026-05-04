@@ -29,7 +29,7 @@ export default defineConfig({
     name: "__MSG_extensionName__",
     short_name: "PastPage",
     description: "__MSG_extensionDescription__",
-    version: "1.0.0",
+    version: "1.0.1",
     default_locale: "en",
     icons: extensionIcons,
     permissions: ["webRequest", "webNavigation", "storage", "tabs", "scripting", "contextMenus"],

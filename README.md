@@ -4,9 +4,12 @@ PastPage helps you recover missing pages, changed pages, and broken links by che
 
 If an archived version of a disappeared or changed page still exists in a relevant archive, PastPage is built to find it fast.
 
+[![Available in the Chrome Web Store](docs/assets/chrome-web-store-badge.svg)](https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo)
+[![Get the add-on for Firefox](docs/assets/firefox-addons-badge.svg)](https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/)
+
 ## Install
 
-- Chrome Web Store: coming soon
+- Chrome Web Store: <https://chromewebstore.google.com/detail/pastpage-query-10+-web-ar/icpegbecignmplpkjjcegmjmfadpcpoo>
 - Firefox Add-ons: <https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/>
 - Development builds: package locally from this repository
 
