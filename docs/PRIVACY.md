@@ -77,7 +77,6 @@ Depending on user settings, URL type, and chosen action, lookups may contact pub
 - Library of Congress Web Archives
 - Perma.cc
 - Web Gyotaku
-- Archive-It
 - WebCite
 - Software Heritage
 - Yandex Cache

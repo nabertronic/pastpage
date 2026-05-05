@@ -1,4 +1,3 @@
-import { archiveItProvider } from "./archiveIt";
 import { arquivoPtProvider } from "./arquivoPt";
 import { archiveTodayProvider } from "./archiveToday";
 import { ghostarchiveProvider } from "./ghostarchive";
@@ -19,7 +18,6 @@ import type { ProviderHostSettings } from "../providerHosts";
 import type { ArchiveProvider, AutomaticArchiveProvider, ProviderId } from "./types";
 
 export const PROVIDERS: Record<ProviderId, ArchiveProvider> = {
-  "archive-it": archiveItProvider,
   "arquivo-pt": arquivoPtProvider,
   "archive-today": archiveTodayProvider,
   ghostarchive: ghostarchiveProvider,

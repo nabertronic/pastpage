@@ -88,7 +88,7 @@ function cardShell({ title, subtitle, body, chips = [], panel, notificationBar =
           body {
             margin: 0;
             width: 1440px;
-            height: 1024px;
+            height: 900px;
             overflow: hidden;
             font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
             background:
@@ -242,10 +242,14 @@ function cardShell({ title, subtitle, body, chips = [], panel, notificationBar =
     </html>`;
 }
 
-async function screenshotHtml(page, filePath, html, viewport = { width: 1440, height: 1024 }, options = { fullPage: true }) {
+async function screenshotHtml(page, filePath, html, viewport = { width: 1440, height: 900 }, options = { fullPage: true }) {
   await page.setViewportSize(viewport);
   await page.setContent(html);
-  await page.screenshot({ path: filePath, fullPage: options.fullPage });
+  await page.screenshot({
+    path: filePath,
+    fullPage: options.fullPage,
+    scale: options.scale ?? "device"
+  });
 }
 
 async function exportChromeScreenshot(page, sourcePath, outputPath, size = { width: 1280, height: 800 }) {
@@ -292,7 +296,7 @@ async function exportChromeScreenshot(page, sourcePath, outputPath, size = { wid
         </div>
       </body>
     </html>`);
-  await page.screenshot({ path: outputPath, type: "jpeg", quality: 92 });
+  await page.screenshot({ path: outputPath, type: "jpeg", quality: 95, scale: "css" });
 }
 
 async function exportChromeScreenshotPng(page, sourcePath, outputPath, size = { width: 1280, height: 800 }) {
@@ -328,7 +332,7 @@ async function exportChromeScreenshotPng(page, sourcePath, outputPath, size = { 
         <img src="${dataUrl}" alt="" />
       </body>
     </html>`);
-  await page.screenshot({ path: outputPath });
+  await page.screenshot({ path: outputPath, scale: "css" });
 }
 
 async function loadProviderIcons() {
@@ -348,7 +352,6 @@ async function loadProviderIcons() {
     permaCc:      await svgIcon("perma-cc"),
     webGyotaku:   await svgIcon("web-gyotaku"),
     yandexCache:  await svgIcon("yandex-cache"),
-    archiveIt:    await svgIcon("archive-it"),
     webcite:      await svgIcon("webcite"),
   };
 }
@@ -361,7 +364,6 @@ function buildPopupPanel(icons) {
     [icons.permaCc,      "Perma.cc"],
     [icons.webGyotaku,   "Web Gyotaku"],
     [icons.yandexCache,  "Yandex Cache"],
-    [icons.archiveIt,    "Archive-It"],
     [icons.webcite,      "WebCite"],
   ];
   const providerGrid = providers.map(([icon, name]) => `
@@ -734,7 +736,7 @@ async function renderPromoTile(page) {
         </body>
       </html>`,
     { width: 440, height: 280 },
-    { fullPage: false }
+    { fullPage: false, scale: "css" }
   );
 }
 
@@ -796,7 +798,7 @@ async function renderMarqueeTile(page) {
         </body>
       </html>`,
     { width: 1400, height: 560 },
-    { fullPage: false }
+    { fullPage: false, scale: "css" }
   );
 }
 
@@ -808,7 +810,11 @@ async function main() {
   await ensureDir(chromeGlobalDir);
   const providerIcons = await loadProviderIcons();
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 2
+  });
+  const page = await context.newPage();
 
   try {
     await screenshotHtml(
@@ -930,6 +936,7 @@ async function main() {
       await exportChromeScreenshotPng(page, sourcePath, path.join(chromeGlobalDir, targetBase));
     }
   } finally {
+    await context.close();
     await browser.close();
   }
 

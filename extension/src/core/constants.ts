@@ -37,7 +37,6 @@ export const WAYBACK_HOSTS = new Set([
   "www.arquivo.pt",
   "megalodon.jp",
   "gyo.tc",
-  "wayback.archive-it.org",
   "www.webcitation.org",
   "archive.softwareheritage.org"
 ]);

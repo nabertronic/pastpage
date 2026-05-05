@@ -17,7 +17,6 @@ describe("settings", () => {
       "perma-cc",
       "arquivo-pt",
       "web-gyotaku",
-      "archive-it",
       "webcite",
       "software-heritage"
     ]);

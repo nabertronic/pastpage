@@ -105,7 +105,7 @@ export function buildAutomaticProviderOrder(context: ArchivePriorityContext): Pr
 }
 
 export function buildManualDirectLinkProviders(context: ArchivePriorityContext): ProviderId[] {
-  const providers: ProviderId[] = ["yandex-cache", "archive-it", "webcite"];
+  const providers: ProviderId[] = ["yandex-cache", "webcite"];
 
   if (context.isRepositoryUrl) {
     providers.push("software-heritage");

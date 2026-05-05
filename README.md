@@ -47,7 +47,6 @@ And when useful, it also adds specialized follow-up sources such as:
 - `UK Government Web Archive` for `gov.uk`
 - `Library of Congress Web Archives` for `gov`, `mil`, `loc.gov`, and `congress.gov`
 - `Software Heritage` for code and repository URLs
-- `Archive-It`
 - `WebCite`
 - `Yandex Cache`
 

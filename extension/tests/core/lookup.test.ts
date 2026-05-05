@@ -115,7 +115,6 @@ describe("lookupArchives", () => {
         "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
-        "archive-it",
         "webcite"
       ]);
     }
@@ -164,7 +163,6 @@ describe("lookupArchives", () => {
         "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
-        "archive-it",
         "webcite"
       ]);
     }
@@ -287,7 +285,6 @@ describe("lookupArchives", () => {
         "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
-        "archive-it",
         "webcite"
       ]);
     }
@@ -569,7 +566,6 @@ describe("lookupArchives", () => {
         "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
-        "archive-it",
         "webcite",
         "software-heritage"
       ]);

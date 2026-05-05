@@ -379,7 +379,6 @@ describe("background context menus", () => {
           "arquivo-pt",
           "web-gyotaku",
           "yandex-cache",
-          "archive-it",
           "webcite",
           "software-heritage"
         ],

@@ -188,12 +188,6 @@ const PROVIDER_CONTEXT_MENU_ITEMS: Record<
     title: "Perma.cc",
     iconPath: "provider-icons/perma-cc.svg"
   },
-  "archive-it": {
-    id: `${PROVIDER_CONTEXT_MENU_PREFIX}archive-it`,
-    providerId: "archive-it",
-    title: "Archive-It",
-    iconPath: "provider-icons/archive-it.svg"
-  },
   webcite: {
     id: `${PROVIDER_CONTEXT_MENU_PREFIX}webcite`,
     providerId: "webcite",

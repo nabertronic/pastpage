@@ -224,7 +224,6 @@ describe("OptionsApp", () => {
             "loc-web-archives",
             "arquivo-pt",
             "web-gyotaku",
-            "archive-it",
             "webcite",
             "software-heritage"
           ]

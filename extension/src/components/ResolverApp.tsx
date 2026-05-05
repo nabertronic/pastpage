@@ -101,7 +101,6 @@ function parseScopedProviderId(params: URLSearchParams): ProviderId | undefined 
     case "arquivo-pt":
     case "web-gyotaku":
     case "yandex-cache":
-    case "archive-it":
     case "webcite":
     case "software-heritage":
       return rawProviderId;

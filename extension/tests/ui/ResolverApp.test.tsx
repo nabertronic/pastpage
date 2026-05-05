@@ -69,7 +69,6 @@ describe("ResolverApp", () => {
     await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
     expect(screen.getByText(/404: Page not found/i)).toBeInTheDocument();
     expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
-    expect(screen.getByText(/Check on Archive-It/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /Check on /i }).length).toBeGreaterThan(0);
   });
 
