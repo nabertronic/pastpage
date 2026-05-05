@@ -7,6 +7,7 @@
 - Renamed Web Gyotaku to Megalodon across the UI and docs, while keeping `Megalodon/Web Gyotaku` as the visible archive label outside the popup and context menu.
 - Added automatic Software Heritage resolver support for repository URLs and supported code pages.
 - Adjusted the first thanks-page view to use first-time wording instead of repeat/milestone copy, and removed the awkward `1 searches` phrasing.
+- Moved Perma.cc behind Megalodon and WebCite in the popup and context menu, and disabled it by default; it can be re-enabled in the settings.
 
 ## v1.0.1
 

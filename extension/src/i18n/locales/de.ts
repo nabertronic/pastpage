@@ -217,6 +217,7 @@ export const de: MessageCatalog = {
   "fallback.tryOriginalAgain": "Original erneut versuchen",
   "resolver.title": "Archivierte Version wird gesucht",
   "resolver.description": "PastPage prüft archivierte Snapshots bei mehreren Anbietern.",
+  "resolver.descriptionScoped": "PastPage prüft archivierte Snapshots bei {{provider}}.",
   "resolver.startingLookup": "Suche wird gestartet",
   "resolver.checkingProvider": "{{provider}} wird geprüft ({{strategy}})",
   "resolver.strategy.exact": "ursprüngliche URL",
@@ -233,6 +234,8 @@ export const de: MessageCatalog = {
   "resolver.notFound.title": "Kein archivierter HTML-Snapshot gefunden",
   "resolver.notFound.description":
     "Für alle Archivdienste wurde ein URL-Abgleich mit {{strategies}} geprüft.",
+  "resolver.notFound.descriptionScoped":
+    "Der URL-Abgleich mit {{strategies}} wurde bei {{provider}} geprüft.",
   "resolver.notFound.alsoCheckSources": "Überprüfe auch diese Quellen:",
   "resolver.notFound.copyOriginalUrl": "Original-URL kopieren",
   "resolver.notFound.originalUrlCopied": "Original-URL kopiert",
@@ -240,6 +243,7 @@ export const de: MessageCatalog = {
   "resolver.error.title": "Die Suche konnte nicht abgeschlossen werden",
   "sourceSummary.title": "Aktuelle Quelle",
   "sourceSummary.description": "Archivierte Versionen für diese Seite werden geprüft.",
+  "sourceSummary.descriptionScoped": "Archivierte Versionen für diese Seite werden bei {{provider}} geprüft.",
   "topbar.cta": "Archivierte Version finden",
   "topbar.dismiss": "PastPage ausblenden",
   "topbar.legalReason":

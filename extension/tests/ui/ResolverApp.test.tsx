@@ -68,6 +68,7 @@ describe("ResolverApp", () => {
 
     await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
     expect(screen.getByText(/404: Page not found/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Check on Perma\.cc/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /Check on /i }).length).toBeGreaterThan(0);
   });
@@ -81,6 +82,29 @@ describe("ResolverApp", () => {
     await waitFor(() => expect(screen.getByText(/Current source/i)).toBeInTheDocument());
     expect(screen.getByText(/Checking archived versions for this page/i)).toBeInTheDocument();
     expect(screen.queryByText(/404: Page not found/i)).not.toBeInTheDocument();
+  });
+
+  it("renders provider-scoped copy for a Perma.cc lookup", async () => {
+    vi.stubGlobal("fetch", notFoundFetch());
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=manual-page&url=https%3A%2F%2Fexample.com%2Fstory&providerId=perma-cc"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    expect(screen.getByText(/PastPage checks archived captures on Perma\.cc\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Checking archived versions for this page on Perma\.cc\./i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((text) => text.includes("Perma.cc.") && text.includes("matching on"))
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Checked original URL matching across all archive providers\./i)
+    ).not.toBeInTheDocument();
   });
 
   it("opens the thanks page again on the 100th search", async () => {

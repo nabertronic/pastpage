@@ -215,6 +215,8 @@ export const fr = {
   "resolver.title": "Recherche de la version archivée",
   "resolver.description":
     "PastPage vérifie les captures archivées auprès de plusieurs fournisseurs.",
+  "resolver.descriptionScoped":
+    "PastPage vérifie les captures archivées sur {{provider}}.",
   "resolver.startingLookup": "Démarrage de la recherche",
   "resolver.checkingProvider": "Vérification de {{provider}} ({{strategy}})",
   "resolver.strategy.exact": "URL d'origine",
@@ -231,6 +233,8 @@ export const fr = {
   "resolver.notFound.title": "Aucune capture HTML archivée trouvée",
   "resolver.notFound.description":
     "Correspondance d'URL {{strategies}} vérifiée auprès de tous les fournisseurs d'archives.",
+  "resolver.notFound.descriptionScoped":
+    "Correspondance d'URL {{strategies}} vérifiée sur {{provider}}.",
   "resolver.notFound.alsoCheckSources": "Vérifie aussi ces sources :",
   "resolver.notFound.copyOriginalUrl": "Copier l'URL d'origine",
   "resolver.notFound.originalUrlCopied": "URL d'origine copiée",
@@ -238,6 +242,7 @@ export const fr = {
   "resolver.error.title": "La recherche n'a pas pu être terminée",
   "sourceSummary.title": "Source actuelle",
   "sourceSummary.description": "Vérification des versions archivées pour cette page.",
+  "sourceSummary.descriptionScoped": "Vérification des versions archivées pour cette page sur {{provider}}.",
   "topbar.cta": "Trouver une version archivée",
   "topbar.dismiss": "Masquer PastPage",
   "topbar.legalReason": "451 : Non disponible pour des raisons légales. Trouver la dernière version archivée ?",

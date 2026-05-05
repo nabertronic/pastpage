@@ -211,6 +211,7 @@ export const en = {
   "fallback.tryOriginalAgain": "Try original again",
   "resolver.title": "Checking archived versions",
   "resolver.description": "PastPage checks archived captures across multiple providers.",
+  "resolver.descriptionScoped": "PastPage checks archived captures on {{provider}}.",
   "resolver.startingLookup": "Starting lookup",
   "resolver.checkingProvider": "Checking {{provider}} ({{strategy}})",
   "resolver.strategy.exact": "original URL",
@@ -227,6 +228,8 @@ export const en = {
   "resolver.notFound.title": "No archived HTML capture found",
   "resolver.notFound.description":
     "Checked {{strategies}} URL matching across all archive providers.",
+  "resolver.notFound.descriptionScoped":
+    "Checked {{strategies}} URL matching on {{provider}}.",
   "resolver.notFound.alsoCheckSources": "Also check these sources:",
   "resolver.notFound.copyOriginalUrl": "Copy original URL",
   "resolver.notFound.originalUrlCopied": "Original URL copied",
@@ -234,6 +237,7 @@ export const en = {
   "resolver.error.title": "Lookup could not be completed",
   "sourceSummary.title": "Current source",
   "sourceSummary.description": "Checking archived versions for this page.",
+  "sourceSummary.descriptionScoped": "Checking archived versions for this page on {{provider}}.",
   "topbar.cta": "Find Archived Version",
   "topbar.dismiss": "Dismiss PastPage",
   "topbar.legalReason": "451: Unavailable for legal reasons. Find the latest archived version?",

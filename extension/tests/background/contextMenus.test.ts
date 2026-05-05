@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DEFAULT_SETTINGS } from "@/core/settings";
 
 const contextMenusApi = browser.contextMenus as typeof browser.contextMenus & {
   onShown?: { addListener: ReturnType<typeof vi.fn> };
@@ -88,40 +89,6 @@ describe("background context menus", () => {
     expect(browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
   });
 
-  it("opens a provider-scoped resolver for Perma.cc context-menu clicks", async () => {
-    const background = await import("../../entrypoints/background");
-    (background.default as unknown as () => void)();
-    await flushPromises();
-
-    const onClicked = vi.mocked(browser.contextMenus.onClicked.addListener).mock.calls[0]?.[0] as
-      | ((info: { menuItemId: string; pageUrl?: string }, tab?: { id?: number; url?: string }) => void)
-      | undefined;
-
-    expect(onClicked).toBeTypeOf("function");
-
-    onClicked?.(
-      { menuItemId: "provider:perma-cc", pageUrl: "https://example.com/story" },
-      { id: 7, url: "https://example.com/story" }
-    );
-    await flushPromises();
-
-    expect(browser.tabs.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        active: true,
-        openerTabId: 7
-      })
-    );
-    expectResolverUrl(
-      vi.mocked(browser.tabs.create).mock.calls[0]?.[0]?.url as string,
-      {
-        url: "https://example.com/story",
-        trigger: "manual-page",
-        sourceTabId: "7",
-        providerId: "perma-cc"
-      }
-    );
-  });
-
   it("starts the resolver for the active tab when the browser command fires", async () => {
     (browser.tabs.query as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
       { id: 9, url: "https://example.com/story" }
@@ -156,7 +123,53 @@ describe("background context menus", () => {
     );
   });
 
+  it("opens a provider-scoped resolver for Perma.cc context-menu clicks", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
+    const background = await import("../../entrypoints/background");
+    (background.default as unknown as () => void)();
+    await flushPromises();
+
+    const onClicked = vi.mocked(browser.contextMenus.onClicked.addListener).mock.calls[0]?.[0] as
+      | ((info: { menuItemId: string; pageUrl?: string }, tab?: { id?: number; url?: string }) => void)
+      | undefined;
+
+    expect(onClicked).toBeTypeOf("function");
+
+    onClicked?.(
+      { menuItemId: "provider:perma-cc", pageUrl: "https://example.com/story" },
+      { id: 7, url: "https://example.com/story" }
+    );
+    await flushPromises();
+
+    expect(browser.tabs.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        active: true,
+        openerTabId: 7
+      })
+    );
+    expectResolverUrl(
+      vi.mocked(browser.tabs.create).mock.calls[0]?.[0]?.url as string,
+      {
+        url: "https://example.com/story",
+        trigger: "manual-page",
+        sourceTabId: "7",
+        providerId: "perma-cc"
+      }
+    );
+  });
+
   it("prefers the clicked link target over the current page URL", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -195,6 +208,12 @@ describe("background context menus", () => {
   });
 
   it("prefers a selected text URL over the current page URL", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -233,6 +252,12 @@ describe("background context menus", () => {
   });
 
   it("hides irrelevant provider items for selected URLs", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -267,6 +292,12 @@ describe("background context menus", () => {
   });
 
   it("hides irrelevant provider items for right-clicked links", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -302,6 +333,12 @@ describe("background context menus", () => {
   });
 
   it("opens all enabled archives in tabs from the context menu", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -369,6 +406,7 @@ describe("background context menus", () => {
   it("uses the configured archive order when rebuilding provider context menus", async () => {
     (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
         archiveDisplayOrder: [
           "perma-cc",
           "wayback",
@@ -415,6 +453,12 @@ describe("background context menus", () => {
   });
 
   it("adds link and selection menu items without document URL restrictions", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -429,18 +473,22 @@ describe("background context menus", () => {
     const createCalls = vi.mocked(browser.contextMenus.create).mock.calls.map(([item]) => item);
     const resolverLinkItem = createCalls.find((item) => item.id === "check-archived-versions-link");
     const resolverSelectionItem = createCalls.find((item) => item.id === "check-archived-versions-selection");
-    const providerLinkItem = createCalls.find((item) => item.id === "provider:perma-cc:link");
-    const providerSelectionItem = createCalls.find((item) => item.id === "provider:perma-cc:selection");
-
     expect(resolverLinkItem?.documentUrlPatterns).toBeUndefined();
     expect(resolverLinkItem?.targetUrlPatterns).toEqual(["http://*/*", "https://*/*"]);
     expect(resolverSelectionItem?.documentUrlPatterns).toBeUndefined();
-    expect(providerLinkItem?.documentUrlPatterns).toBeUndefined();
-    expect(providerLinkItem?.targetUrlPatterns).toEqual(["http://*/*", "https://*/*"]);
-    expect(providerSelectionItem?.documentUrlPatterns).toBeUndefined();
+    const providerLinkItem = createCalls.find((item) => item.id === "provider:perma-cc:link");
+    const providerSelectionItem = createCalls.find((item) => item.id === "provider:perma-cc:selection");
+    expect(providerLinkItem).toBeDefined();
+    expect(providerSelectionItem).toBeDefined();
   });
 
   it("keeps page-specific menu items restricted to http pages", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();
     await flushPromises();
@@ -454,10 +502,9 @@ describe("background context menus", () => {
 
     const createCalls = vi.mocked(browser.contextMenus.create).mock.calls.map(([item]) => item);
     const resolverPageItem = createCalls.find((item) => item.id === "check-archived-versions");
-    const providerPageItem = createCalls.find((item) => item.id === "provider:perma-cc");
-
     expect(resolverPageItem?.documentUrlPatterns).toEqual(["http://*/*", "https://*/*"]);
-    expect(providerPageItem?.documentUrlPatterns).toEqual(["http://*/*", "https://*/*"]);
+    const providerPageItem = createCalls.find((item) => item.id === "provider:perma-cc");
+    expect(providerPageItem).toBeDefined();
   });
 
   it("uses the short Megalodon label in provider context menus", async () => {

@@ -66,8 +66,22 @@ export type Settings = z.infer<typeof SettingsSchema>;
 export const DEFAULT_SETTINGS: Settings = {
   openBehavior: "new-tab-background",
   providerMenuOpenBehavior: "new-tab-foreground",
-  enabledProviders: ALL_PROVIDER_IDS.filter((providerId) => providerId !== "arquivo-pt"),
-  archiveDisplayOrder: [...ALL_PROVIDER_IDS],
+  enabledProviders: ALL_PROVIDER_IDS.filter(
+    (providerId) => providerId !== "arquivo-pt" && providerId !== "perma-cc"
+  ),
+  archiveDisplayOrder: [
+    "wayback",
+    "archive-today",
+    "ghostarchive",
+    "yandex-cache",
+    "uk-gov-web-archive",
+    "loc-web-archives",
+    "arquivo-pt",
+    "web-gyotaku",
+    "webcite",
+    "perma-cc",
+    "software-heritage"
+  ],
   historyEnabled: true,
   popupArchiveListEnabled: true,
   showSearchEngineIcons: true,

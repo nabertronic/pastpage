@@ -213,6 +213,7 @@ export const es = {
   "fallback.tryOriginalAgain": "Probar el original de nuevo",
   "resolver.title": "Buscando versión archivada",
   "resolver.description": "PastPage comprueba capturas archivadas en varios proveedores.",
+  "resolver.descriptionScoped": "PastPage comprueba capturas archivadas en {{provider}}.",
   "resolver.startingLookup": "Iniciando búsqueda",
   "resolver.checkingProvider": "Comprobando {{provider}} ({{strategy}})",
   "resolver.strategy.exact": "URL original",
@@ -229,6 +230,8 @@ export const es = {
   "resolver.notFound.title": "No se encontró ninguna captura HTML archivada",
   "resolver.notFound.description":
     "Se comprobó la coincidencia de URL {{strategies}} en todos los proveedores de archivo.",
+  "resolver.notFound.descriptionScoped":
+    "Se comprobó la coincidencia de URL {{strategies}} en {{provider}}.",
   "resolver.notFound.alsoCheckSources": "Consulta también estas fuentes:",
   "resolver.notFound.copyOriginalUrl": "Copiar URL original",
   "resolver.notFound.originalUrlCopied": "URL original copiada",
@@ -236,6 +239,7 @@ export const es = {
   "resolver.error.title": "No se pudo completar la búsqueda",
   "sourceSummary.title": "Fuente actual",
   "sourceSummary.description": "Comprobando versiones archivadas de esta página.",
+  "sourceSummary.descriptionScoped": "Comprobando versiones archivadas de esta página en {{provider}}.",
   "topbar.cta": "Buscar versión archivada",
   "topbar.dismiss": "Descartar PastPage",
   "topbar.legalReason": "451: No disponible por razones legales. ¿Buscar la última versión archivada?",

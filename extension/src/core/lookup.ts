@@ -230,8 +230,9 @@ function buildManualSources(
   hostSettings?: ProviderHostSettings
 ): ManualArchiveSource[] {
   const seen = new Set<string>();
+  const providerIds = buildManualSourceProviderOrder(rawUrl);
 
-  return buildManualSourceProviderOrder(rawUrl)
+  return providerIds
     .filter((providerId) => !allowedProviderIds || allowedProviderIds.has(providerId))
     .filter((providerId) => !foundProviderIds.has(providerId))
     .flatMap((providerId) => {

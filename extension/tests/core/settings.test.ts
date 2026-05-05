@@ -7,6 +7,7 @@ describe("settings", () => {
     expect(DEFAULT_SETTINGS.providerMenuOpenBehavior).toBe("new-tab-foreground");
     expect(DEFAULT_SETTINGS.enabledProviders.length).toBeGreaterThan(0);
     expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("arquivo-pt");
+    expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("perma-cc");
     expect(DEFAULT_SETTINGS.archiveDisplayOrder).toEqual([
       "wayback",
       "archive-today",
@@ -14,10 +15,10 @@ describe("settings", () => {
       "yandex-cache",
       "uk-gov-web-archive",
       "loc-web-archives",
-      "perma-cc",
       "arquivo-pt",
       "web-gyotaku",
       "webcite",
+      "perma-cc",
       "software-heritage"
     ]);
     expect(DEFAULT_SETTINGS.historyEnabled).toBe(true);

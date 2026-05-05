@@ -79,7 +79,7 @@ describe("permaCcProvider", () => {
     expect(snapshot).toBeNull();
   });
 
-  it("does not expose a manual search-link", () => {
+  it("does not expose a manual direct link", () => {
     expect(permaCcProvider.buildDirectLinkUrl("https://example.com/path")).toBeNull();
   });
 });

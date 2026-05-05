@@ -29,7 +29,7 @@ describe("PopupApp", () => {
     expect(screen.getByRole("button", { name: "Wayback Machine" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Megalodon" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Web Gyotaku/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Perma.cc" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Perma.cc" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /github/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /history/i })).toBeInTheDocument();
   });
@@ -216,7 +216,7 @@ describe("PopupApp", () => {
 
     render(<PopupApp />);
 
-    expect(await screen.findByRole("button", { name: "Perma.cc" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Ghostarchive" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Wayback Machine" })).not.toBeInTheDocument();
   });
 
@@ -224,6 +224,7 @@ describe("PopupApp", () => {
     (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       "pastPage.settings": {
         ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"],
         archiveDisplayOrder: [
           "perma-cc",
           "wayback",
@@ -237,7 +238,7 @@ describe("PopupApp", () => {
 
     render(<PopupApp />);
 
-    const manualSection = (await screen.findByRole("button", { name: "Perma.cc" })).closest("section");
+    const manualSection = (await screen.findByRole("button", { name: "Wayback Machine" })).closest("section");
     const archiveButtons = within(manualSection as HTMLElement)
       .getAllByRole("button")
       .map((button) => button.textContent?.trim())
@@ -282,7 +283,13 @@ describe("PopupApp", () => {
     });
   });
 
-  it("opens a provider-scoped resolver when the archive has no direct link", async () => {
+  it("opens a provider-scoped resolver from the popup list for Perma.cc", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "perma-cc"]
+      }
+    });
     (browser.runtime.sendMessage as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       state: { status: "idle" }
     });
@@ -311,17 +318,17 @@ describe("PopupApp", () => {
     await userEvent.click(await screen.findByRole("button", { name: /open all archives in tabs/i }));
 
     expect(browser.tabs.create).toHaveBeenNthCalledWith(1, {
-      url: expect.stringContaining(
-        "moz-extension://test//resolver.html?url=https%3A%2F%2Fexample.com%2Fstory&trigger=manual-page&sourceTabId=1&providerId=perma-cc"
-      ),
+      url: "https://web.archive.org/web/*/https://example.com/story",
       active: true,
       openerTabId: 1
     });
-    expect(browser.tabs.create).toHaveBeenNthCalledWith(2, {
-      url: "https://web.archive.org/web/*/https://example.com/story",
-      active: false,
-      openerTabId: 1
-    });
+    expect(
+      vi.mocked(browser.tabs.create).mock.calls.map(([call]) => call.url)
+    ).not.toContainEqual(
+      expect.stringContaining(
+        "moz-extension://test//resolver.html?url=https%3A%2F%2Fexample.com%2Fstory&trigger=manual-page&sourceTabId=1&providerId=perma-cc"
+      )
+    );
     expect(window.close).toHaveBeenCalled();
   });
 

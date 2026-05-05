@@ -220,10 +220,10 @@ describe("OptionsApp", () => {
             "ghostarchive",
             "yandex-cache",
             "uk-gov-web-archive",
-            "perma-cc",
             "loc-web-archives",
             "arquivo-pt",
             "web-gyotaku",
+            "perma-cc",
             "webcite",
             "software-heritage"
           ]

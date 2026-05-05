@@ -357,6 +357,7 @@ export function ResolverApp() {
         pendingStepIndex={pendingStepIndex}
         request={request}
         resolverSuccessBehavior={settings.resolverSuccessBehavior}
+        scopedProviderId={scopedProviderId}
         status={status}
       />
     </I18nProvider>
@@ -368,16 +369,19 @@ function ResolverContent({
   pendingStepIndex,
   request,
   resolverSuccessBehavior,
+  scopedProviderId,
   status
 }: {
   error: DetectedError | null;
   pendingStepIndex: number;
   request: LookupRequest;
   resolverSuccessBehavior: Settings["resolverSuccessBehavior"];
+  scopedProviderId?: ProviderId;
   status: ResolverStatus;
 }) {
   const { locale, t } = useI18n();
   const strategyList = new Intl.ListFormat(locale, { style: "long", type: "conjunction" });
+  const scopedProviderName = scopedProviderId ? getProvider(scopedProviderId).displayName : null;
   const pendingSteps = status.kind === "loading" || status.kind === "found" ? status.pendingSteps : [];
   const activeStep = pendingSteps.length > 0 ? pendingSteps[pendingStepIndex % pendingSteps.length] : null;
   const activeStepLabel = activeStep
@@ -390,9 +394,20 @@ function ResolverContent({
     : t("resolver.startingLookup");
 
   return (
-    <PageShell title={t("resolver.title")} description={t("resolver.description")}>
+    <PageShell
+      title={t("resolver.title")}
+      description={
+        scopedProviderName
+          ? t("resolver.descriptionScoped", { provider: scopedProviderName })
+          : t("resolver.description")
+      }
+    >
       <div className="space-y-4">
-        {error ? <ErrorSummary error={error} /> : <SourceSummary url={request.originalUrl} />}
+        {error ? (
+          <ErrorSummary error={error} />
+        ) : (
+          <SourceSummary url={request.originalUrl} scopedProviderId={scopedProviderId} />
+        )}
 
         <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
           {status.kind === "loading" ? (
@@ -472,13 +487,22 @@ function ResolverContent({
                 <div>
                   <h2 className="text-base font-semibold">{t("resolver.notFound.title")}</h2>
                   <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
-                    {t("resolver.notFound.description", {
-                      strategies: strategyList.format(
-                        status.checked.map((strategy) =>
-                          t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
-                        )
-                      )
-                    })}
+                    {(scopedProviderName
+                      ? t("resolver.notFound.descriptionScoped", {
+                          provider: scopedProviderName,
+                          strategies: strategyList.format(
+                            status.checked.map((strategy) =>
+                              t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                            )
+                          )
+                        })
+                      : t("resolver.notFound.description", {
+                          strategies: strategyList.format(
+                            status.checked.map((strategy) =>
+                              t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                            )
+                          )
+                        }))}
                   </p>
                 </div>
               </div>
