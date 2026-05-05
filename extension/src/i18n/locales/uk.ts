@@ -92,6 +92,9 @@ export const uk: MessageCatalog = {
   "options.afterSnapshot.replaceResolver": "Використовуйте вкладку пошуку для архіву",
   "options.urlMatching.label": "URL відповідність",
   "options.urlMatching.description": "Вирішіть, наскільки точно пошук в архіві має відповідати оригінальному URL.",
+  "options.providerTimeout.label": "Provider timeout",
+  "options.providerTimeout.description":
+    "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
   "options.urlMatching.exactThenCleaned": "Спочатку точне, потім чисте",
   "options.urlMatching.exactOnly": "Тільки точні",
   "options.urlMatching.cleanedFirst": "Почистили спочатку",

@@ -37,6 +37,7 @@ describe("OptionsApp", () => {
     expect(screen.getByText("Wayback Machine")).toBeInTheDocument();
     expect(screen.getByText("After a snapshot is found")).toBeInTheDocument();
     expect(screen.getByText("URL matching")).toBeInTheDocument();
+    expect(screen.getByText("Provider timeout")).toBeInTheDocument();
     expect(screen.getByText("Wayback Machine host")).toBeInTheDocument();
     expect(screen.getByText("Archive.today host")).toBeInTheDocument();
     expect(screen.getByText("Browser shortcuts")).toBeInTheDocument();
@@ -282,6 +283,24 @@ describe("OptionsApp", () => {
         "pastPage.settings": {
           ...DEFAULT_SETTINGS,
           waybackHost: "web.archivep75mbjunhxc6x4j5mwjmomyxb573v42baldlqu56ruil2oiad.onion"
+        }
+      })
+    );
+  });
+
+  it("saves the provider timeout in seconds", async () => {
+    render(<OptionsApp />);
+    await screen.findByText("Recovery behavior");
+    vi.mocked(browser.storage.local.set).mockClear();
+
+    await userEvent.clear(screen.getByLabelText("Provider timeout"));
+    await userEvent.type(screen.getByLabelText("Provider timeout"), "90");
+
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.settings": {
+          ...DEFAULT_SETTINGS,
+          providerTimeoutSeconds: 90
         }
       })
     );

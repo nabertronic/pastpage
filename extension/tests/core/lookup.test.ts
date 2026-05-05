@@ -569,4 +569,40 @@ describe("lookupArchives", () => {
       ]);
     }
   });
+
+  it("applies the central timeout to provider requests", async () => {
+    vi.useFakeTimers();
+
+    const fetchImpl = vi.fn((_: RequestInfo | URL, init?: RequestInit) => {
+      return new Promise((_, reject) => {
+        init?.signal?.addEventListener(
+          "abort",
+          () => reject(new Error("aborted")),
+          { once: true }
+        );
+      });
+    });
+
+    const lookupPromise = lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch,
+      undefined,
+      undefined,
+      undefined,
+      ["wayback"],
+      undefined,
+      50
+    );
+
+    await vi.advanceTimersByTimeAsync(50);
+    const result = await lookupPromise;
+
+    expect(result.status).toBe("not-found");
+    if (result.status === "not-found") {
+      expect(result.failedProviders.map((provider) => provider.providerId)).toEqual(["wayback"]);
+    }
+
+    vi.useRealTimers();
+  });
 });

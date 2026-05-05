@@ -3,11 +3,14 @@
 ## v1.0.2
 
 - Removed the broken Archive-It provider and all related direct-link surfaces, icons, and tests.
-- Limited automatic Arquivo.pt checks to Portuguese domains and added a timeout so unstable Arquivo.pt requests do not hold up the resolver.
+- Limited automatic Arquivo.pt checks to Portuguese domains.
+- Added a central per-provider timeout, defaulting to 60 seconds and configurable down to the second in settings.
 - Renamed Web Gyotaku to Megalodon across the UI and docs, while keeping `Megalodon/Web Gyotaku` as the visible archive label outside the popup and context menu.
 - Added automatic Software Heritage resolver support for repository URLs and supported code pages.
 - Adjusted the first thanks-page view to use first-time wording instead of repeat/milestone copy, and removed the awkward `1 searches` phrasing.
-- Moved Perma.cc behind Megalodon and WebCite in the popup and context menu, and disabled it by default; it can be re-enabled in the settings.
+- Updated Perma.cc so automatic hits now come only from the public Perma.cc API, while manual popup/context-menu actions open a provider-scoped resolver lookup instead of sending users to the generic Perma.cc landing page.
+- Updated the resolver copy for provider-scoped Perma.cc lookups so the page clearly says that only Perma.cc is being checked, rather than implying that all archive providers were searched.
+- Moved Perma.cc behind Megalodon and WebCite in the popup and context menu, and disabled it by default; it can still be re-enabled in the settings.
 
 ## v1.0.1
 

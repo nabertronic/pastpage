@@ -106,6 +106,9 @@ export const fr = {
   "options.urlMatching.label": "Correspondance d'URL",
   "options.urlMatching.description":
     "Décidez avec quelle précision la recherche d'archive doit suivre l'URL d'origine.",
+  "options.providerTimeout.label": "Provider timeout",
+  "options.providerTimeout.description":
+    "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
   "options.urlMatching.exactThenCleaned": "Exacte d'abord, puis nettoyée",
   "options.urlMatching.exactOnly": "Exacte uniquement",
   "options.urlMatching.cleanedFirst": "Nettoyée d'abord",

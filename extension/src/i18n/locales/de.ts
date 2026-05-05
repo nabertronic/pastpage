@@ -109,6 +109,9 @@ export const de: MessageCatalog = {
   "options.urlMatching.label": "URL-Abgleich",
   "options.urlMatching.description":
     "Legen Sie fest, wie genau die Archivsuche der ursprünglichen URL folgen soll.",
+  "options.providerTimeout.label": "Provider-Timeout",
+  "options.providerTimeout.description":
+    "Legen Sie fest, wie viele Sekunden jeder Archiv-Anbieter maximal Zeit hat, bevor PastPage zum nächsten Schritt übergeht.",
   "options.urlMatching.exactThenCleaned": "Zuerst exakt, dann bereinigt",
   "options.urlMatching.exactOnly": "Nur exakt",
   "options.urlMatching.cleanedFirst": "Zuerst bereinigt",

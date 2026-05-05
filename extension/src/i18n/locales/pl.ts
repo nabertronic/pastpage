@@ -92,6 +92,9 @@ export const pl: MessageCatalog = {
   "options.afterSnapshot.replaceResolver": "Użyj karty wyszukiwania do archiwum",
   "options.urlMatching.label": "dopasowanie URL",
   "options.urlMatching.description": "Zdecyduj, jak bardzo wyszukiwanie w archiwum powinno być zgodne z oryginalnym URL.",
+  "options.providerTimeout.label": "Provider timeout",
+  "options.providerTimeout.description":
+    "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
   "options.urlMatching.exactThenCleaned": "Najpierw dokładne, potem oczyszczone",
   "options.urlMatching.exactOnly": "Tylko dokładne",
   "options.urlMatching.cleanedFirst": "Najpierw oczyszczone",

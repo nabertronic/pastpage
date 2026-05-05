@@ -105,6 +105,9 @@ export const es = {
   "options.urlMatching.label": "Coincidencia de URL",
   "options.urlMatching.description":
     "Decide con qué precisión debe seguir la búsqueda de archivo la URL original.",
+  "options.providerTimeout.label": "Provider timeout",
+  "options.providerTimeout.description":
+    "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
   "options.urlMatching.exactThenCleaned": "Exacta primero, luego limpia",
   "options.urlMatching.exactOnly": "Solo exacta",
   "options.urlMatching.cleanedFirst": "Limpia primero",

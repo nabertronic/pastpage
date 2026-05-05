@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, BookOpen, Check, ExternalLink, GripVertical, Refres
 import { Button, LinkButton } from "./Button";
 import { PageShell } from "./PageShell";
 import { ResearcherFooter } from "./AppLinks";
-import { SelectField, ToggleRow } from "./FieldControls";
+import { NumberField, SelectField, ToggleRow } from "./FieldControls";
 import { LogoMark } from "./LogoMark";
 import { ARCHIVE_TODAY_HOST_OPTIONS, WAYBACK_HOST_OPTIONS } from "../core/providerHosts";
 import { DEFAULT_SETTINGS, SettingsSchema, type Settings } from "../core/settings";
@@ -115,8 +115,13 @@ function OptionsContent({
   const [isCheckingForUpdates, setIsCheckingForUpdates] = useState(false);
   const [updateResult, setUpdateResult] = useState<UpdateCheckResult | null>(null);
   const [draggedProviderId, setDraggedProviderId] = useState<ProviderId | null>(null);
+  const [providerTimeoutDraft, setProviderTimeoutDraft] = useState(() => String(settings.providerTimeoutSeconds));
   const storeUrl = getExtensionStoreUrl(browserName);
   const hasStoreListing = hasExtensionStoreListing(browserName);
+
+  useEffect(() => {
+    setProviderTimeoutDraft(String(settings.providerTimeoutSeconds));
+  }, [settings.providerTimeoutSeconds]);
 
   async function resetToDefaults() {
     if (!window.confirm(t("options.reset.confirm"))) return;
@@ -254,6 +259,20 @@ function OptionsContent({
                   { value: "exact-only", label: t("options.urlMatching.exactOnly") },
                   { value: "cleaned-first", label: t("options.urlMatching.cleanedFirst") }
                 ]}
+              />
+
+              <NumberField
+                label={t("options.providerTimeout.label")}
+                description={t("options.providerTimeout.description")}
+                value={providerTimeoutDraft}
+                min={1}
+                step={1}
+                onChange={(value) => {
+                  setProviderTimeoutDraft(value);
+                  const parsed = Number.parseInt(value, 10);
+                  if (!Number.isInteger(parsed) || parsed < 1) return;
+                  setSettings((current) => ({ ...current, providerTimeoutSeconds: parsed }));
+                }}
               />
 
               <SelectField

@@ -104,6 +104,9 @@ export const en = {
   "options.urlMatching.label": "URL matching",
   "options.urlMatching.description":
     "Decide how closely the archive lookup should follow the original URL.",
+  "options.providerTimeout.label": "Provider timeout",
+  "options.providerTimeout.description":
+    "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
   "options.urlMatching.exactThenCleaned": "Exact first, then cleaned",
   "options.urlMatching.exactOnly": "Exact only",
   "options.urlMatching.cleanedFirst": "Cleaned first",

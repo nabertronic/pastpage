@@ -26,6 +26,7 @@ describe("settings", () => {
     expect(DEFAULT_SETTINGS.waybackHost).toBe("web.archive.org");
     expect(DEFAULT_SETTINGS.archiveTodayHost).toBe("archive.ph");
     expect(DEFAULT_SETTINGS.urlMatchingMode).toBe("exact-then-cleaned");
+    expect(DEFAULT_SETTINGS.providerTimeoutSeconds).toBe(60);
     expect(DEFAULT_SETTINGS.themeMode).toBe("dark");
     expect(DEFAULT_SETTINGS.badgeEnabled).toBe(true);
     expect(DEFAULT_SETTINGS.bannerTheme).toBe("auto-contrast");
@@ -140,5 +141,16 @@ describe("settings", () => {
       ...DEFAULT_SETTINGS,
       openBehavior: "new-window"
     });
+  });
+
+  it("accepts the configured provider timeout in seconds", () => {
+    expect(parseSettings({ providerTimeoutSeconds: 90 })).toEqual({
+      ...DEFAULT_SETTINGS,
+      providerTimeoutSeconds: 90
+    });
+  });
+
+  it("falls back to the default provider timeout when the stored value is invalid", () => {
+    expect(parseSettings({ providerTimeoutSeconds: 0 })).toEqual(DEFAULT_SETTINGS);
   });
 });

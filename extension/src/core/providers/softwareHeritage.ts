@@ -178,7 +178,7 @@ export const softwareHeritageProvider: AutomaticArchiveProvider = {
   purpose: "automatic-snapshot",
   isRelevant,
   lookup,
-  buildDirectLinkUrl(originalUrl: string): string {
+  buildDirectLinkUrl(originalUrl: string): string | null {
     return deriveSoftwareHeritageTarget(originalUrl)?.browseUrl ?? null;
   }
 };

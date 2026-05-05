@@ -147,3 +147,41 @@ export function SelectField<T extends string>({
     </label>
   );
 }
+
+export function NumberField({
+  label,
+  description,
+  value,
+  min,
+  step = 1,
+  onChange
+}: {
+  label: string;
+  description?: string;
+  value: string;
+  min?: number;
+  step?: number;
+  onChange: (value: string) => void;
+}) {
+  const inputId = useId();
+
+  return (
+    <label className="grid gap-1.5 text-sm">
+      <span className="font-semibold text-stone-950 dark:text-yellow-50" id={`${inputId}-label`}>
+        {label}
+      </span>
+      {description ? <span className="text-xs leading-5 text-stone-600 dark:text-stone-300">{description}</span> : null}
+      <input
+        id={inputId}
+        aria-labelledby={`${inputId}-label`}
+        className="h-10 w-full rounded-md border border-stone-300 bg-white px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+        type="number"
+        inputMode="numeric"
+        min={min}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
+  );
+}

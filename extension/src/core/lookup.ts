@@ -57,7 +57,8 @@ export function lookupArchives(
   onSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
   onPreferredSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
   providerScope?: ProviderId[],
-  hostSettings?: ProviderHostSettings
+  hostSettings?: ProviderHostSettings,
+  providerTimeoutMs?: number
 ): Promise<MultiArchiveLookupResult>;
 export async function lookupArchives(
   rawUrl: string,
@@ -67,7 +68,8 @@ export async function lookupArchives(
   onSnapshotFound?: ((snapshot: ArchiveSnapshot) => void) | undefined,
   onPreferredSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
   providerScope?: ProviderId[],
-  hostSettings?: ProviderHostSettings
+  hostSettings?: ProviderHostSettings,
+  providerTimeoutMs?: number
 ): Promise<MultiArchiveLookupResult> {
   const eligibility = getUrlEligibility(rawUrl);
   if (!eligibility.eligible) {
@@ -75,6 +77,7 @@ export async function lookupArchives(
   }
 
   const effectiveFetchImpl = fetchImpl ?? fetch;
+  const timedFetchImpl = createTimedFetch(effectiveFetchImpl, providerTimeoutMs);
   const allowedProviderIds = providerScope ? new Set(providerScope) : null;
   const order = buildAutomaticProviderOrder(rawUrl).filter(
     (providerId) => !allowedProviderIds || allowedProviderIds.has(providerId)
@@ -131,7 +134,7 @@ export async function lookupArchives(
         emitVisibleSteps(step);
 
         try {
-          const snapshot = await provider.lookup(candidate, effectiveFetchImpl, hostSettings);
+          const snapshot = await provider.lookup(candidate, timedFetchImpl, hostSettings);
           if (snapshot) {
             const normalizedSnapshot: ArchiveSnapshot = {
               ...snapshot,
@@ -221,6 +224,37 @@ export async function lookupArchives(
   }
 
   return { status: "not-found", checked, failedProviders, manualSources };
+}
+
+function createTimedFetch(fetchImpl: typeof fetch, timeoutMs?: number): typeof fetch {
+  if (!timeoutMs || !Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    return fetchImpl;
+  }
+
+  return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const controller = new AbortController();
+    const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+    const upstreamSignal = init?.signal;
+
+    const abortFromUpstream = () => controller.abort();
+    if (upstreamSignal) {
+      if (upstreamSignal.aborted) {
+        controller.abort();
+      } else {
+        upstreamSignal.addEventListener("abort", abortFromUpstream, { once: true });
+      }
+    }
+
+    try {
+      return await fetchImpl(input, {
+        ...init,
+        signal: controller.signal
+      });
+    } finally {
+      globalThis.clearTimeout(timeoutId);
+      upstreamSignal?.removeEventListener("abort", abortFromUpstream);
+    }
+  }) as typeof fetch;
 }
 
 function buildManualSources(

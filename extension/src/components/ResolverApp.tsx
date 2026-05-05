@@ -280,7 +280,8 @@ export function ResolverApp() {
           }, 900);
         },
         providerScope,
-        currentSettings
+        currentSettings,
+        currentSettings.providerTimeoutSeconds * 1000
       );
 
       if (!active) return;

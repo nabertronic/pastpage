@@ -39,6 +39,8 @@ export type BannerTheme = z.infer<typeof BannerThemeSchema>;
 export const ResolverSuccessBehaviorSchema = z.enum(["keep-resolver", "replace-resolver"]);
 export type ResolverSuccessBehavior = z.infer<typeof ResolverSuccessBehaviorSchema>;
 
+export const DEFAULT_PROVIDER_TIMEOUT_SECONDS = 60;
+
 export const SettingsSchema = z.object({
   openBehavior: OpenBehaviorSchema,
   providerMenuOpenBehavior: ProviderMenuOpenBehaviorSchema,
@@ -51,6 +53,7 @@ export const SettingsSchema = z.object({
   waybackHost: WaybackHostSchema,
   archiveTodayHost: ArchiveTodayHostSchema,
   urlMatchingMode: UrlMatchingModeSchema,
+  providerTimeoutSeconds: z.number(),
   language: LanguageModeSchema,
   themeMode: ThemeModeSchema,
   badgeEnabled: z.boolean(),
@@ -89,6 +92,7 @@ export const DEFAULT_SETTINGS: Settings = {
   waybackHost: DEFAULT_PROVIDER_HOST_SETTINGS.waybackHost,
   archiveTodayHost: DEFAULT_PROVIDER_HOST_SETTINGS.archiveTodayHost,
   urlMatchingMode: "exact-then-cleaned",
+  providerTimeoutSeconds: DEFAULT_PROVIDER_TIMEOUT_SECONDS,
   language: "browser",
   themeMode: "dark",
   badgeEnabled: true,
@@ -103,8 +107,17 @@ export function parseSettings(value: unknown): Settings {
   const partial = SettingsSchema.partial()
     .catch({})
     .parse(value);
+
+  const providerTimeoutSeconds =
+    typeof partial.providerTimeoutSeconds === "number" &&
+    Number.isInteger(partial.providerTimeoutSeconds) &&
+    partial.providerTimeoutSeconds >= 1
+      ? partial.providerTimeoutSeconds
+      : DEFAULT_PROVIDER_TIMEOUT_SECONDS;
+
   return SettingsSchema.parse({
     ...DEFAULT_SETTINGS,
-    ...partial
+    ...partial,
+    providerTimeoutSeconds
   });
 }

@@ -94,6 +94,9 @@ export const it: MessageCatalog = {
   "options.afterSnapshot.replaceResolver": "Utilizza la scheda di ricerca per l'archivio",
   "options.urlMatching.label": "URL corrispondente",
   "options.urlMatching.description": "Decidi quanto da vicino la ricerca nell'archivio deve seguire il URL originale.",
+  "options.providerTimeout.label": "Provider timeout",
+  "options.providerTimeout.description":
+    "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
   "options.urlMatching.exactThenCleaned": "Prima esatto, poi pulito",
   "options.urlMatching.exactOnly": "Solo esatto",
   "options.urlMatching.cleanedFirst": "Pulito prima",
