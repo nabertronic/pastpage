@@ -24,7 +24,7 @@ The product is centered around three ideas:
   Offers manual lookup, status, and quick actions for the current tab.
 - `entrypoints/resolver/*`
   Runs the archive lookup flow, auto-opens the preferred hit, and shows additional matches and follow-up sources.
-- `entrypoints/history/*`
+- `entrypoints/archive-history/*`
   Shows locally stored lookup history with search and filters.
 - `entrypoints/options/*`
   Manages user settings, provider order, host selection, history, and update/help actions.

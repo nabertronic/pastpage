@@ -15,7 +15,7 @@ export function optionsPageUrl(): string {
 }
 
 export function historyPageUrl(): string {
-  return browser.runtime.getURL("/history.html" as Parameters<typeof browser.runtime.getURL>[0]);
+  return browser.runtime.getURL("/archive-history.html" as Parameters<typeof browser.runtime.getURL>[0]);
 }
 
 export function onboardingPageUrl(): string {

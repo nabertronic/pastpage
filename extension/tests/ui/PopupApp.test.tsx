@@ -358,7 +358,7 @@ describe("PopupApp", () => {
     await userEvent.click(await screen.findByRole("link", { name: /history/i }));
 
     expect(browser.tabs.create).toHaveBeenCalledWith({
-      url: "moz-extension://test//history.html",
+      url: "moz-extension://test//archive-history.html",
       active: true
     });
     expect(window.close).toHaveBeenCalled();

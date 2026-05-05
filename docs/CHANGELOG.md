@@ -2,6 +2,7 @@
 
 ## v1.0.3
 
+- Renamed the local history page entry point to `archive-history` so Chrome and Firefox use the same regular extension page instead of relying on a browser-history override that Firefox does not support.
 - Added an explicit PNG favicon to all extension tabs so Firefox reliably shows the PastPage tab icon across popup-adjacent pages like settings, resolver, onboarding, and history.
 - Simplified the Firefox update area in settings so it now shows only a single `Check for updates` button that opens the Firefox Add-ons listing directly, removing the redundant extra listing link and explanatory fallback copy.
 

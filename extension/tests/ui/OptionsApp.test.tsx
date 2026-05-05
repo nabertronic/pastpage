@@ -396,7 +396,7 @@ describe("OptionsApp", () => {
     expect(screen.getByText(/turn the saved archive search history on or off/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open history page" })).toHaveAttribute(
       "href",
-      "moz-extension://test/history.html"
+      "moz-extension://test/archive-history.html"
     );
   });
 
