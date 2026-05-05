@@ -39,11 +39,16 @@ function ThanksContent({ searchCount }: { searchCount: number }) {
   const browserName = useMemo(() => (browser.runtime.getURL("").startsWith("moz-extension://") ? "firefox" : "chrome"), []);
   const storeUrl = getExtensionStoreUrl(browserName);
   const ctaLabel = browserName === "firefox" ? t("thanks.ctaFirefox") : t("thanks.ctaChrome");
+  const isFirstThanks = searchCount === 1;
+  const titleKey = isFirstThanks ? "thanks.firstTitle" : "thanks.title";
+  const subtitleKey = isFirstThanks ? "thanks.firstSubtitle" : "thanks.subtitle";
+  const headingKey = isFirstThanks ? "thanks.firstHeading" : "thanks.heading";
+  const bodyKey = isFirstThanks ? "thanks.firstBody" : "thanks.body";
 
   return (
     <PageShell
-      title={t("thanks.title", { count: searchCount })}
-      description={t("thanks.subtitle", { count: searchCount })}
+      title={t(titleKey, { count: searchCount })}
+      description={t(subtitleKey, { count: searchCount })}
       narrow
     >
       <section className="rounded-md border border-yellow-300 bg-yellow-100 p-5 text-stone-950 shadow-sm dark:border-yellow-500/60 dark:bg-yellow-300/12 dark:text-yellow-50">
@@ -52,9 +57,9 @@ function ThanksContent({ searchCount }: { searchCount: number }) {
             <Sparkles aria-hidden="true" size={20} />
           </div>
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold">{t("thanks.heading", { count: searchCount })}</h2>
+            <h2 className="text-lg font-semibold">{t(headingKey, { count: searchCount })}</h2>
             <p className="mt-2 text-sm leading-6 text-stone-700 dark:text-yellow-100/85">
-              {t("thanks.body", { count: searchCount })}
+              {t(bodyKey, { count: searchCount })}
             </p>
             {hasExtensionStoreListing(browserName) && storeUrl ? (
               <div className="mt-4">

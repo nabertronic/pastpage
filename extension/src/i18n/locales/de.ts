@@ -198,6 +198,11 @@ export const de: MessageCatalog = {
   "options.updates.firefox.openListing": "Firefox-Add-ons-Eintrag öffnen",
   "footer.description":
     "PastPage ist ein Open-Source-Werkzeug für Journalist:innen und Forschende, um archivierte Versionen verschwundener Seiten aufzufinden.",
+  "thanks.firstTitle": "PastPage hat zum ersten Mal geholfen",
+  "thanks.firstSubtitle": "PastPage hat dir gerade bei deiner ersten Archivsuche geholfen.",
+  "thanks.firstHeading": "PastPage hat dir gerade zum ersten Mal geholfen.",
+  "thanks.firstBody":
+    "Wenn PastPage dir geholfen hat, hilft eine kurze Bewertung anderen Journalist:innen und Forschenden, die Erweiterung ebenfalls zu finden. Es dauert nur einen Moment.",
   "thanks.title": "PastPage hat wieder geholfen",
   "thanks.subtitle": "PastPage hat dir inzwischen bei {{count}} Suchen geholfen.",
   "thanks.heading": "PastPage hat dir inzwischen bei {{count}} Suchen geholfen.",

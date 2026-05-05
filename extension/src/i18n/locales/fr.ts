@@ -195,6 +195,11 @@ export const fr = {
   "options.updates.firefox.openListing": "Ouvrir la fiche Firefox Add-ons",
   "footer.description":
     "PastPage est un outil open source pour les journalistes et les chercheurs afin de retrouver les versions archivées de pages disparues.",
+  "thanks.firstTitle": "PastPage vous a aidé pour la première fois",
+  "thanks.firstSubtitle": "PastPage vient de vous aider pour votre première recherche d'archives.",
+  "thanks.firstHeading": "PastPage vient de vous aider pour la première fois.",
+  "thanks.firstBody":
+    "Si PastPage vous a aidé à trouver ce qu'il vous fallait, une évaluation rapide aide d'autres journalistes et chercheurs à le découvrir aussi. Cela ne prend qu'un instant.",
   "thanks.title": "PastPage vous a encore aidé",
   "thanks.subtitle": "PastPage vous a maintenant aidé pour {{count}} recherches.",
   "thanks.heading": "PastPage vous a maintenant aidé pour {{count}} recherches.",

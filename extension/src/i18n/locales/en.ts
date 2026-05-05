@@ -192,6 +192,11 @@ export const en = {
   "options.updates.firefox.openListing": "Open Firefox Add-ons listing",
   "footer.description":
     "PastPage is an open source tool for journalists and researchers to surface archived versions of vanished or changed pages.",
+  "thanks.firstTitle": "PastPage helped for the first time",
+  "thanks.firstSubtitle": "PastPage just helped you with your first archive search.",
+  "thanks.firstHeading": "PastPage just helped you for the first time.",
+  "thanks.firstBody":
+    "If PastPage helped you find what you needed, a quick rating helps other journalists and researchers find it too. It only takes a moment.",
   "thanks.title": "PastPage helped again",
   "thanks.subtitle": "PastPage has now helped you with {{count}} searches.",
   "thanks.heading": "PastPage has now helped you with {{count}} searches.",
