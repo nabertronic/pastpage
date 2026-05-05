@@ -6,7 +6,6 @@ const GENERAL_AUTOMATIC_ORDER: ProviderId[] = [
   "archive-today",
   "ghostarchive",
   "perma-cc",
-  "arquivo-pt",
   "web-gyotaku"
 ];
 
@@ -24,8 +23,7 @@ const JAPAN_AUTOMATIC_ORDER: ProviderId[] = [
   "archive-today",
   "web-gyotaku",
   "ghostarchive",
-  "perma-cc",
-  "arquivo-pt"
+  "perma-cc"
 ];
 
 function isExactHostOrSubdomain(hostname: string, suffix: string): boolean {

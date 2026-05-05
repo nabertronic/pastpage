@@ -139,6 +139,24 @@ describe("ResolverApp", () => {
     expect(screen.queryByText(/Arquivo\.pt/i)).not.toBeInTheDocument();
   });
 
+  it("does not query Arquivo.pt for non-Portuguese URLs even when enabled", async () => {
+    const fetchMock = notFoundFetch();
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: [...DEFAULT_SETTINGS.enabledProviders, "arquivo-pt"]
+      }
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    window.history.replaceState({}, "", "?trigger=manual-page&url=https%3A%2F%2Fexample.com%2Fstory");
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("arquivo.pt"), expect.anything());
+    expect(screen.queryByText(/Arquivo\.pt/i)).not.toBeInTheDocument();
+  });
+
   it("keeps the resolver page visible after finding a snapshot", async () => {
     vi.stubGlobal(
       "fetch",

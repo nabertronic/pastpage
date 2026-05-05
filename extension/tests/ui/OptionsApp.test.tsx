@@ -49,7 +49,7 @@ describe("OptionsApp", () => {
     expect(screen.getByRole("button", { name: "Reset to defaults" })).toBeInTheDocument();
     expect(screen.queryByText("Share PastPage")).not.toBeInTheDocument();
     expect(screen.getByText("Version and updates")).toBeInTheDocument();
-    expect(screen.getByText("Installed version: 1.0.1")).toBeInTheDocument();
+    expect(screen.getByText("Installed version: 1.0.2")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Check for updates" })).toBeInTheDocument();
     expect(screen.getByText("Sites to ignore")).toBeInTheDocument();
     expect(screen.getByText("Deutsch")).toBeInTheDocument();

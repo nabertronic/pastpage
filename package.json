@@ -1,6 +1,6 @@
 {
   "name": "pastpage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "packageManager": "pnpm@10.0.0",
   "description": "PastPage source recovery browser extension workspace.",

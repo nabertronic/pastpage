@@ -1,8 +1,10 @@
 import { z } from "../../lib/mini-zod";
 import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchivePriorityContext, AutomaticArchiveProvider } from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
+
+const ARQUIVO_PT_TIMEOUT_MS = 6000;
 
 const ArquivoPtItemSchema = z.object({
   tstamp: z.string().optional(),
@@ -52,11 +54,37 @@ export function pickArquivoPtLatest(value: unknown): ArquivoPtResult | null {
   return candidates.sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0] ?? null;
 }
 
+async function fetchWithTimeout(
+  input: string,
+  fetchImpl: typeof fetch,
+  init: RequestInit,
+  timeoutMs = ARQUIVO_PT_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetchImpl(input, {
+      ...init,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function isPortugalRelevant(context: ArchivePriorityContext): boolean {
+  return context.isPortugalTld;
+}
+
 async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch
 ): Promise<ArchiveSnapshot | null> {
-  const response = await fetchImpl(buildArquivoPtUrlSearchUrl(candidate.url), {
+  const timedFetch = (input: string, init: RequestInit) =>
+    fetchWithTimeout(input, fetchImpl, init, ARQUIVO_PT_TIMEOUT_MS);
+
+  const response = await timedFetch(buildArquivoPtUrlSearchUrl(candidate.url), {
     method: "GET",
     headers: { Accept: "application/json" }
   });
@@ -89,7 +117,7 @@ async function lookup(
     });
   }
 
-  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10);
+  return selectLatestWorkingSnapshot(snapshots, timedFetch as typeof fetch, 10);
 }
 
 export const arquivoPtProvider: AutomaticArchiveProvider = {
@@ -98,7 +126,7 @@ export const arquivoPtProvider: AutomaticArchiveProvider = {
   shortDescription: "Portuguese web archive",
   kind: "automatic",
   purpose: "automatic-snapshot",
-  isRelevant: () => true,
+  isRelevant: isPortugalRelevant,
   lookup,
   buildDirectLinkUrl(originalUrl: string): string {
     const params = new URLSearchParams({ q: originalUrl, l: "en" });
