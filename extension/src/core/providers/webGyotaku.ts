@@ -43,7 +43,7 @@ async function lookup(
 
   if (response.status === 404) return null;
   if (!response.ok) {
-    throw new Error(`Web Gyotaku returned ${response.status}`);
+    throw new Error(`Megalodon/Web Gyotaku returned ${response.status}`);
   }
 
   const html = await response.text();
@@ -65,7 +65,7 @@ async function lookup(
 
 export const webGyotakuProvider: AutomaticArchiveProvider = {
   id: "web-gyotaku",
-  displayName: "Web Gyotaku",
+  displayName: "Megalodon/Web Gyotaku",
   shortDescription: "Japanese web snapshots",
   kind: "automatic",
   purpose: "automatic-snapshot",

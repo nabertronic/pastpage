@@ -27,6 +27,8 @@ describe("PopupApp", () => {
     expect(screen.getByRole("button", { name: /open all archives in tabs/i })).toBeInTheDocument();
 
     expect(screen.getByRole("button", { name: "Wayback Machine" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Megalodon" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Web Gyotaku/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Perma.cc" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /github/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /history/i })).toBeInTheDocument();

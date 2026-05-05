@@ -40,7 +40,7 @@ PastPage does not stop at the first `Wayback Machine` query. It checks multiple 
 - `Ghostarchive`
 - `Perma.cc`
 - `Arquivo.pt`
-- `Web Gyotaku`
+- `Megalodon/Web Gyotaku`
 
 And when useful, it also adds specialized follow-up sources such as:
 

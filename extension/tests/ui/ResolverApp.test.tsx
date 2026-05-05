@@ -579,13 +579,13 @@ describe("ResolverApp", () => {
       await vi.advanceTimersByTimeAsync(50);
     });
 
-    expect(screen.getByText(/Wayback Machine|Archive\.today|Web Gyotaku/i)).toBeInTheDocument();
+    expect(screen.getByText(/Wayback Machine|Archive\.today|Megalodon|Web Gyotaku/i)).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1100);
     });
 
-    expect(screen.getByText(/Archive\.today|Web Gyotaku/i)).toBeInTheDocument();
+    expect(screen.getByText(/Archive\.today|Megalodon|Web Gyotaku/i)).toBeInTheDocument();
 
     resolveWayback({
       ok: true,

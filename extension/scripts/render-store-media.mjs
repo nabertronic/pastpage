@@ -362,7 +362,7 @@ function buildPopupPanel(icons) {
     [icons.archiveToday, "Archive.today"],
     [icons.ghostarchive, "Ghostarchive"],
     [icons.permaCc,      "Perma.cc"],
-    [icons.webGyotaku,   "Web Gyotaku"],
+    [icons.webGyotaku,   "Megalodon"],
     [icons.yandexCache,  "Yandex Cache"],
     [icons.webcite,      "WebCite"],
   ];

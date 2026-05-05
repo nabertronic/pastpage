@@ -139,7 +139,7 @@ const PROVIDER_CONTEXT_MENU_ITEMS: Record<
   "web-gyotaku": {
     id: `${PROVIDER_CONTEXT_MENU_PREFIX}web-gyotaku`,
     providerId: "web-gyotaku",
-    title: "Web Gyotaku",
+    title: "Megalodon",
     iconPath: "provider-icons/web-gyotaku.svg"
   },
   "yandex-cache": {

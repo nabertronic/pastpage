@@ -74,9 +74,9 @@ PastPage has two provider groups:
 
 Automatic provider order is URL-aware:
 
-- general default: Wayback, Archive.today, Ghostarchive, Perma.cc, Web Gyotaku
+- general default: Wayback, Archive.today, Ghostarchive, Perma.cc, Megalodon/Web Gyotaku
 - Portugal-focused URLs promote `Arquivo.pt`
-- Japan-focused URLs promote `Web Gyotaku`
+- Japan-focused URLs promote `Megalodon/Web Gyotaku`
 - `gov.uk` URLs inject the `UK Government Web Archive`
 - `.gov`, `.mil`, `loc.gov`, and `congress.gov` URLs inject `Library of Congress Web Archives`
 

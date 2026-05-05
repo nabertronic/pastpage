@@ -460,6 +460,33 @@ describe("background context menus", () => {
     expect(providerPageItem?.documentUrlPatterns).toEqual(["http://*/*", "https://*/*"]);
   });
 
+  it("uses the short Megalodon label in provider context menus", async () => {
+    (browser.storage.local.get as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      "pastPage.settings": {
+        enabledProviders: ["web-gyotaku"],
+        archiveDisplayOrder: ["web-gyotaku"]
+      }
+    });
+
+    const background = await import("../../entrypoints/background");
+    (background.default as unknown as () => void)();
+    await flushPromises();
+    (
+      globalThis as typeof globalThis & {
+        __releaseFirstContextMenuRemoveAll?: () => void;
+      }
+    ).__releaseFirstContextMenuRemoveAll?.();
+    await flushPromises();
+    await flushPromises();
+
+    const createCalls = vi.mocked(browser.contextMenus.create).mock.calls.map(([item]) => item);
+    const providerPageItem = createCalls.find(
+      (item) => item.id === "provider:web-gyotaku" || item.id === "provider:web-gyotaku:link"
+    );
+
+    expect(providerPageItem?.title).toBe("Megalodon");
+  });
+
   it("does not restrict the context-menu root to http pages", async () => {
     const background = await import("../../entrypoints/background");
     (background.default as unknown as () => void)();

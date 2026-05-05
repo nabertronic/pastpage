@@ -17,6 +17,10 @@ import { useAppliedTheme } from "./useAppliedTheme";
 
 type LookupSourceMode = "current" | "custom";
 
+function getPopupProviderLabel(providerId: ProviderId, label: string): string {
+  return providerId === "web-gyotaku" ? "Megalodon" : label;
+}
+
 export function PopupApp({ initialSettings = DEFAULT_SETTINGS }: { initialSettings?: UserSettings }) {
   const [tabId, setTabId] = useState<number | undefined>();
   const [state, setState] = useState<TabState>({ status: "idle" });
@@ -357,7 +361,7 @@ function PopupContent({
                 >
                   <ProviderIcon providerId={archive.providerId} showIcon={settings.showSearchEngineIcons} />
                   <span className="min-w-0 flex-1 truncate text-[13px] text-stone-900 dark:text-yellow-50">
-                    {archive.label}
+                    {getPopupProviderLabel(archive.providerId, archive.label)}
                   </span>
                 </button>
               </li>
