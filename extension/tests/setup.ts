@@ -38,7 +38,7 @@ Object.defineProperty(globalThis, "browser", {
       onMessage: {
         addListener: vi.fn()
       },
-      getManifest: vi.fn(() => ({ version: "1.0.2" })),
+      getManifest: vi.fn(() => ({ version: "1.0.3" })),
       requestUpdateCheck: vi.fn().mockResolvedValue("no_update"),
       sendMessage: vi.fn().mockResolvedValue(undefined),
       getURL: vi.fn((path: string) => `moz-extension://test/${path}`),
