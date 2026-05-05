@@ -58,6 +58,10 @@ function emptyWebGyotakuResponse() {
   return { ok: true, status: 200, text: vi.fn().mockResolvedValue("<html><body>none</body></html>") };
 }
 
+function emptySoftwareHeritageResponse() {
+  return { ok: false, status: 404 };
+}
+
 function emptyUkGovResponse() {
   return { ok: true, status: 200, text: vi.fn().mockResolvedValue("<html><body>No captures</body></html>") };
 }
@@ -112,7 +116,6 @@ describe("lookupArchives", () => {
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
         "archive-today",
         "ghostarchive",
-        "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
         "webcite"
@@ -160,7 +163,6 @@ describe("lookupArchives", () => {
       ]);
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
         "ghostarchive",
-        "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
         "webcite"
@@ -282,7 +284,6 @@ describe("lookupArchives", () => {
       ]);
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
         "wayback",
-        "arquivo-pt",
         "web-gyotaku",
         "yandex-cache",
         "webcite"
@@ -474,8 +475,7 @@ describe("lookupArchives", () => {
       "archive-today:exact",
       "web-gyotaku:exact",
       "ghostarchive:exact",
-      "perma-cc:exact",
-      "arquivo-pt:exact"
+      "perma-cc:exact"
     ]);
   });
 
@@ -504,7 +504,6 @@ describe("lookupArchives", () => {
       "uk-gov-web-archive",
       "ghostarchive",
       "perma-cc",
-      "arquivo-pt",
       "web-gyotaku"
     ]);
 
@@ -532,7 +531,6 @@ describe("lookupArchives", () => {
       "ghostarchive",
       "loc-web-archives",
       "perma-cc",
-      "arquivo-pt",
       "web-gyotaku"
     ]);
   });
@@ -546,7 +544,8 @@ describe("lookupArchives", () => {
       "ghostarchive.org": () => emptyGhostarchiveResponse(),
       "api.perma.cc": () => emptyPermaCcResponse(),
       "arquivo.pt": () => emptyArquivoPtResponse(),
-      "megalodon.jp": () => emptyWebGyotakuResponse()
+      "megalodon.jp": () => emptyWebGyotakuResponse(),
+      "archive.softwareheritage.org": () => emptySoftwareHeritageResponse()
     });
 
     const result = await lookupArchives(
@@ -563,11 +562,10 @@ describe("lookupArchives", () => {
         "wayback",
         "archive-today",
         "ghostarchive",
-        "arquivo-pt",
+        "software-heritage",
         "web-gyotaku",
         "yandex-cache",
-        "webcite",
-        "software-heritage"
+        "webcite"
       ]);
     }
   });

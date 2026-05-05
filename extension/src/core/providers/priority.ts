@@ -81,15 +81,13 @@ export function classifyArchivePriority(rawUrl: string): ArchivePriorityContext 
 }
 
 export function buildAutomaticProviderOrder(context: ArchivePriorityContext): ProviderId[] {
+  let order = [...GENERAL_AUTOMATIC_ORDER];
+
   if (context.isPortugalTld) {
-    return PORTUGAL_AUTOMATIC_ORDER;
+    order = [...PORTUGAL_AUTOMATIC_ORDER];
+  } else if (context.isJapanTld) {
+    order = [...JAPAN_AUTOMATIC_ORDER];
   }
-
-  if (context.isJapanTld) {
-    return JAPAN_AUTOMATIC_ORDER;
-  }
-
-  const order = [...GENERAL_AUTOMATIC_ORDER];
 
   if (context.isUkGov) {
     order.splice(2, 0, "uk-gov-web-archive");
@@ -99,15 +97,16 @@ export function buildAutomaticProviderOrder(context: ArchivePriorityContext): Pr
     order.splice(3, 0, "loc-web-archives");
   }
 
+  if (context.isRepositoryUrl) {
+    const insertAt = Math.max(order.indexOf("perma-cc") + 1, 0);
+    order.splice(insertAt, 0, "software-heritage");
+  }
+
   return order;
 }
 
 export function buildManualDirectLinkProviders(context: ArchivePriorityContext): ProviderId[] {
   const providers: ProviderId[] = ["yandex-cache", "webcite"];
-
-  if (context.isRepositoryUrl) {
-    providers.push("software-heritage");
-  }
 
   return providers;
 }

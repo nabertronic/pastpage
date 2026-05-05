@@ -39,14 +39,11 @@ PastPage does not stop at the first `Wayback Machine` query. It checks multiple 
 - `Archive.today`
 - `Ghostarchive`
 - `Perma.cc`
-- `Arquivo.pt`
+- `Arquivo.pt` for Portuguese domains
 - `Megalodon/Web Gyotaku`
-
-And when useful, it also adds specialized follow-up sources such as:
-
 - `UK Government Web Archive` for `gov.uk`
 - `Library of Congress Web Archives` for `gov`, `mil`, `loc.gov`, and `congress.gov`
-- `Software Heritage` for code and repository URLs
+- `Software Heritage` for repository URLs and supported code pages
 - `WebCite`
 - `Yandex Cache`
 

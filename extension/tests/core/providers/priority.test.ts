@@ -9,6 +9,12 @@ describe("provider priority", () => {
     );
   });
 
+  it("includes Software Heritage in the automatic order for repository URLs", () => {
+    expect(
+      buildAutomaticProviderOrder(classifyArchivePriority("https://github.com/openai/openai"))
+    ).toContain("software-heritage");
+  });
+
   it("promotes Arquivo.pt for Portuguese domains", () => {
     expect(buildAutomaticProviderOrder(classifyArchivePriority("https://example.pt/story"))).toContain(
       "arquivo-pt"
