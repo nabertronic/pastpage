@@ -136,7 +136,7 @@ function OptionsContent({
     setIsCheckingForUpdates(true);
     try {
       const result = await checkForExtensionUpdates();
-      setUpdateResult(result);
+      setUpdateResult(result.browser === "firefox" ? null : result);
     } finally {
       setIsCheckingForUpdates(false);
     }
@@ -718,11 +718,11 @@ function OptionsContent({
               <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
                 {t("options.version.current", { version: currentVersion })}
               </p>
-              <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
-                {browserName === "firefox"
-                  ? t("options.updates.firefox.description")
-                  : t("options.updates.chrome.description")}
-              </p>
+              {browserName === "chrome" ? (
+                <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                  {t("options.updates.chrome.description")}
+                </p>
+              ) : null}
               <div className="mt-3 grid gap-2">
                 <Button
                   type="button"
@@ -734,12 +734,10 @@ function OptionsContent({
                   <RefreshCw aria-hidden="true" size={14} className={isCheckingForUpdates ? "animate-spin" : ""} />
                   {isCheckingForUpdates ? t("options.updates.checking") : t("options.updates.check")}
                 </Button>
-                {hasStoreListing && storeUrl ? (
+                {browserName === "chrome" && hasStoreListing && storeUrl ? (
                   <LinkButton href={storeUrl} target="_blank" rel="noreferrer" variant="quiet" size="sm">
                     <ExternalLink aria-hidden="true" size={14} />
-                    {browserName === "firefox"
-                      ? t("options.updates.firefox.openListing")
-                      : t("options.updates.chrome.openListing")}
+                    {t("options.updates.chrome.openListing")}
                   </LinkButton>
                 ) : null}
               </div>
@@ -813,12 +811,6 @@ function formatUpdateMessage(
     case "throttled":
       return t("options.updates.chrome.throttled");
     case "manual":
-      if (result.browser === "firefox") {
-        return result.openedUrl === "about:addons"
-          ? t("options.updates.firefox.manual")
-          : t("options.updates.firefox.listingFallback");
-      }
-
       return t("options.updates.chrome.manual");
   }
 }

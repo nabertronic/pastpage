@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3
+
+- Simplified the Firefox update area in settings so it now shows only a single `Check for updates` button that opens the Firefox Add-ons listing directly, removing the redundant extra listing link and explanatory fallback copy.
+
 ## v1.0.2
 
 - Removed the broken Archive-It provider and all related direct-link surfaces, icons, and tests.

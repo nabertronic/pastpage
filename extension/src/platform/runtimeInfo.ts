@@ -44,7 +44,7 @@ export function hasExtensionStoreListing(browserName = getExtensionBrowser()) {
 }
 
 export async function openExtensionUpdatePage(browserName = getExtensionBrowser()) {
-  const targetUrl = browserName === "firefox" ? "about:addons" : getExtensionStoreUrl(browserName) ?? GITHUB_URL;
+  const targetUrl = getExtensionStoreUrl(browserName) ?? GITHUB_URL;
 
   try {
     await browser.tabs.create({ url: targetUrl });

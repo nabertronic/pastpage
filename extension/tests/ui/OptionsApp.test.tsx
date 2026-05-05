@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OptionsApp } from "@/components/OptionsApp";
+import { FIREFOX_ADDONS_URL } from "@/core/constants";
 import { DEFAULT_SETTINGS } from "@/core/settings";
 
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
@@ -357,7 +358,7 @@ describe("OptionsApp", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the Firefox add-ons manager for a manual update check", async () => {
+  it("opens the Firefox add-ons listing for a manual update check", async () => {
     (browser.runtime.getURL as unknown as ReturnType<typeof vi.fn>).mockReturnValue("moz-extension://test/");
 
     render(<OptionsApp />);
@@ -365,12 +366,10 @@ describe("OptionsApp", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Check for updates" }));
 
     await waitFor(() =>
-      expect(browser.tabs.create).toHaveBeenCalledWith({ url: "about:addons" })
+      expect(browser.tabs.create).toHaveBeenCalledWith({ url: FIREFOX_ADDONS_URL })
     );
     expect(browser.runtime.requestUpdateCheck).not.toHaveBeenCalled();
-    expect(
-      await screen.findByText(/Firefox Add-ons Manager was opened/i)
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/Firefox Add-ons Manager was opened/i)).not.toBeInTheDocument();
   });
 
   it("saves the history toggle", async () => {
