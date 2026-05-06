@@ -35,23 +35,54 @@ describe("archiveTodayProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await archiveTodayProvider.lookup(
+    const result = await archiveTodayProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot).not.toBeNull();
-    expect(snapshot?.providerId).toBe("archive-today");
-    expect(snapshot?.archiveUrl).toBe("https://archive.ph/20240615120000/https://example.com");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("archive-today");
+      expect(result.snapshot.archiveUrl).toBe("https://archive.ph/20240615120000/https://example.com");
+      expect(result.snapshot.verification).toBe("confirmed");
+    }
   });
 
-  it("returns null when the timemap is missing (404)", async () => {
+  it("returns a miss when the timemap is missing (404)", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 404 });
-    const snapshot = await archiveTodayProvider.lookup(
+    const result = await archiveTodayProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
-    expect(snapshot).toBeNull();
+    expect(result).toEqual({ status: "miss" });
+  });
+
+  it("returns an unverified snapshot when the provider reports a memento but replay validation is blocked", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue(SAMPLE_TIMEMAP)
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 429,
+        redirected: false,
+        headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+        text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+      });
+
+    const result = await archiveTodayProvider.lookup(
+      { strategy: "exact", url: "https://example.com" },
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("unverified");
+    if (result.status === "unverified") {
+      expect(result.snapshot.archiveUrl).toBe("https://archive.ph/20240615120000/https://example.com");
+      expect(result.snapshot.verification).toBe("unverified");
+    }
   });
 
   it("throws on other non-OK responses (so the resolver can offer a direct link)", async () => {

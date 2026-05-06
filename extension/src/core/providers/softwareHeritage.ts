@@ -1,6 +1,6 @@
 import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshot } from "../tabState";
-import type { ArchivePriorityContext, AutomaticArchiveProvider } from "./types";
+import type { ArchivePriorityContext, ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { timestampFromIso } from "./common";
 
 type SoftwareHeritageTarget = {
@@ -138,16 +138,21 @@ function isRelevant(context: ArchivePriorityContext): boolean {
   return deriveSoftwareHeritageTarget(context.rawUrl) !== null;
 }
 
-async function lookup(candidate: SearchCandidate, fetchImpl: typeof fetch): Promise<ArchiveSnapshot | null> {
+async function lookup(
+  candidate: SearchCandidate,
+  fetchImpl: typeof fetch,
+  _hostSettings?: never,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const target = deriveSoftwareHeritageTarget(candidate.url);
-  if (!target) return null;
+  if (!target) return { status: "miss" };
 
   const response = await fetchImpl(buildSoftwareHeritageVisitUrl(target.originUrl), {
     method: "GET",
     headers: { Accept: "application/json" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`Software Heritage returned ${response.status}`);
   }
@@ -155,18 +160,22 @@ async function lookup(candidate: SearchCandidate, fetchImpl: typeof fetch): Prom
   const payload = (await response.json()) as Record<string, unknown>;
   const snapshot = typeof payload.snapshot === "string" ? payload.snapshot : null;
   const date = typeof payload.date === "string" ? payload.date : undefined;
-  if (!snapshot) return null;
+  if (!snapshot) return { status: "miss" };
 
   return {
-    originalUrl: candidate.url,
-    matchedUrl: target.originUrl,
-    archiveUrl: target.browseUrl,
-    openUrl: target.browseUrl,
-    timestamp: timestampFromIso(date),
-    statusCode: "200",
-    mimeType: "text/html",
-    strategy: candidate.strategy,
-    providerId: "software-heritage"
+    status: "confirmed",
+    snapshot: {
+      originalUrl: candidate.url,
+      matchedUrl: target.originUrl,
+      archiveUrl: target.browseUrl,
+      openUrl: target.browseUrl,
+      timestamp: timestampFromIso(date),
+      statusCode: "200",
+      mimeType: "text/html",
+      strategy: candidate.strategy,
+      providerId: "software-heritage",
+      verification: "confirmed"
+    }
   };
 }
 

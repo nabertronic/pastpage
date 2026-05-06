@@ -20,7 +20,10 @@ export type ArchiveSnapshot = {
   mimeType: string;
   strategy: "exact" | "cleaned";
   providerId: ProviderId;
+  verification: "confirmed" | "unverified";
 };
+
+export type ArchiveSnapshotCandidate = Omit<ArchiveSnapshot, "verification">;
 
 export type ManualArchiveSource = {
   providerId: ProviderId;
@@ -39,6 +42,7 @@ export type LookupStatus =
   | { status: "idle" }
   | { status: "running"; startedAt: number; currentProviderId?: ProviderId }
   | { status: "found"; snapshot: ArchiveSnapshot }
+  | { status: "unverified"; snapshot: ArchiveSnapshot }
   | {
       status: "not-found";
       checked: Array<"exact" | "cleaned">;

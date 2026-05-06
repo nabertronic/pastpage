@@ -1,7 +1,7 @@
 import { z } from "../../lib/mini-zod";
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { normalizeComparableUrl, timestampFromIso } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
@@ -24,30 +24,31 @@ export function buildPermaCcUrl(targetUrl: string): string {
 
 async function lookup(
   candidate: SearchCandidate,
-  fetchImpl: typeof fetch
-): Promise<ArchiveSnapshot | null> {
+  fetchImpl: typeof fetch,
+  _hostSettings?: never,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const response = await fetchImpl(buildPermaCcUrl(candidate.url), {
     method: "GET",
     headers: { Accept: "application/json" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`Perma.cc returned ${response.status}`);
   }
 
   const json = await response.json();
   const parsed = PermaResponseSchema.safeParse(json);
-  if (!parsed.success || parsed.data.objects.length === 0) return null;
+  if (!parsed.success || parsed.data.objects.length === 0) return { status: "miss" };
 
   const requestedNorm = normalizeComparableUrl(candidate.url);
   const matching = parsed.data.objects.filter(
     (obj) => obj.url && normalizeComparableUrl(obj.url) === requestedNorm
   );
-  if (matching.length === 0) return null;
+  if (matching.length === 0) return { status: "miss" };
 
-  return selectLatestWorkingSnapshot(
-    matching.map((entry) => ({
+  const snapshots: ArchiveSnapshotCandidate[] = matching.map((entry) => ({
       originalUrl: candidate.url,
       matchedUrl: entry.url ?? candidate.url,
       archiveUrl: `https://perma.cc/${entry.guid}`,
@@ -56,10 +57,9 @@ async function lookup(
       mimeType: "text/html",
       strategy: candidate.strategy,
       providerId: "perma-cc" as const
-    })),
-    fetchImpl,
-    10
-  );
+    }));
+
+  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
 }
 
 export const permaCcProvider: AutomaticArchiveProvider = {

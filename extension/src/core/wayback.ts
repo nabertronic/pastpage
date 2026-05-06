@@ -16,6 +16,7 @@ export {
 
 export type ArchiveLookupResult =
   | { status: "found"; snapshot: ArchiveSnapshot; checked: SearchCandidate[] }
+  | { status: "unverified"; snapshot: ArchiveSnapshot; checked: SearchCandidate[] }
   | { status: "not-found"; checked: SearchCandidate[] }
   | { status: "not-eligible"; reasonKey: TranslationKey }
   | { status: "provider-error"; message: string; checked: SearchCandidate[] };
@@ -48,13 +49,13 @@ export async function lookupWayback(
     for (const candidate of candidates) {
       checked.push(candidate);
       onProgress?.(candidate);
-      const snapshot = await waybackProvider.lookup(candidate, fetchImpl);
+      const result = await waybackProvider.lookup(candidate, fetchImpl);
 
-      if (snapshot) {
+      if (result.status === "confirmed" || result.status === "unverified") {
         return {
-          status: "found",
+          status: result.status === "confirmed" ? "found" : "unverified",
           snapshot: {
-            ...snapshot,
+            ...result.snapshot,
             originalUrl: rawUrl,
             matchedUrl: candidate.url,
             strategy: candidate.strategy

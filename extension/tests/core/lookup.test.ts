@@ -170,6 +170,49 @@ describe("lookupArchives", () => {
     }
   });
 
+  it("includes unverified candidates after confirmed snapshots in the result list", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": (url: string) =>
+        url.includes("/web/") ? archiveHtmlResponse("Wayback") : waybackHit("20240101000000"),
+      "archive.ph": (url: string) =>
+        url.includes("/timemap/")
+          ? {
+              ok: true,
+              status: 200,
+              text: vi
+                .fn()
+                .mockResolvedValue(
+                  `<https://archive.ph/20240202000000/https://example.com>; rel="memento"; datetime="Fri, 02 Feb 2024 00:00:00 GMT"`
+                )
+            }
+          : {
+              ok: false,
+              status: 429,
+              redirected: false,
+              headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+              text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+            },
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("found");
+    if (result.status === "found") {
+      expect(result.snapshot.providerId).toBe("wayback");
+      expect(result.additionalSnapshots).toHaveLength(1);
+      expect(result.additionalSnapshots[0]?.providerId).toBe("archive-today");
+      expect(result.additionalSnapshots[0]?.verification).toBe("unverified");
+    }
+  });
+
   it("falls through to Perma.cc on a general URL after Wayback, Archive.today, and Ghostarchive miss", async () => {
     const fetchImpl = dispatchByHost({
       "web.archive.org": () => emptyWaybackResponse(),
@@ -439,7 +482,9 @@ describe("lookupArchives", () => {
       "https://example.pt",
       "exact-only",
       fetchImpl as unknown as typeof fetch,
-      (step: LookupProgressStep) => steps.push(`${step.providerId}:${step.strategy}`)
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") steps.push(`${step.providerId}:${step.strategy}`);
+      }
     );
 
     expect(steps).toEqual([
@@ -467,7 +512,9 @@ describe("lookupArchives", () => {
       "https://example.co.jp",
       "exact-only",
       fetchImpl as unknown as typeof fetch,
-      (step: LookupProgressStep) => steps.push(`${step.providerId}:${step.strategy}`)
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") steps.push(`${step.providerId}:${step.strategy}`);
+      }
     );
 
     expect(steps).toEqual([
@@ -495,7 +542,9 @@ describe("lookupArchives", () => {
       "https://www.gov.uk",
       "exact-only",
       ukFetch as unknown as typeof fetch,
-      (step: LookupProgressStep) => ukSteps.push(step.providerId)
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") ukSteps.push(step.providerId);
+      }
     );
 
     expect(ukSteps).toEqual([
@@ -522,7 +571,9 @@ describe("lookupArchives", () => {
       "https://www.loc.gov",
       "exact-only",
       usFetch as unknown as typeof fetch,
-      (step: LookupProgressStep) => usSteps.push(step.providerId)
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") usSteps.push(step.providerId);
+      }
     );
 
     expect(usSteps).toEqual([
@@ -563,6 +614,53 @@ describe("lookupArchives", () => {
         "archive-today",
         "ghostarchive",
         "software-heritage",
+        "web-gyotaku",
+        "yandex-cache",
+        "webcite"
+      ]);
+    }
+  });
+
+  it("returns unverified snapshot candidates when no provider can confirm a replay", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": (url: string) =>
+        url.includes("/timemap/")
+          ? {
+              ok: true,
+              status: 200,
+              text: vi
+                .fn()
+                .mockResolvedValue(
+                  `<https://archive.ph/20240202000000/https://example.com>; rel="memento"; datetime="Fri, 02 Feb 2024 00:00:00 GMT"`
+                )
+            }
+          : {
+              ok: false,
+              status: 429,
+              redirected: false,
+              headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+              text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+            },
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("unverified");
+    if (result.status === "unverified") {
+      expect(result.snapshot.providerId).toBe("archive-today");
+      expect(result.snapshot.verification).toBe("unverified");
+      expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "wayback",
+        "ghostarchive",
         "web-gyotaku",
         "yandex-cache",
         "webcite"

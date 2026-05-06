@@ -20,6 +20,7 @@ export type ProviderAttempt = {
 
 export type LookupProgressStep = {
   providerId: ProviderId;
+  phase: "querying" | "verifying";
   strategy: "exact" | "cleaned";
   url: string;
 };
@@ -32,6 +33,15 @@ export type LookupProgressCallback = (
 export type MultiArchiveLookupResult =
   | {
       status: "found";
+      snapshot: ArchiveSnapshot;
+      additionalSnapshots: ArchiveSnapshot[];
+      failedProviders: FailedProvider[];
+      manualSources: ManualArchiveSource[];
+      providerId: ProviderId;
+      checked: ProviderAttempt[];
+    }
+  | {
+      status: "unverified";
       snapshot: ArchiveSnapshot;
       additionalSnapshots: ArchiveSnapshot[];
       failedProviders: FailedProvider[];
@@ -89,6 +99,8 @@ export async function lookupArchives(
   const failedProviderIds = new Set<ProviderId>();
   const foundSnapshots: ArchiveSnapshot[] = [];
   const foundSnapshotUrls = new Set<string>();
+  const unverifiedSnapshots: ArchiveSnapshot[] = [];
+  const unverifiedSnapshotUrls = new Set<string>();
   const currentProviderSteps = new Map<ProviderId, LookupProgressStep>();
 
   let waybackState: WaybackLookupState = "pending";
@@ -106,6 +118,12 @@ export async function lookupArchives(
     foundSnapshotUrls.add(snapshot.archiveUrl);
     foundSnapshots.push(snapshot);
     onSnapshotFound?.(snapshot);
+  };
+
+  const recordUnverifiedSnapshot = (snapshot: ArchiveSnapshot) => {
+    if (unverifiedSnapshotUrls.has(snapshot.archiveUrl)) return;
+    unverifiedSnapshotUrls.add(snapshot.archiveUrl);
+    unverifiedSnapshots.push(snapshot);
   };
 
   const maybeEmitFallbackSnapshot = () => {
@@ -129,15 +147,29 @@ export async function lookupArchives(
       let foundSnapshotForProvider = false;
 
       for (const candidate of candidates) {
-        const step = { providerId, strategy: candidate.strategy, url: candidate.url } as const;
+        const step = { providerId, phase: "querying", strategy: candidate.strategy, url: candidate.url } as const;
         currentProviderSteps.set(providerId, step);
         emitVisibleSteps(step);
 
         try {
-          const snapshot = await provider.lookup(candidate, timedFetchImpl, hostSettings);
-          if (snapshot) {
+          const providerResult = await provider.lookup(
+            candidate,
+            timedFetchImpl,
+            hostSettings,
+            (phase) => {
+              const progressStep = {
+                providerId,
+                phase,
+                strategy: candidate.strategy,
+                url: candidate.url
+              } as const;
+              currentProviderSteps.set(providerId, progressStep);
+              emitVisibleSteps(progressStep);
+            }
+          );
+          if (providerResult.status === "confirmed" || providerResult.status === "unverified") {
             const normalizedSnapshot: ArchiveSnapshot = {
-              ...snapshot,
+              ...providerResult.snapshot,
               originalUrl: rawUrl,
               matchedUrl: candidate.url,
               strategy: candidate.strategy,
@@ -149,20 +181,24 @@ export async function lookupArchives(
               url: candidate.url,
               outcome: "hit"
             });
-            foundSnapshotForProvider = true;
-            recordSnapshot(normalizedSnapshot);
+            if (providerResult.status === "confirmed") {
+              foundSnapshotForProvider = true;
+              recordSnapshot(normalizedSnapshot);
 
-            if (providerId === "wayback") {
-              waybackState = "hit";
-              tryEmitPreferredSnapshot(normalizedSnapshot);
-            } else if (
-              !bestNonWaybackSnapshot ||
-              compareSnapshots(normalizedSnapshot, bestNonWaybackSnapshot, providerOrderIndex) < 0
-            ) {
-              bestNonWaybackSnapshot = normalizedSnapshot;
+              if (providerId === "wayback") {
+                waybackState = "hit";
+                tryEmitPreferredSnapshot(normalizedSnapshot);
+              } else if (
+                !bestNonWaybackSnapshot ||
+                compareSnapshots(normalizedSnapshot, bestNonWaybackSnapshot, providerOrderIndex) < 0
+              ) {
+                bestNonWaybackSnapshot = normalizedSnapshot;
+              }
+
+              maybeEmitFallbackSnapshot();
+            } else {
+              recordUnverifiedSnapshot(normalizedSnapshot);
             }
-
-            maybeEmitFallbackSnapshot();
             break;
           }
 
@@ -200,20 +236,46 @@ export async function lookupArchives(
     directLink: getProvider(providerId).buildDirectLinkUrl(rawUrl, hostSettings) ?? undefined
   }));
 
-  const foundProviderIds = new Set(foundSnapshots.map((snapshot) => snapshot.providerId));
+  const foundProviderIds = new Set(
+    [...foundSnapshots, ...unverifiedSnapshots].map((snapshot) => snapshot.providerId)
+  );
   const manualSources = buildManualSources(rawUrl, foundProviderIds, allowedProviderIds, hostSettings);
 
   if (foundSnapshots.length > 0) {
     const sortedSnapshots = [...foundSnapshots].sort((a, b) =>
       compareSnapshots(a, b, providerOrderIndex)
     );
+    const sortedUnverifiedSnapshots = [...unverifiedSnapshots].sort((a, b) =>
+      compareSnapshots(a, b, providerOrderIndex)
+    );
     const snapshot = openedSnapshot ?? pickPrimarySnapshot(sortedSnapshots);
+    const additionalSnapshots = [
+      ...sortedSnapshots.filter((candidate) => candidate.archiveUrl !== snapshot.archiveUrl),
+      ...sortedUnverifiedSnapshots
+    ];
+
+    return {
+      status: "found",
+      providerId: snapshot.providerId,
+      snapshot,
+      additionalSnapshots,
+      failedProviders,
+      manualSources,
+      checked
+    };
+  }
+
+  if (unverifiedSnapshots.length > 0) {
+    const sortedSnapshots = [...unverifiedSnapshots].sort((a, b) =>
+      compareSnapshots(a, b, providerOrderIndex)
+    );
+    const snapshot = pickPrimarySnapshot(sortedSnapshots);
     const additionalSnapshots = sortedSnapshots.filter(
       (candidate) => candidate.archiveUrl !== snapshot.archiveUrl
     );
 
     return {
-      status: "found",
+      status: "unverified",
       providerId: snapshot.providerId,
       snapshot,
       additionalSnapshots,

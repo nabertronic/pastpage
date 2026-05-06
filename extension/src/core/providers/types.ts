@@ -45,8 +45,9 @@ export type AutomaticArchiveProvider = BaseArchiveProvider & {
   lookup(
     candidate: SearchCandidate,
     fetchImpl: typeof fetch,
-    hostSettings?: ProviderHostSettings
-  ): Promise<ArchiveSnapshot | null>;
+    hostSettings?: ProviderHostSettings,
+    onProgress?: (phase: "querying" | "verifying") => void
+  ): Promise<ArchiveProviderLookupResult>;
 };
 
 export type ManualArchiveProvider = BaseArchiveProvider & {
@@ -54,3 +55,8 @@ export type ManualArchiveProvider = BaseArchiveProvider & {
 };
 
 export type ArchiveProvider = AutomaticArchiveProvider | ManualArchiveProvider;
+
+export type ArchiveProviderLookupResult =
+  | { status: "confirmed"; snapshot: ArchiveSnapshot }
+  | { status: "unverified"; snapshot: ArchiveSnapshot }
+  | { status: "miss" };

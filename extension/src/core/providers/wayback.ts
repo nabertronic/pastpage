@@ -3,8 +3,8 @@ import { WAYBACK_CDX_ENDPOINT } from "../constants";
 import type { ProviderHostSettings, WaybackHost } from "../providerHosts";
 import { buildWaybackBaseUrl } from "../providerHosts";
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveCheckStrategy, ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchiveCheckStrategy, ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
 const CdxRowObjectSchema = z.object({
@@ -94,7 +94,7 @@ export function parseCdxResponse(
   value: unknown,
   strategy: ArchiveCheckStrategy,
   hostSettings?: ProviderHostSettings
-): ArchiveSnapshot[] {
+): ArchiveSnapshotCandidate[] {
   const parsed = CdxResponseSchema.parse(value);
 
   return parsed
@@ -112,7 +112,9 @@ export function parseCdxResponse(
     }));
 }
 
-export function selectLatestSnapshot(snapshots: ArchiveSnapshot[]): ArchiveSnapshot | null {
+export function selectLatestSnapshot(
+  snapshots: ArchiveSnapshotCandidate[]
+): ArchiveSnapshotCandidate | null {
   if (snapshots.length === 0) return null;
   return [...snapshots].sort((a, b) => b.timestamp.localeCompare(a.timestamp))[0] ?? null;
 }
@@ -126,8 +128,9 @@ export function parseCaptureCountResponse(value: unknown): number {
 async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch,
-  hostSettings?: ProviderHostSettings
-): Promise<ArchiveSnapshot | null> {
+  hostSettings?: ProviderHostSettings,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const response = await fetchImpl(buildCdxUrl(candidate.url, hostSettings), {
     method: "GET",
     headers: { Accept: "application/json" }
@@ -140,11 +143,16 @@ async function lookup(
   const payload = (await response.json()) as unknown;
 
   if (!Array.isArray(payload) || payload.length <= 1) {
-    return null;
+    return { status: "miss" };
   }
 
   const [, ...rows] = payload;
-  return selectLatestWorkingSnapshot(parseCdxResponse(rows, candidate.strategy, hostSettings), fetchImpl);
+  return selectLatestWorkingSnapshot(
+    parseCdxResponse(rows, candidate.strategy, hostSettings),
+    fetchImpl,
+    undefined,
+    onProgress ? () => onProgress("verifying") : undefined
+  );
 }
 
 export async function lookupCaptureCount(

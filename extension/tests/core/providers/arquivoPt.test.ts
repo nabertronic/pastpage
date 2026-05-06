@@ -59,12 +59,15 @@ describe("arquivoPtProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await arquivoPtProvider.lookup(
+    const result = await arquivoPtProvider.lookup(
       { strategy: "exact", url: "https://example.pt/" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("arquivo-pt");
-    expect(snapshot?.timestamp).toBe("20240615120000");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("arquivo-pt");
+      expect(result.snapshot.timestamp).toBe("20240615120000");
+    }
   });
 });

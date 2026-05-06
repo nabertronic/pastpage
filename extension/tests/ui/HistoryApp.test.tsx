@@ -10,6 +10,14 @@ const storageSetMock = browser.storage.local.set as unknown as ReturnType<typeof
 describe("HistoryApp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(URL, "createObjectURL", {
+      writable: true,
+      value: vi.fn(() => "blob:history-export")
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      writable: true,
+      value: vi.fn()
+    });
     storageGetMock.mockResolvedValue({
       "pastPage.settings": DEFAULT_SETTINGS,
       "pastPage.history": []
@@ -72,6 +80,96 @@ describe("HistoryApp", () => {
     await userEvent.selectOptions(screen.getByLabelText("Outcome"), "hit");
     expect(screen.queryByText("/direct")).not.toBeInTheDocument();
     expect(screen.getByText("/missing")).toBeInTheDocument();
+  });
+
+  it("exports the filtered history as csv", async () => {
+    const OriginalBlob = Blob;
+    class MockBlob {
+      parts: string[];
+      type: string;
+
+      constructor(parts: unknown[], options?: { type?: string }) {
+        this.parts = parts.map((part) => String(part));
+        this.type = options?.type ?? "";
+      }
+    }
+
+    vi.stubGlobal("Blob", MockBlob);
+
+    let exportedBlob: MockBlob | null = null;
+    const originalCreateElement = document.createElement.bind(document);
+    let downloadLink: HTMLAnchorElement | null = null;
+    vi.spyOn(document, "createElement").mockImplementation((tagName) => {
+      const element = originalCreateElement(tagName);
+      if (tagName.toLowerCase() === "a") {
+        downloadLink = element as HTMLAnchorElement;
+        vi.spyOn(element as HTMLAnchorElement, "click").mockImplementation(() => {});
+      }
+      return element;
+    });
+
+    (URL.createObjectURL as unknown as ReturnType<typeof vi.fn>).mockImplementation((blob: MockBlob) => {
+      exportedBlob = blob;
+      return "blob:history-export";
+    });
+
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": [
+        {
+          id: "hist_2",
+          startedAt: Date.parse("2024-02-04T05:06:07Z"),
+          resolvedAt: Date.parse("2024-02-04T05:07:07Z"),
+          targetUrl: "https://example.com/missing",
+          trigger: "broken-page",
+          requestTrigger: "broken-page",
+          outcome: "hit",
+          resultSnapshots: [
+            {
+              originalUrl: "https://example.com/missing",
+              matchedUrl: "https://example.com/missing",
+              archiveUrl: "https://web.archive.org/web/20240204050607/https://example.com/missing",
+              timestamp: "2024-02-04T05:06:07Z",
+              statusCode: "200",
+              mimeType: "text/html",
+              strategy: "exact",
+              providerId: "wayback"
+            }
+          ]
+        },
+        {
+          id: "hist_1",
+          startedAt: Date.parse("2024-01-02T03:04:05Z"),
+          targetUrl: "https://example.com/direct",
+          trigger: "provider-direct",
+          requestTrigger: "manual-page",
+          scopedProviderId: "ghostarchive",
+          outcome: "unknown",
+          resultSnapshots: []
+        }
+      ]
+    });
+
+    render(<HistoryApp />);
+
+    await userEvent.type(await screen.findByLabelText("Search history"), "direct");
+    await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:history-export");
+    expect(downloadLink).not.toBeNull();
+    expect(downloadLink!.download).toMatch(/^pastpage-history-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(downloadLink!.href).toBe("blob:history-export");
+
+    expect(exportedBlob).not.toBeNull();
+    const csv = exportedBlob!.parts.join("");
+    expect(csv).toContain('"id","startedAt","resolvedAt","targetUrl"');
+    expect(csv).toContain('"hist_1"');
+    expect(csv).toContain('"https://example.com/direct"');
+    expect(csv).not.toContain('"hist_2"');
+    expect(csv).not.toContain('"https://example.com/missing"');
+
+    vi.stubGlobal("Blob", OriginalBlob);
   });
 
   it("reruns the resolver for the original target url", async () => {

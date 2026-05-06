@@ -1,8 +1,8 @@
 import type { ArchiveTodayHost, ProviderHostSettings } from "../providerHosts";
 import { buildArchiveTodayBaseUrl } from "../providerHosts";
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 import { timestampFromDate } from "./common";
 
@@ -38,23 +38,23 @@ export function parseArchiveTodayTimemap(linkFormat: string): ParsedMemento[] {
 async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch,
-  hostSettings?: ProviderHostSettings
-): Promise<ArchiveSnapshot | null> {
+  hostSettings?: ProviderHostSettings,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const url = `${buildArchiveTodayBaseUrl(resolveArchiveTodayHost(hostSettings))}/timemap/${candidate.url}`;
   const response = await fetchImpl(url, {
     method: "GET",
     headers: { Accept: "application/link-format" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`Archive.today timemap returned ${response.status}`);
   }
 
   const body = await response.text();
   const mementos = parseArchiveTodayTimemap(body);
-  return selectLatestWorkingSnapshot(
-    mementos.map((memento) => ({
+  const snapshots: ArchiveSnapshotCandidate[] = mementos.map((memento) => ({
       originalUrl: candidate.url,
       matchedUrl: candidate.url,
       archiveUrl: memento.url,
@@ -63,10 +63,9 @@ async function lookup(
       mimeType: "text/html",
       strategy: candidate.strategy,
       providerId: "archive-today" as const
-    })),
-    fetchImpl,
-    10
-  );
+    }));
+
+  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
 }
 
 export const archiveTodayProvider: AutomaticArchiveProvider = {

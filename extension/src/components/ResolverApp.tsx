@@ -12,7 +12,7 @@ import { lookupArchives, type LookupProgressStep } from "../core/lookup";
 import type { LookupRequest } from "../core/lookupRequest";
 import { getProvider } from "../core/providers";
 import type { ProviderId } from "../core/providers/types";
-import { DEFAULT_SETTINGS, type Settings } from "../core/settings";
+import { DEFAULT_SETTINGS, type Settings, type UrlMatchingMode } from "../core/settings";
 import type {
   ArchiveSnapshot,
   DetectedError,
@@ -35,6 +35,10 @@ const autoOpenedSnapshots = new Set<string>();
 
 function snapshotTargetUrl(snapshot: ArchiveSnapshot) {
   return snapshot.openUrl ?? snapshot.archiveUrl;
+}
+
+function snapshotCardDescription(t: ReturnType<typeof useI18n>["t"], snapshot: ArchiveSnapshot) {
+  return snapshot.verification === "unverified" ? t("resolver.unverified.cardNote") : undefined;
 }
 
 function mergeUniqueSnapshots(
@@ -64,6 +68,7 @@ function mergeUniqueSnapshots(
 
 type PendingLookupStep = {
   providerId: ProviderId;
+  phase: "querying" | "verifying";
   strategy: "exact" | "cleaned";
   url: string;
 };
@@ -78,6 +83,13 @@ type ResolverStatus =
       manualSources: ManualArchiveSource[];
       isCheckingMore: boolean;
       pendingSteps: PendingLookupStep[];
+    }
+  | {
+      kind: "unverified";
+      snapshot: ArchiveSnapshot;
+      additionalSnapshots: ArchiveSnapshot[];
+      failedProviders: FailedProvider[];
+      manualSources: ManualArchiveSource[];
     }
   | {
       kind: "not-found";
@@ -306,6 +318,24 @@ export function ResolverApp() {
         return;
       }
 
+      if (result.status === "unverified") {
+        const resultSnapshots = [result.snapshot, ...result.additionalSnapshots];
+        void completeHistoryEntry(historyId ?? "", {
+          outcome: "hit",
+          resultSnapshots,
+          failedProviders: result.failedProviders,
+          checkedAttempts: result.checked
+        });
+        setStatus({
+          kind: "unverified",
+          snapshot: result.snapshot,
+          additionalSnapshots: result.additionalSnapshots,
+          failedProviders: result.failedProviders,
+          manualSources: result.manualSources
+        });
+        return;
+      }
+
       if (result.status === "not-found") {
         void completeHistoryEntry(historyId ?? "", {
           outcome: "miss",
@@ -360,6 +390,7 @@ export function ResolverApp() {
         resolverSuccessBehavior={settings.resolverSuccessBehavior}
         scopedProviderId={scopedProviderId}
         status={status}
+        urlMatchingMode={settings.urlMatchingMode}
       />
     </I18nProvider>
   );
@@ -371,7 +402,8 @@ function ResolverContent({
   request,
   resolverSuccessBehavior,
   scopedProviderId,
-  status
+  status,
+  urlMatchingMode
 }: {
   error: DetectedError | null;
   pendingStepIndex: number;
@@ -379,19 +411,25 @@ function ResolverContent({
   resolverSuccessBehavior: Settings["resolverSuccessBehavior"];
   scopedProviderId?: ProviderId;
   status: ResolverStatus;
+  urlMatchingMode: UrlMatchingMode;
 }) {
   const { locale, t } = useI18n();
   const strategyList = new Intl.ListFormat(locale, { style: "long", type: "conjunction" });
+  const showStrategyDetails = urlMatchingMode !== "exact-only";
   const scopedProviderName = scopedProviderId ? getProvider(scopedProviderId).displayName : null;
   const pendingSteps = status.kind === "loading" || status.kind === "found" ? status.pendingSteps : [];
   const activeStep = pendingSteps.length > 0 ? pendingSteps[pendingStepIndex % pendingSteps.length] : null;
   const activeStepLabel = activeStep
-    ? t("resolver.checkingProvider", {
-        provider: getProvider(activeStep.providerId).displayName,
-        strategy: t(
-          activeStep.strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned"
-        )
-      })
+    ? showStrategyDetails
+      ? t(activeStep.phase === "verifying" ? "resolver.verifyingProvider" : "resolver.checkingProvider", {
+          provider: getProvider(activeStep.providerId).displayName,
+          strategy: t(
+            activeStep.strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned"
+          )
+        })
+      : t(activeStep.phase === "verifying" ? "resolver.verifyingProviderSimple" : "resolver.checkingProviderSimple", {
+          provider: getProvider(activeStep.providerId).displayName
+        })
     : t("resolver.startingLookup");
 
   return (
@@ -456,7 +494,11 @@ function ResolverContent({
                   </h3>
                   <div className="space-y-2">
                     {status.additionalSnapshots.map((snapshot) => (
-                      <ArchiveSnapshotCard key={snapshotTargetUrl(snapshot)} snapshot={snapshot} />
+                      <ArchiveSnapshotCard
+                        key={snapshotTargetUrl(snapshot)}
+                        snapshot={snapshot}
+                        description={snapshotCardDescription(t, snapshot)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -481,6 +523,70 @@ function ResolverContent({
             </div>
           ) : null}
 
+          {status.kind === "unverified" ? (
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <XCircle aria-hidden="true" className="mt-0.5 text-yellow-700 dark:text-yellow-300" size={20} />
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold">
+                    {t("resolver.unverified.title", {
+                      provider: getProvider(status.snapshot.providerId).displayName
+                    })}
+                  </h2>
+                  <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                    {t("resolver.unverified.description")}
+                  </p>
+                  {status.snapshot.strategy === "cleaned" ? (
+                    <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
+                      {t("resolver.found.cleanedHint")}
+                    </p>
+                  ) : null}
+                  <ArchiveSnapshotCard
+                    snapshot={status.snapshot}
+                    description={t("resolver.unverified.cardNote")}
+                  />
+                </div>
+              </div>
+              {status.additionalSnapshots.length > 0 ? (
+                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                  <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
+                    {t("resolver.unverified.additionalMatches")}
+                  </h3>
+                  <div className="space-y-2">
+                    {status.additionalSnapshots.map((snapshot) => (
+                      <ArchiveSnapshotCard
+                        key={snapshotTargetUrl(snapshot)}
+                        snapshot={snapshot}
+                        description={t("resolver.unverified.cardNote")}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {status.manualSources.length > 0 ? (
+                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                  <p className="text-sm text-stone-600 dark:text-stone-300">
+                    {t("resolver.unverified.alsoCheckSources")}
+                  </p>
+                  <div className="space-y-2">
+                    {status.manualSources.map((source) => (
+                      <ManualArchiveSourceCard
+                        key={`${source.providerId}:${source.url}`}
+                        source={source}
+                        actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
+                        variant={
+                          status.failedProviders.some((provider) => provider.providerId === source.providerId)
+                            ? "secondary"
+                            : "ghost"
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           {status.kind === "not-found" ? (
             <div className="space-y-3">
               <div className="flex gap-3">
@@ -489,21 +595,27 @@ function ResolverContent({
                   <h2 className="text-base font-semibold">{t("resolver.notFound.title")}</h2>
                   <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
                     {(scopedProviderName
-                      ? t("resolver.notFound.descriptionScoped", {
-                          provider: scopedProviderName,
-                          strategies: strategyList.format(
-                            status.checked.map((strategy) =>
-                              t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                      ? showStrategyDetails
+                        ? t("resolver.notFound.descriptionScoped", {
+                            provider: scopedProviderName,
+                            strategies: strategyList.format(
+                              status.checked.map((strategy) =>
+                                t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                              )
                             )
-                          )
-                        })
-                      : t("resolver.notFound.description", {
-                          strategies: strategyList.format(
-                            status.checked.map((strategy) =>
-                              t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                          })
+                        : t("resolver.notFound.descriptionScopedSimple", {
+                            provider: scopedProviderName
+                          })
+                      : showStrategyDetails
+                        ? t("resolver.notFound.description", {
+                            strategies: strategyList.format(
+                              status.checked.map((strategy) =>
+                                t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                              )
                             )
-                          )
-                        }))}
+                          })
+                        : t("resolver.notFound.descriptionSimple"))}
                   </p>
                 </div>
               </div>
@@ -571,7 +683,13 @@ function ResolverContent({
   );
 }
 
-function ArchiveSnapshotCard({ snapshot }: { snapshot: ArchiveSnapshot }) {
+function ArchiveSnapshotCard({
+  snapshot,
+  description
+}: {
+  snapshot: ArchiveSnapshot;
+  description?: string;
+}) {
   const { t } = useI18n();
 
   return (
@@ -587,6 +705,9 @@ function ArchiveSnapshotCard({ snapshot }: { snapshot: ArchiveSnapshot }) {
       <p className="mt-2 break-all px-1 text-xs text-stone-700 dark:text-stone-300">
         {snapshotTargetUrl(snapshot)}
       </p>
+      {description ? (
+        <p className="mt-2 px-1 text-xs text-stone-600 dark:text-stone-400">{description}</p>
+      ) : null}
       <div className="mt-2 flex flex-wrap gap-2">
         <LinkButton href={snapshotTargetUrl(snapshot)} target="_blank" rel="noreferrer" size="sm">
           <ExternalLink aria-hidden="true" size={14} />

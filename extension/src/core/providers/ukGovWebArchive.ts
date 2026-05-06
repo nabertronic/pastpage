@@ -1,6 +1,6 @@
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { absoluteUrl } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
@@ -31,22 +31,23 @@ export function parseUkGovTimeline(html: string): TimelineCapture | null {
 
 async function lookup(
   candidate: SearchCandidate,
-  fetchImpl: typeof fetch
-): Promise<ArchiveSnapshot | null> {
+  fetchImpl: typeof fetch,
+  _hostSettings?: never,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const timelineUrl = `https://webarchive.nationalarchives.gov.uk/ukgwa/*/${candidate.url}`;
   const response = await fetchImpl(timelineUrl, {
     method: "GET",
     headers: { Accept: "text/html" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`UK Government Web Archive returned ${response.status}`);
   }
 
   const html = await response.text();
-  return selectLatestWorkingSnapshot(
-    parseUkGovTimelineCaptures(html).map((capture) => ({
+  const snapshots: ArchiveSnapshotCandidate[] = parseUkGovTimelineCaptures(html).map((capture) => ({
       originalUrl: candidate.url,
       matchedUrl: candidate.url,
       archiveUrl: capture.archiveUrl,
@@ -55,10 +56,9 @@ async function lookup(
       mimeType: "text/html",
       strategy: candidate.strategy,
       providerId: "uk-gov-web-archive" as const
-    })),
-    fetchImpl,
-    10
-  );
+    }));
+
+  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
 }
 
 export const ukGovWebArchiveProvider: AutomaticArchiveProvider = {

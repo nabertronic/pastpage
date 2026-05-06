@@ -33,12 +33,15 @@ describe("ghostarchiveProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await ghostarchiveProvider.lookup(
+    const result = await ghostarchiveProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("ghostarchive");
-    expect(snapshot?.archiveUrl).toBe("https://ghostarchive.org/archive/new1");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("ghostarchive");
+      expect(result.snapshot.archiveUrl).toBe("https://ghostarchive.org/archive/new1");
+    }
   });
 });

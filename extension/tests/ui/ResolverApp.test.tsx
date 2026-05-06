@@ -66,7 +66,9 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
     expect(screen.getByText(/404: Page not found/i)).toBeInTheDocument();
     expect(screen.queryByText(/Check on Perma\.cc/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
@@ -94,16 +96,20 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
     expect(screen.getByText(/PastPage checks archived captures on Perma\.cc\./i)).toBeInTheDocument();
     expect(
       screen.getByText(/Checking archived versions for this page on Perma\.cc\./i)
     ).toBeInTheDocument();
     expect(
-      screen.getByText((text) => text.includes("Perma.cc.") && text.includes("matching on"))
+      screen.getByText(
+        (text) => text.includes("Perma.cc") && text.includes("could not confirm a working archived HTML snapshot automatically")
+      )
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/Checked original URL matching across all archive providers\./i)
+      screen.queryByText(/across all archive providers/i)
     ).not.toBeInTheDocument();
   });
 
@@ -119,7 +125,9 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
     await waitFor(() =>
       expect(browser.tabs.create).toHaveBeenCalledWith({
         url: "moz-extension://test//thanks.html",
@@ -142,7 +150,9 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
     await waitFor(() =>
       expect(browser.tabs.create).toHaveBeenCalledWith({
         url: "moz-extension://test//thanks.html",
@@ -158,7 +168,9 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
     expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("arquivo.pt"), expect.anything());
     expect(screen.queryByText(/Arquivo\.pt/i)).not.toBeInTheDocument();
   });
@@ -176,7 +188,9 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/No archived HTML capture found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
     expect(fetchMock).not.toHaveBeenCalledWith(expect.stringContaining("arquivo.pt"), expect.anything());
     expect(screen.queryByText(/Arquivo\.pt/i)).not.toBeInTheDocument();
   });
@@ -316,6 +330,151 @@ describe("ResolverApp", () => {
     ).toHaveLength(1);
     expect(screen.getAllByText(/Open archived version/i).length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText(/Archive.today/i)).toBeInTheDocument();
+  });
+
+  it("shows an unverified provider snapshot when automatic replay validation is blocked", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+          };
+        }
+
+        if (host.includes("archive.ph")) {
+          return url.includes("/timemap/")
+            ? {
+                ok: true,
+                status: 200,
+                text: vi
+                  .fn()
+                  .mockResolvedValue(
+                    `<https://archive.ph/20240203040506/https://example.com/missing>; rel="memento"; datetime="Sat, 03 Feb 2024 04:05:06 GMT"`
+                  )
+              }
+            : {
+                ok: false,
+                status: 429,
+                redirected: false,
+                headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+                text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+              };
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/Archive\.today reported an archived snapshot/i)).toBeInTheDocument()
+    );
+    expect(
+      screen.getByText(/could not verify or open it automatically/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Open this provider-reported snapshot manually/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/No archived HTML snapshot could be confirmed automatically/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows unverified candidates after confirmed snapshots", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return url.includes("/web/")
+            ? archiveHtmlResponse("Wayback")
+            : {
+                ok: true,
+                status: 200,
+                json: vi.fn().mockResolvedValue([
+                  ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+                  ["20240102030405", "https://example.com/missing", "text/html", "200", "digest", "120"]
+                ])
+              };
+        }
+
+        if (host.includes("archive.ph")) {
+          return url.includes("/timemap/")
+            ? {
+                ok: true,
+                status: 200,
+                text: vi
+                  .fn()
+                  .mockResolvedValue(
+                    `<https://archive.ph/20240203040506/https://example.com/missing>; rel="memento"; datetime="Sat, 03 Feb 2024 04:05:06 GMT"`
+                  )
+              }
+            : {
+                ok: false,
+                status: 429,
+                redirected: false,
+                headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+                text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+              };
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Archived version found/i)).toBeInTheDocument());
+    expect(screen.getByText(/Other archived versions found/i)).toBeInTheDocument();
+    expect(screen.getByText(/Open this provider-reported snapshot manually/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
   });
 
   it("flushes buffered fallback matches into the UI as soon as Wayback misses", async () => {

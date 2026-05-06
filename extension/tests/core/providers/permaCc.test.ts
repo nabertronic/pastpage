@@ -35,30 +35,33 @@ describe("permaCcProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await permaCcProvider.lookup(
+    const result = await permaCcProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("perma-cc");
-    expect(snapshot?.archiveUrl).toBe("https://perma.cc/EFGH-5678");
-    expect(snapshot?.timestamp).toBe("20240901080000");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("perma-cc");
+      expect(result.snapshot.archiveUrl).toBe("https://perma.cc/EFGH-5678");
+      expect(result.snapshot.timestamp).toBe("20240901080000");
+    }
   });
 
-  it("returns null when no objects come back", async () => {
+  it("returns a miss when no objects come back", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: vi.fn().mockResolvedValue({ objects: [] })
     });
-    const snapshot = await permaCcProvider.lookup(
+    const result = await permaCcProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
-    expect(snapshot).toBeNull();
+    expect(result).toEqual({ status: "miss" });
   });
 
-  it("returns null when objects are for a different URL (false-positive guard)", async () => {
+  it("returns a miss when objects are for a different URL (false-positive guard)", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -72,11 +75,11 @@ describe("permaCcProvider", () => {
         ]
       })
     });
-    const snapshot = await permaCcProvider.lookup(
+    const result = await permaCcProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
-    expect(snapshot).toBeNull();
+    expect(result).toEqual({ status: "miss" });
   });
 
   it("does not expose a manual direct link", () => {

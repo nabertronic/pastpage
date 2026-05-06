@@ -1,6 +1,6 @@
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { absoluteUrl, decodeHtmlEntities, normalizeComparableUrl, timestampFromDate } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
@@ -44,22 +44,23 @@ export function parseGhostarchiveSearch(html: string, requestedUrl: string): Gho
 
 async function lookup(
   candidate: SearchCandidate,
-  fetchImpl: typeof fetch
-): Promise<ArchiveSnapshot | null> {
+  fetchImpl: typeof fetch,
+  _hostSettings?: never,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const params = new URLSearchParams({ term: candidate.url });
   const response = await fetchImpl(`https://ghostarchive.org/search?${params.toString()}`, {
     method: "GET",
     headers: { Accept: "text/html" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`Ghostarchive returned ${response.status}`);
   }
 
   const html = await response.text();
-  return selectLatestWorkingSnapshot(
-    parseGhostarchiveResults(html, candidate.url).map((result) => ({
+  const snapshots: ArchiveSnapshotCandidate[] = parseGhostarchiveResults(html, candidate.url).map((result) => ({
       originalUrl: candidate.url,
       matchedUrl: result.originalUrl,
       archiveUrl: result.archiveUrl,
@@ -68,10 +69,9 @@ async function lookup(
       mimeType: "text/html",
       strategy: candidate.strategy,
       providerId: "ghostarchive" as const
-    })),
-    fetchImpl,
-    10
-  );
+    }));
+
+  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
 }
 
 export const ghostarchiveProvider: AutomaticArchiveProvider = {

@@ -64,7 +64,7 @@ describe("waybackProvider", () => {
     expect(selectLatestSnapshot(snapshots)?.timestamp).toBe("20230101000000");
   });
 
-  it("returns null when no rows are returned", async () => {
+  it("returns a miss when no rows are returned", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
       json: vi.fn().mockResolvedValue([
@@ -77,7 +77,7 @@ describe("waybackProvider", () => {
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(result).toBeNull();
+    expect(result).toEqual({ status: "miss" });
   });
 
   it("falls back to the next-most-recent working snapshot when the newest one is an archive error page", async () => {
@@ -101,12 +101,15 @@ describe("waybackProvider", () => {
       })
       .mockResolvedValueOnce(workingSnapshotResponse());
 
-    const snapshot = await waybackProvider.lookup(
+    const result = await waybackProvider.lookup(
       { strategy: "exact", url: "https://example.com" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.timestamp).toBe("20250101000000");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.timestamp).toBe("20250101000000");
+    }
   });
 
   it("counts returned capture rows exactly", () => {

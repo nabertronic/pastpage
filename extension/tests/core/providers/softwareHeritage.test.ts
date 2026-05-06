@@ -39,29 +39,32 @@ describe("softwareHeritageProvider", () => {
       })
     });
 
-    const snapshot = await softwareHeritageProvider.lookup(
+    const result = await softwareHeritageProvider.lookup(
       { strategy: "exact", url: "https://github.com/torvalds/linux" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("software-heritage");
-    expect(snapshot?.archiveUrl).toBe(
-      "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=https%3A%2F%2Fgithub.com%2Ftorvalds%2Flinux"
-    );
-    expect(snapshot?.timestamp).toBe("20260424062117");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("software-heritage");
+      expect(result.snapshot.archiveUrl).toBe(
+        "https://archive.softwareheritage.org/browse/origin/directory/?origin_url=https%3A%2F%2Fgithub.com%2Ftorvalds%2Flinux"
+      );
+      expect(result.snapshot.timestamp).toBe("20260424062117");
+    }
   });
 
-  it("returns null when Software Heritage has no archived visit for the origin", async () => {
+  it("returns a miss when Software Heritage has no archived visit for the origin", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: false,
       status: 404
     });
 
-    const snapshot = await softwareHeritageProvider.lookup(
+    const result = await softwareHeritageProvider.lookup(
       { strategy: "exact", url: "https://github.com/openai/openai" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot).toBeNull();
+    expect(result).toEqual({ status: "miss" });
   });
 });

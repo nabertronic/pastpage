@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Download,
   ExternalLink,
   RotateCcw,
   Search,
@@ -365,6 +366,20 @@ function HistoryContent({
           )}
         </section>
 
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-stone-500 hover:text-stone-950 dark:text-stone-400 dark:hover:text-yellow-50"
+            onClick={() => downloadHistoryCsv(filteredHistory)}
+            disabled={filteredHistory.length === 0}
+          >
+            <Download aria-hidden="true" size={13} />
+            {t("historyPage.exportCsv")}
+          </Button>
+        </div>
+
         <ResearcherFooter />
       </div>
     </PageShell>
@@ -589,4 +604,61 @@ function formatRelativeTime(timestamp: number, locale: string) {
   if (diffHour >= 1) return rtf.format(-diffHour, "hour");
   if (diffMin >= 1) return rtf.format(-diffMin, "minute");
   return rtf.format(-diffSec, "second");
+}
+
+function downloadHistoryCsv(history: HistoryEntry[]) {
+  const csv = buildHistoryCsv(history);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = `pastpage-history-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(objectUrl);
+}
+
+function buildHistoryCsv(history: HistoryEntry[]): string {
+  const header = [
+    "id",
+    "startedAt",
+    "resolvedAt",
+    "targetUrl",
+    "trigger",
+    "requestTrigger",
+    "scopedProviderId",
+    "outcome",
+    "snapshotCount",
+    "snapshotProviders",
+    "snapshotTimestamps",
+    "snapshotUrls",
+    "failedProviders",
+    "checkedAttempts"
+  ];
+
+  const rows = history.map((entry) => [
+    entry.id,
+    new Date(entry.startedAt).toISOString(),
+    entry.resolvedAt ? new Date(entry.resolvedAt).toISOString() : "",
+    entry.targetUrl,
+    entry.trigger,
+    entry.requestTrigger ?? "",
+    entry.scopedProviderId ?? "",
+    entry.outcome,
+    String(entry.resultSnapshots.length),
+    entry.resultSnapshots.map((snapshot) => snapshot.providerId).join(" | "),
+    entry.resultSnapshots.map((snapshot) => snapshot.timestamp).join(" | "),
+    entry.resultSnapshots.map((snapshot) => snapshot.openUrl ?? snapshot.archiveUrl).join(" | "),
+    entry.failedProviders?.map((provider) => provider.providerId).join(" | ") ?? "",
+    entry.checkedAttempts
+      ?.map((attempt) => `${attempt.providerId}:${attempt.strategy}:${attempt.outcome}:${attempt.url}`)
+      .join(" | ") ?? ""
+  ]);
+
+  return [header, ...rows]
+    .map((row) => row.map((cell) => escapeCsvCell(cell)).join(","))
+    .join("\n");
+}
+
+function escapeCsvCell(value: string): string {
+  return `"${value.replaceAll('"', '""')}"`;
 }

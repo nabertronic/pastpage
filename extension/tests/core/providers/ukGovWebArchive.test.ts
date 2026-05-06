@@ -29,12 +29,15 @@ describe("ukGovWebArchiveProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await ukGovWebArchiveProvider.lookup(
+    const result = await ukGovWebArchiveProvider.lookup(
       { strategy: "exact", url: "https://www.gov.uk/" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("uk-gov-web-archive");
-    expect(snapshot?.timestamp).toBe("20240615153045");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("uk-gov-web-archive");
+      expect(result.snapshot.timestamp).toBe("20240615153045");
+    }
   });
 });

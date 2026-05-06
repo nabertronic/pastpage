@@ -36,7 +36,8 @@ export const HistorySnapshotSchema = z.object({
   statusCode: z.string(),
   mimeType: z.string(),
   strategy: z.enum(["exact", "cleaned"]),
-  providerId: ProviderIdSchema
+  providerId: ProviderIdSchema,
+  verification: z.enum(["confirmed", "unverified"]).optional()
 });
 export type HistorySnapshot = z.infer<typeof HistorySnapshotSchema>;
 

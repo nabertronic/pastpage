@@ -8,11 +8,13 @@ const ArchiveSnapshotSchema = z.object({
   originalUrl: z.string(),
   matchedUrl: z.string(),
   archiveUrl: z.string(),
+  openUrl: z.string().optional(),
   timestamp: z.string(),
   statusCode: z.string(),
   mimeType: z.string(),
   strategy: z.enum(["exact", "cleaned"]),
-  providerId: ProviderIdSchema
+  providerId: ProviderIdSchema,
+  verification: z.enum(["confirmed", "unverified"]).optional()
 });
 
 const FailedProviderSchema = z.object({
@@ -29,6 +31,10 @@ const LookupStatusSchema = z.union([
   }),
   z.object({
     status: z.literal("found"),
+    snapshot: ArchiveSnapshotSchema
+  }),
+  z.object({
+    status: z.literal("unverified"),
     snapshot: ArchiveSnapshotSchema
   }),
   z.object({

@@ -1,4 +1,5 @@
-import type { ArchiveSnapshot } from "../tabState";
+import type { ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult } from "./types";
 
 const INVALID_TITLE_PATTERNS = [/^one more step$/i, /^404 not found$/i, /^page not found$/i];
 
@@ -35,7 +36,7 @@ function normalizeArchiveUrl(rawUrl: string): string {
 }
 
 async function isWorkingSnapshot(
-  snapshot: ArchiveSnapshot,
+  snapshot: ArchiveSnapshotCandidate,
   fetchImpl: typeof fetch
 ): Promise<boolean> {
   try {
@@ -67,19 +68,37 @@ async function isWorkingSnapshot(
 }
 
 export async function selectLatestWorkingSnapshot(
-  snapshots: ArchiveSnapshot[],
+  snapshots: ArchiveSnapshotCandidate[],
   fetchImpl: typeof fetch,
-  maxCandidates = snapshots.length
-): Promise<ArchiveSnapshot | null> {
+  maxCandidates = snapshots.length,
+  onProgress?: (phase: "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const ordered = [...snapshots]
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, Math.max(0, maxCandidates));
 
+  if (ordered.length === 0) {
+    return { status: "miss" };
+  }
+
   for (const snapshot of ordered) {
+    onProgress?.("verifying");
     if (await isWorkingSnapshot(snapshot, fetchImpl)) {
-      return snapshot;
+      return {
+        status: "confirmed",
+        snapshot: {
+          ...snapshot,
+          verification: "confirmed"
+        }
+      };
     }
   }
 
-  return null;
+  return {
+    status: "unverified",
+    snapshot: {
+      ...ordered[0],
+      verification: "unverified"
+    }
+  };
 }

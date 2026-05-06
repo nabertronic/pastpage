@@ -1,6 +1,6 @@
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshot } from "../tabState";
-import type { AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { absoluteUrl } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
@@ -33,22 +33,23 @@ export function parseWebGyotakuResults(html: string): WebGyotakuResult | null {
 
 async function lookup(
   candidate: SearchCandidate,
-  fetchImpl: typeof fetch
-): Promise<ArchiveSnapshot | null> {
+  fetchImpl: typeof fetch,
+  _hostSettings?: never,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const params = new URLSearchParams({ url: candidate.url });
   const response = await fetchImpl(`https://megalodon.jp/?${params.toString()}`, {
     method: "GET",
     headers: { Accept: "text/html" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`Megalodon/Web Gyotaku returned ${response.status}`);
   }
 
   const html = await response.text();
-  return selectLatestWorkingSnapshot(
-    parseWebGyotakuCaptureList(html).map((capture) => ({
+  const snapshots: ArchiveSnapshotCandidate[] = parseWebGyotakuCaptureList(html).map((capture) => ({
       originalUrl: candidate.url,
       matchedUrl: candidate.url,
       archiveUrl: capture.archiveUrl,
@@ -57,10 +58,9 @@ async function lookup(
       mimeType: "text/html",
       strategy: candidate.strategy,
       providerId: "web-gyotaku" as const
-    })),
-    fetchImpl,
-    10
-  );
+    }));
+
+  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
 }
 
 export const webGyotakuProvider: AutomaticArchiveProvider = {

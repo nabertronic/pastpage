@@ -29,12 +29,15 @@ describe("locWebArchivesProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await locWebArchivesProvider.lookup(
+    const result = await locWebArchivesProvider.lookup(
       { strategy: "exact", url: "https://www.loc.gov/" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("loc-web-archives");
-    expect(snapshot?.archiveUrl).toContain("/all/20240704120000/");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("loc-web-archives");
+      expect(result.snapshot.archiveUrl).toContain("/all/20240704120000/");
+    }
   });
 });

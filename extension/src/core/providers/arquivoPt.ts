@@ -1,7 +1,7 @@
 import { z } from "../../lib/mini-zod";
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshot } from "../tabState";
-import type { ArchivePriorityContext, AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchivePriorityContext, ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
 const ArquivoPtItemSchema = z.object({
@@ -58,23 +58,25 @@ function isPortugalRelevant(context: ArchivePriorityContext): boolean {
 
 async function lookup(
   candidate: SearchCandidate,
-  fetchImpl: typeof fetch
-): Promise<ArchiveSnapshot | null> {
+  fetchImpl: typeof fetch,
+  _hostSettings?: never,
+  onProgress?: (phase: "querying" | "verifying") => void
+): Promise<ArchiveProviderLookupResult> {
   const response = await fetchImpl(buildArquivoPtUrlSearchUrl(candidate.url), {
     method: "GET",
     headers: { Accept: "application/json" }
   });
 
-  if (response.status === 404) return null;
+  if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     throw new Error(`Arquivo.pt returned ${response.status}`);
   }
 
   const json = (await response.json()) as unknown;
   const parsed = ArquivoPtResponseSchema.safeParse(json);
-  if (!parsed.success || !parsed.data.items?.length) return null;
+  if (!parsed.success || !parsed.data.items?.length) return { status: "miss" };
 
-  const snapshots: ArchiveSnapshot[] = [];
+  const snapshots: ArchiveSnapshotCandidate[] = [];
   for (const item of parsed.data.items) {
     const archiveUrl = item.linkToNoFrame ?? item.linkToArchive;
     const originalUrl = item.originalURL ?? item.url;
@@ -93,7 +95,7 @@ async function lookup(
     });
   }
 
-  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10);
+  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
 }
 
 export const arquivoPtProvider: AutomaticArchiveProvider = {

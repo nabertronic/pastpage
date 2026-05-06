@@ -29,12 +29,15 @@ describe("webGyotakuProvider", () => {
         text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
       });
 
-    const snapshot = await webGyotakuProvider.lookup(
+    const result = await webGyotakuProvider.lookup(
       { strategy: "exact", url: "https://example.co.jp/" },
       fetchImpl as unknown as typeof fetch
     );
 
-    expect(snapshot?.providerId).toBe("web-gyotaku");
-    expect(snapshot?.archiveUrl).toContain("2024-0615-1200-00");
+    expect(result.status).toBe("confirmed");
+    if (result.status === "confirmed") {
+      expect(result.snapshot.providerId).toBe("web-gyotaku");
+      expect(result.snapshot.archiveUrl).toContain("2024-0615-1200-00");
+    }
   });
 });
