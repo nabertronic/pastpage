@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.4
+
+- Added an `Export CSV` action below the history list so the currently filtered local history can be downloaded as a CSV file.
+- Added support for unverified archive candidates across automatic providers, so provider-reported snapshot URLs are now shown in the resolver even when PastPage cannot automatically verify the replay page.
+- Updated mixed resolver results so confirmed snapshots stay first and any unverified candidates are listed after them instead of being dropped.
+- Revised resolver copy in all supported languages to distinguish between `could not confirm automatically` and `no archive exists`, and to guide users toward manual verification when needed.
+- Added an explicit resolver progress phase for snapshot verification, so status text can now show steps like checking a provider first and verifying a reported snapshot afterward.
+- Hid `original URL` / strategy wording in resolver status and not-found copy when the lookup runs in `exact-only` mode, while keeping it visible when cleaned-URL fallback is actually in play.
+
 ## v1.0.3
 
 - Renamed the local history page entry point to `archive-history` so Chrome and Firefox use the same regular extension page instead of relying on a browser-history override that Firefox does not support.
