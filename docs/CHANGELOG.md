@@ -12,7 +12,7 @@
 - Added a `Do not open automatically` resolver setting, so PastPage can keep the resolver open without auto-opening confirmed or unverified archive hits and let users choose results manually.
 - Removed the unused `webNavigation` and `scripting` extension permissions to satisfy Chrome Web Store review requirements and keep the manifest aligned with the shipped feature set.
 
-## v1.0.4
+## v1.0.5
 
 - Added an `Export CSV` action below the history list so the currently filtered local history can be downloaded as a CSV file.
 - Added support for unverified archive candidates across automatic providers, so provider-reported snapshot URLs are now shown in the resolver even when PastPage cannot automatically verify the replay page.
