@@ -2,17 +2,13 @@
 
 ## v1.0.5
 
-- Added a `Do not open automatically` resolver setting, so PastPage can keep the resolver open without auto-opening confirmed or unverified archive hits and let users choose results manually.
-
-## v1.0.5
-
 - Added durable automatic WebCite resolver support, so PastPage now checks WebCite alongside the other automatic archives instead of exposing it only as a manual follow-up source.
 - Kept the direct WebCite popup and context-menu action, while also letting automatic lookups surface confirmed or unverified WebCite captures in resolver results.
 - Hardened WebCite capture handling around its legacy frameset flow by parsing capture lists, skipping failed saves, and verifying the archived main-frame HTML before treating a hit as confirmed.
 - Added a `Do not open automatically` resolver setting, so PastPage can keep the resolver open without auto-opening confirmed or unverified archive hits and let users choose results manually.
 - Removed the unused `webNavigation` and `scripting` extension permissions to satisfy Chrome Web Store review requirements and keep the manifest aligned with the shipped feature set.
 
-## v1.0.5
+## v1.0.4
 
 - Added an `Export CSV` action below the history list so the currently filtered local history can be downloaded as a CSV file.
 - Added support for unverified archive candidates across automatic providers, so provider-reported snapshot URLs are now shown in the resolver even when PastPage cannot automatically verify the replay page.
