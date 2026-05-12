@@ -157,6 +157,13 @@ describe("settings", () => {
     });
   });
 
+  it("accepts the configured resolver success behavior", () => {
+    expect(parseSettings({ resolverSuccessBehavior: "manual-open-only" })).toEqual({
+      ...DEFAULT_SETTINGS,
+      resolverSuccessBehavior: "manual-open-only"
+    });
+  });
+
   it("falls back to the default provider timeout when the stored value is invalid", () => {
     expect(parseSettings({ providerTimeoutSeconds: 0 })).toEqual(DEFAULT_SETTINGS);
   });

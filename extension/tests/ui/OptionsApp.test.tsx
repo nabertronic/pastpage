@@ -286,6 +286,23 @@ describe("OptionsApp", () => {
     );
   });
 
+  it("saves the manual-only resolver behavior", async () => {
+    render(<OptionsApp />);
+    await screen.findByText("Recovery behavior");
+    vi.mocked(browser.storage.local.set).mockClear();
+
+    await userEvent.selectOptions(screen.getByLabelText("After a snapshot is found"), "manual-open-only");
+
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.settings": {
+          ...DEFAULT_SETTINGS,
+          resolverSuccessBehavior: "manual-open-only"
+        }
+      })
+    );
+  });
+
   it("saves the selected Wayback onion host", async () => {
     render(<OptionsApp />);
     await screen.findByText("Recovery behavior");

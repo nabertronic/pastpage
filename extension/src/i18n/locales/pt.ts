@@ -89,9 +89,11 @@ export const pt: MessageCatalog = {
   "options.providerContextMenu.newTabBackground": "Nova guia (plano de fundo)",
   "options.providerContextMenu.newWindow": "Nova janela",
   "options.afterSnapshot.label": "Depois que um instantâneo for encontrado",
-  "options.afterSnapshot.description": "Escolha se a página de pesquisa permanecerá aberta após a abertura do arquivo.",
+  "options.afterSnapshot.description":
+    "Escolha se o PastPage abre automaticamente o primeiro instantâneo encontrado e se a página de pesquisa permanecerá aberta.",
   "options.afterSnapshot.keepResolver": "Mantenha a página de pesquisa aberta",
   "options.afterSnapshot.replaceResolver": "Use a guia de pesquisa para arquivo",
+  "options.afterSnapshot.manualOpenOnly": "Não abrir automaticamente",
   "options.urlMatching.label": "URL correspondência",
   "options.urlMatching.description": "Decida até que ponto a pesquisa de arquivo deve seguir o URL original.",
   "options.providerTimeout.label": "Provider timeout",

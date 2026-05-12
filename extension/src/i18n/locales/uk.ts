@@ -87,9 +87,11 @@ export const uk: MessageCatalog = {
   "options.providerContextMenu.newTabBackground": "Нова вкладка (фон)",
   "options.providerContextMenu.newWindow": "Нове вікно",
   "options.afterSnapshot.label": "Після того, як знімок знайдено",
-  "options.afterSnapshot.description": "Виберіть, чи залишатиметься сторінка пошуку відкритою після відкриття архіву.",
+  "options.afterSnapshot.description":
+    "Виберіть, чи PastPage автоматично відкриватиме перший знайдений знімок і чи сторінка пошуку залишатиметься відкритою.",
   "options.afterSnapshot.keepResolver": "Тримайте сторінку пошуку відкритою",
   "options.afterSnapshot.replaceResolver": "Використовуйте вкладку пошуку для архіву",
+  "options.afterSnapshot.manualOpenOnly": "Не відкривати автоматично",
   "options.urlMatching.label": "URL відповідність",
   "options.urlMatching.description": "Вирішіть, наскільки точно пошук в архіві має відповідати оригінальному URL.",
   "options.providerTimeout.label": "Provider timeout",

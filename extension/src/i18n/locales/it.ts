@@ -89,9 +89,11 @@ export const it: MessageCatalog = {
   "options.providerContextMenu.newTabBackground": "Nuova scheda (sullo sfondo)",
   "options.providerContextMenu.newWindow": "Nuova finestra",
   "options.afterSnapshot.label": "Dopo aver trovato un'istantanea",
-  "options.afterSnapshot.description": "Scegli se la pagina di ricerca rimane aperta dopo l'apertura dell'archivio.",
+  "options.afterSnapshot.description":
+    "Scegli se PastPage apre automaticamente la prima istantanea trovata e se la pagina di ricerca rimane aperta.",
   "options.afterSnapshot.keepResolver": "Mantieni aperta la pagina di ricerca",
   "options.afterSnapshot.replaceResolver": "Utilizza la scheda di ricerca per l'archivio",
+  "options.afterSnapshot.manualOpenOnly": "Non aprire automaticamente",
   "options.urlMatching.label": "URL corrispondente",
   "options.urlMatching.description": "Decidi quanto da vicino la ricerca nell'archivio deve seguire il URL originale.",
   "options.providerTimeout.label": "Provider timeout",

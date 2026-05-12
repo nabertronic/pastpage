@@ -282,6 +282,8 @@ export function ResolverApp() {
             }
           });
 
+          if (currentSettings.resolverSuccessBehavior === "manual-open-only") return;
+
           window.setTimeout(() => {
             if (currentSettings.resolverSuccessBehavior === "replace-resolver") {
               window.location.assign(targetUrl);

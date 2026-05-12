@@ -100,9 +100,10 @@ export const fr = {
   "options.providerContextMenu.newWindow": "Nouvelle fenêtre",
   "options.afterSnapshot.label": "Après avoir trouvé un snapshot",
   "options.afterSnapshot.description":
-    "Choisissez si la page de recherche reste ouverte après l'ouverture de l'archive.",
+    "Choisissez si PastPage ouvre automatiquement le premier snapshot trouvé et si la page de recherche reste ouverte.",
   "options.afterSnapshot.keepResolver": "Garder la page de recherche ouverte",
   "options.afterSnapshot.replaceResolver": "Utiliser l'onglet de recherche pour l'archive",
+  "options.afterSnapshot.manualOpenOnly": "Ne pas ouvrir automatiquement",
   "options.urlMatching.label": "Correspondance d'URL",
   "options.urlMatching.description":
     "Décidez avec quelle précision la recherche d'archive doit suivre l'URL d'origine.",

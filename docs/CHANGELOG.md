@@ -2,6 +2,10 @@
 
 ## v1.0.5
 
+- Added a `Do not open automatically` resolver setting, so PastPage can keep the resolver open without auto-opening confirmed or unverified archive hits and let users choose results manually.
+
+## v1.0.5
+
 - Added durable automatic WebCite resolver support, so PastPage now checks WebCite alongside the other automatic archives instead of exposing it only as a manual follow-up source.
 - Kept the direct WebCite popup and context-menu action, while also letting automatic lookups surface confirmed or unverified WebCite captures in resolver results.
 - Hardened WebCite capture handling around its legacy frameset flow by parsing capture lists, skipping failed saves, and verifying the archived main-frame HTML before treating a hit as confirmed.

@@ -87,9 +87,11 @@ export const pl: MessageCatalog = {
   "options.providerContextMenu.newTabBackground": "Nowa karta (tło)",
   "options.providerContextMenu.newWindow": "Nowe okno",
   "options.afterSnapshot.label": "Po znalezieniu migawki",
-  "options.afterSnapshot.description": "Wybierz, czy strona wyszukiwania ma pozostać otwarta po otwarciu archiwum.",
+  "options.afterSnapshot.description":
+    "Wybierz, czy PastPage ma automatycznie otworzyć pierwszą znalezioną migawkę i czy strona wyszukiwania ma pozostać otwarta.",
   "options.afterSnapshot.keepResolver": "Pozostaw stronę wyszukiwania otwartą",
   "options.afterSnapshot.replaceResolver": "Użyj karty wyszukiwania do archiwum",
+  "options.afterSnapshot.manualOpenOnly": "Nie otwieraj automatycznie",
   "options.urlMatching.label": "dopasowanie URL",
   "options.urlMatching.description": "Zdecyduj, jak bardzo wyszukiwanie w archiwum powinno być zgodne z oryginalnym URL.",
   "options.providerTimeout.label": "Provider timeout",

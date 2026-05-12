@@ -98,9 +98,10 @@ export const en = {
   "options.providerContextMenu.newWindow": "New window",
   "options.afterSnapshot.label": "After a snapshot is found",
   "options.afterSnapshot.description":
-    "Choose whether the lookup page stays open after the archive opens.",
+    "Choose whether PastPage opens the first found snapshot automatically, and whether the lookup page stays open.",
   "options.afterSnapshot.keepResolver": "Keep lookup page open",
   "options.afterSnapshot.replaceResolver": "Use lookup tab for archive",
+  "options.afterSnapshot.manualOpenOnly": "Do not open automatically",
   "options.urlMatching.label": "URL matching",
   "options.urlMatching.description":
     "Decide how closely the archive lookup should follow the original URL.",

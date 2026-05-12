@@ -245,7 +245,8 @@ function OptionsContent({
                 }
                 options={[
                   { value: "keep-resolver", label: t("options.afterSnapshot.keepResolver") },
-                  { value: "replace-resolver", label: t("options.afterSnapshot.replaceResolver") }
+                  { value: "replace-resolver", label: t("options.afterSnapshot.replaceResolver") },
+                  { value: "manual-open-only", label: t("options.afterSnapshot.manualOpenOnly") }
                 ]}
               />
 

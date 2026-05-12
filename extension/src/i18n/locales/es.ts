@@ -99,9 +99,10 @@ export const es = {
   "options.providerContextMenu.newWindow": "Nueva ventana",
   "options.afterSnapshot.label": "Después de encontrar un snapshot",
   "options.afterSnapshot.description":
-    "Elige si la página de búsqueda permanece abierta después de que se abra el archivo.",
+    "Elige si PastPage abre automáticamente el primer snapshot encontrado y si la página de búsqueda permanece abierta.",
   "options.afterSnapshot.keepResolver": "Mantener la página de búsqueda abierta",
   "options.afterSnapshot.replaceResolver": "Usar la pestaña de búsqueda para el archivo",
+  "options.afterSnapshot.manualOpenOnly": "No abrir automáticamente",
   "options.urlMatching.label": "Coincidencia de URL",
   "options.urlMatching.description":
     "Decide con qué precisión debe seguir la búsqueda de archivo la URL original.",

@@ -103,9 +103,10 @@ export const de: MessageCatalog = {
   "options.providerContextMenu.newWindow": "Neues Fenster",
   "options.afterSnapshot.label": "Nachdem ein Snapshot gefunden wurde",
   "options.afterSnapshot.description":
-    "Legen Sie fest, ob die Suchseite geöffnet bleibt, nachdem das Archiv geöffnet wurde.",
+    "Legen Sie fest, ob PastPage den ersten gefundenen Snapshot automatisch öffnet und ob die Suchseite geöffnet bleibt.",
   "options.afterSnapshot.keepResolver": "Suchseite geöffnet lassen",
   "options.afterSnapshot.replaceResolver": "Such-Tab für Archiv verwenden",
+  "options.afterSnapshot.manualOpenOnly": "Nicht automatisch öffnen",
   "options.urlMatching.label": "URL-Abgleich",
   "options.urlMatching.description":
     "Legen Sie fest, wie genau die Archivsuche der ursprünglichen URL folgen soll.",
