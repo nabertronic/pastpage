@@ -32,7 +32,7 @@ export default defineConfig({
     version: "1.0.3",
     default_locale: "en",
     icons: extensionIcons,
-    permissions: ["webRequest", "webNavigation", "storage", "tabs", "scripting", "contextMenus"],
+    permissions: ["webRequest", "storage", "tabs", "contextMenus"],
     host_permissions: ["http://*/*", "https://*/*"],
     action: {
       default_title: "PastPage",

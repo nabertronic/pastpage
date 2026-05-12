@@ -49,14 +49,10 @@ Core differentiators:
 
 - `webRequest`
   Detect relevant main-frame HTTP error responses so PastPage can offer recovery only on recoverable page failures.
-- `webNavigation`
-  Detect recoverable navigation failures and keep the lookup flow tied to the affected tab.
 - `storage`
   Save local settings, lightweight extension metadata, and optional local lookup history.
 - `tabs`
   Read the current tab URL for user-triggered lookups and open archive results, settings, onboarding, and support pages.
-- `scripting`
-  Inject the recovery bar on eligible broken pages where extension UI can run.
 - `contextMenus`
   Provide page, link, and selected-URL archive actions from the browser context menu.
 - `host_permissions: http://*/*, https://*/*`
