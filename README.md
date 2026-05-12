@@ -26,7 +26,7 @@ PastPage does that work for you.
 - It notices when a page is gone, broken, blocked, or no longer loading normally.
 - It checks the current page in one click from the toolbar, popup, or context menu.
 - It searches multiple relevant `web archives` in parallel.
-- It keeps looking and shows alternative archives and follow-up links.
+- It keeps looking and shows confirmed matches, unverified archive candidates, and follow-up links.
 - It remembers your past searches so you can revisit successful recoveries later.
 
 ## What Makes PastPage Different
@@ -73,9 +73,9 @@ That means you do not have to manually trim links before checking the `Wayback M
 - Broken-page recovery for disappeared sites
 - Archive lookup from the context menu for pages, links, and selected URLs
 - Additional archive matches when more than one source has the page
-- A searchable local history of previous recovery runs
+- A searchable local history of previous recovery runs with CSV export
 - Interface languages: English, German, Spanish, French, Italian, Polish, Portuguese, and Ukrainian
-- Customizable archive order, behavior, and ignored domains
+- Customizable archive order, resolver behavior, and ignored domains
 
 ## Privacy
 
