@@ -36,7 +36,11 @@ export type ThemeMode = z.infer<typeof ThemeModeSchema>;
 export const BannerThemeSchema = z.enum(["auto-contrast", "dark", "light", "custom"]);
 export type BannerTheme = z.infer<typeof BannerThemeSchema>;
 
-export const ResolverSuccessBehaviorSchema = z.enum(["keep-resolver", "replace-resolver"]);
+export const ResolverSuccessBehaviorSchema = z.enum([
+  "keep-resolver",
+  "replace-resolver",
+  "manual-open-only"
+]);
 export type ResolverSuccessBehavior = z.infer<typeof ResolverSuccessBehaviorSchema>;
 
 export const DEFAULT_PROVIDER_TIMEOUT_SECONDS = 60;
@@ -76,12 +80,12 @@ export const DEFAULT_SETTINGS: Settings = {
     "wayback",
     "archive-today",
     "ghostarchive",
-    "yandex-cache",
+    "webcite",
     "uk-gov-web-archive",
     "loc-web-archives",
     "arquivo-pt",
     "web-gyotaku",
-    "webcite",
+    "yandex-cache",
     "perma-cc",
     "software-heritage"
   ],

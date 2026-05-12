@@ -6,7 +6,8 @@ const GENERAL_AUTOMATIC_ORDER: ProviderId[] = [
   "archive-today",
   "ghostarchive",
   "perma-cc",
-  "web-gyotaku"
+  "web-gyotaku",
+  "webcite"
 ];
 
 const PORTUGAL_AUTOMATIC_ORDER: ProviderId[] = [
@@ -15,7 +16,8 @@ const PORTUGAL_AUTOMATIC_ORDER: ProviderId[] = [
   "arquivo-pt",
   "ghostarchive",
   "perma-cc",
-  "web-gyotaku"
+  "web-gyotaku",
+  "webcite"
 ];
 
 const JAPAN_AUTOMATIC_ORDER: ProviderId[] = [
@@ -23,7 +25,8 @@ const JAPAN_AUTOMATIC_ORDER: ProviderId[] = [
   "archive-today",
   "web-gyotaku",
   "ghostarchive",
-  "perma-cc"
+  "perma-cc",
+  "webcite"
 ];
 
 function isExactHostOrSubdomain(hostname: string, suffix: string): boolean {
@@ -106,7 +109,7 @@ export function buildAutomaticProviderOrder(context: ArchivePriorityContext): Pr
 }
 
 export function buildManualDirectLinkProviders(context: ArchivePriorityContext): ProviderId[] {
-  const providers: ProviderId[] = ["yandex-cache", "webcite"];
+  const providers: ProviderId[] = ["yandex-cache"];
 
   return providers;
 }

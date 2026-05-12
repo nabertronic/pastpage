@@ -220,13 +220,13 @@ describe("OptionsApp", () => {
             "wayback",
             "archive-today",
             "ghostarchive",
-            "yandex-cache",
+            "webcite",
             "uk-gov-web-archive",
             "loc-web-archives",
             "arquivo-pt",
             "web-gyotaku",
             "perma-cc",
-            "webcite",
+            "yandex-cache",
             "software-heritage"
           ]
         }
@@ -264,6 +264,23 @@ describe("OptionsApp", () => {
         "pastPage.settings": {
           ...DEFAULT_SETTINGS,
           archiveTodayHost: "archive.today"
+        }
+      })
+    );
+  });
+
+  it("saves the manual-only resolver behavior", async () => {
+    render(<OptionsApp />);
+    await screen.findByText("Recovery behavior");
+    vi.mocked(browser.storage.local.set).mockClear();
+
+    await userEvent.selectOptions(screen.getByLabelText("After a snapshot is found"), "manual-open-only");
+
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.settings": {
+          ...DEFAULT_SETTINGS,
+          resolverSuccessBehavior: "manual-open-only"
         }
       })
     );

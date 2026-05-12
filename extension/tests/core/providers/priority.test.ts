@@ -9,6 +9,17 @@ describe("provider priority", () => {
     );
   });
 
+  it("includes WebCite in the general automatic order after Megalodon/Web Gyotaku", () => {
+    expect(buildAutomaticProviderOrder(classifyArchivePriority("https://example.com/story"))).toEqual([
+      "wayback",
+      "archive-today",
+      "ghostarchive",
+      "perma-cc",
+      "web-gyotaku",
+      "webcite"
+    ]);
+  });
+
   it("includes Software Heritage in the automatic order for repository URLs", () => {
     expect(
       buildAutomaticProviderOrder(classifyArchivePriority("https://github.com/openai/openai"))

@@ -70,10 +70,43 @@ function emptyLocResponse() {
   return { ok: true, status: 200, text: vi.fn().mockResolvedValue("<html><body>No captures</body></html>") };
 }
 
+function emptyWebCiteResponse(url: string) {
+  if (url.includes("/topframe.php")) {
+    return {
+      ok: true,
+      status: 200,
+      text: vi.fn().mockResolvedValue(`
+        <table class="topframe">
+          <a href="" target="_top">Permalink&nbsp;to&nbsp;this&nbsp;cache</a>
+          <select name="id"></select>
+        </table>
+      `)
+    };
+  }
+
+  if (url.includes("/mainframe.php")) {
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+      text: vi.fn().mockResolvedValue("<html><body>No capture</body></html>")
+    };
+  }
+
+  return {
+    ok: true,
+    status: 200,
+    text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+  };
+}
+
 function dispatchByHost(handlers: Record<string, (url: string) => unknown>) {
   return vi.fn(async (url: string) => {
     const host = new URL(url).hostname;
     const key = Object.keys(handlers).find((handlerHost) => host.includes(handlerHost));
+    if (!key && host.includes("webcitation.org")) {
+      return emptyWebCiteResponse(url);
+    }
     if (!key) throw new Error(`unhandled host ${host}`);
     return handlers[key](url);
   });
@@ -117,8 +150,8 @@ describe("lookupArchives", () => {
         "archive-today",
         "ghostarchive",
         "web-gyotaku",
-        "yandex-cache",
-        "webcite"
+        "webcite",
+        "yandex-cache"
       ]);
     }
   });
@@ -164,8 +197,8 @@ describe("lookupArchives", () => {
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
         "ghostarchive",
         "web-gyotaku",
-        "yandex-cache",
-        "webcite"
+        "webcite",
+        "yandex-cache"
       ]);
     }
   });
@@ -281,6 +314,125 @@ describe("lookupArchives", () => {
     }
   });
 
+  it("returns a confirmed WebCite snapshot when the archived main frame is valid", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse(),
+      "webcitation.org": (url: string) => {
+        if (url.includes("/topframe.php")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue(`
+              <table class="topframe">
+                <a href="perma-123" target="_top">Permalink&nbsp;to&nbsp;this&nbsp;cache</a>
+                <select name="id">
+                  <option value="older">2018-01-01 00:00:00</option>
+                  <option value="latest">2019-06-07 07:04:09</option>
+                </select>
+              </table>
+            `)
+          };
+        }
+
+        if (url.includes("/mainframe.php")) {
+          return {
+            ok: true,
+            status: 200,
+            headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+            text: vi.fn().mockResolvedValue("<html><head><title>Saved page</title></head><body>ok</body></html>")
+          };
+        }
+
+        return {
+          ok: true,
+          status: 200,
+          text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+        };
+      }
+    });
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("found");
+    if (result.status === "found") {
+      expect(result.providerId).toBe("webcite");
+      expect(result.snapshot.archiveUrl).toBe("https://www.webcitation.org/query?id=latest");
+      expect(result.snapshot.openUrl).toBe("https://www.webcitation.org/perma-123");
+      expect(result.snapshot.timestamp).toBe("20190607070409");
+      expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "wayback",
+        "archive-today",
+        "ghostarchive",
+        "web-gyotaku",
+        "yandex-cache"
+      ]);
+    }
+  });
+
+  it("returns an unverified WebCite snapshot when the archived main frame cannot be confirmed", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse(),
+      "webcitation.org": (url: string) => {
+        if (url.includes("/topframe.php")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue(`
+              <table class="topframe">
+                <a href="perma-999" target="_top">Permalink&nbsp;to&nbsp;this&nbsp;cache</a>
+                <select name="id">
+                  <option value="failed-one">2019-06-07 07:04:09 (failed)</option>
+                  <option value="kept-one">2018-05-13 21:44:00</option>
+                </select>
+              </table>
+            `)
+          };
+        }
+
+        if (url.includes("/mainframe.php")) {
+          return {
+            ok: true,
+            status: 200,
+            headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+            text: vi.fn().mockResolvedValue("<html><head><title>404 Not Found</title></head><body>missing</body></html>")
+          };
+        }
+
+        return {
+          ok: true,
+          status: 200,
+          text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+        };
+      }
+    });
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("unverified");
+    if (result.status === "unverified") {
+      expect(result.snapshot.providerId).toBe("webcite");
+      expect(result.snapshot.archiveUrl).toBe("https://www.webcitation.org/query?id=kept-one");
+      expect(result.snapshot.openUrl).toBe("https://www.webcitation.org/perma-999");
+      expect(result.snapshot.verification).toBe("unverified");
+    }
+  });
+
   it("opens the newest non-Wayback hit when Wayback has no valid snapshot", async () => {
     const fetchImpl = dispatchByHost({
       "web.archive.org": () => emptyWaybackResponse(),
@@ -328,8 +480,8 @@ describe("lookupArchives", () => {
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
         "wayback",
         "web-gyotaku",
-        "yandex-cache",
-        "webcite"
+        "webcite",
+        "yandex-cache"
       ]);
     }
   });
@@ -493,7 +645,8 @@ describe("lookupArchives", () => {
       "arquivo-pt:exact",
       "ghostarchive:exact",
       "perma-cc:exact",
-      "web-gyotaku:exact"
+      "web-gyotaku:exact",
+      "webcite:exact"
     ]);
   });
 
@@ -522,7 +675,8 @@ describe("lookupArchives", () => {
       "archive-today:exact",
       "web-gyotaku:exact",
       "ghostarchive:exact",
-      "perma-cc:exact"
+      "perma-cc:exact",
+      "webcite:exact"
     ]);
   });
 
@@ -553,7 +707,8 @@ describe("lookupArchives", () => {
       "uk-gov-web-archive",
       "ghostarchive",
       "perma-cc",
-      "web-gyotaku"
+      "web-gyotaku",
+      "webcite"
     ]);
 
     const usFetch = dispatchByHost({
@@ -582,7 +737,8 @@ describe("lookupArchives", () => {
       "ghostarchive",
       "loc-web-archives",
       "perma-cc",
-      "web-gyotaku"
+      "web-gyotaku",
+      "webcite"
     ]);
   });
 
@@ -615,8 +771,8 @@ describe("lookupArchives", () => {
         "ghostarchive",
         "software-heritage",
         "web-gyotaku",
-        "yandex-cache",
-        "webcite"
+        "webcite",
+        "yandex-cache"
       ]);
     }
   });
@@ -662,8 +818,8 @@ describe("lookupArchives", () => {
         "wayback",
         "ghostarchive",
         "web-gyotaku",
-        "yandex-cache",
-        "webcite"
+        "webcite",
+        "yandex-cache"
       ]);
     }
   });

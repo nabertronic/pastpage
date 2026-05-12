@@ -12,12 +12,12 @@ describe("settings", () => {
       "wayback",
       "archive-today",
       "ghostarchive",
-      "yandex-cache",
+      "webcite",
       "uk-gov-web-archive",
       "loc-web-archives",
       "arquivo-pt",
       "web-gyotaku",
-      "webcite",
+      "yandex-cache",
       "perma-cc",
       "software-heritage"
     ]);
@@ -147,6 +147,13 @@ describe("settings", () => {
     expect(parseSettings({ providerTimeoutSeconds: 90 })).toEqual({
       ...DEFAULT_SETTINGS,
       providerTimeoutSeconds: 90
+    });
+  });
+
+  it("accepts the configured resolver success behavior", () => {
+    expect(parseSettings({ resolverSuccessBehavior: "manual-open-only" })).toEqual({
+      ...DEFAULT_SETTINGS,
+      resolverSuccessBehavior: "manual-open-only"
     });
   });
 

@@ -83,7 +83,7 @@ Automatic provider order is URL-aware:
 Manual follow-up sources also adapt to context:
 
 - repository URLs can include `Software Heritage`
-- general follow-up sources include `Yandex Cache` and `WebCite`
+- general follow-up sources include `Yandex Cache`
 
 ## Error Handling Model
 
