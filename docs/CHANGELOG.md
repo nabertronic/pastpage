@@ -2,6 +2,7 @@
 
 ## v1.0.6
 
+- Simplified the onboarding flow around the two primary actions, removed the duplicated lead card, and tightened the German onboarding copy to use clearer archive-search wording.
 - Corrected the onboarding pinning copy in all supported onboarding languages so it consistently refers to the toolbar instead of the address bar.
 - Replaced the generic onboarding puzzle icon with the actual browser-specific extensions icon, so Chrome/Chromium and Firefox now each show the symbol users see in their own browser UI.
 - Unified resolver follow-up action styling so manual archive providers now always use bordered check buttons, archive-copy buttons match the yellow action-link treatment, and the not-found action order now shows `Open current page` before `Copy original URL`.

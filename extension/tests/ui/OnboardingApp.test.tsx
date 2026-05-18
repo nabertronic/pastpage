@@ -16,8 +16,10 @@ describe("OnboardingApp", () => {
     render(<OnboardingApp />);
 
     expect(screen.queryByText("PASTPAGE")).not.toBeInTheDocument();
-    expect(screen.getByText("When a page is gone or changed, find what was there.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Learn how it works" })).toBeInTheDocument();
+    expect(screen.getByText("Welcome to PastPage")).toBeInTheDocument();
+    expect(screen.getByText("Find an earlier version when a page is gone or changed.")).toBeInTheDocument();
+    expect(screen.getByText("Recovery bar")).toBeInTheDocument();
+    expect(screen.getByText("Look up the current page")).toBeInTheDocument();
     expect(screen.getByText("Pin the toolbar icon")).toBeInTheDocument();
     expect(screen.getByText("Open the puzzle menu")).toBeInTheDocument();
     expect(screen.getByText("Open PastPage gear menu")).toBeInTheDocument();
@@ -57,24 +59,31 @@ describe("OnboardingApp", () => {
   it("uses the revised multi-archive capability copy", () => {
     render(<OnboardingApp />);
 
-    expect(screen.getByText("Six ways PastPage helps")).toBeInTheDocument();
-    expect(screen.getByText("Make it yours")).toBeInTheDocument();
+    expect(screen.getByText("Start with these two options")).toBeInTheDocument();
+    expect(screen.getByText("Adjust the details")).toBeInTheDocument();
     expect(screen.queryByText("One step setup")).not.toBeInTheDocument();
     expect(screen.queryByText("What it does")).not.toBeInTheDocument();
     expect(screen.queryByText("Make it yours", { selector: "span" })).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "When a page fails to load, a quiet bar appears automatically with one button to search for archived copies."
+        "When a page breaks, PastPage can show a bar with a button to look for an archived version."
       )
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Right-click on any page to jump straight into Wayback Machine, Archive.today, and other archive options."
-      )
-    ).toBeInTheDocument();
+    expect(screen.queryByText("Pick one archive")).not.toBeInTheDocument();
     expect(
       screen.queryByText(/archived version from Wayback, Archive\.today, or Perma\.cc/i)
     ).not.toBeInTheDocument();
+  });
+
+  it("reveals secondary actions only after expanding the details section", async () => {
+    render(<OnboardingApp />);
+
+    expect(screen.queryByText("Pick one archive")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /More ways to look up pages/i }));
+
+    expect(screen.getByText("Pick one archive")).toBeInTheDocument();
+    expect(screen.getByText("Check where a link leads")).toBeInTheDocument();
   });
 
   it("switches to German copy when the browser UI language is German", () => {
@@ -83,7 +92,9 @@ describe("OnboardingApp", () => {
     render(<OnboardingApp />);
 
     expect(screen.getByText("Willkommen bei PastPage")).toBeInTheDocument();
-    expect(screen.getByText("Wenn eine Seite weg ist oder verändert wurde, finde, was dort stand.")).toBeInTheDocument();
+    expect(screen.getByText("Finde eine frühere Version, wenn eine Seite weg ist oder verändert wurde.")).toBeInTheDocument();
+    expect(screen.getByText("Rettungsleiste")).toBeInTheDocument();
+    expect(screen.getByText("Aktuelle Seite nachschlagen")).toBeInTheDocument();
     expect(screen.queryByText("Ein Schritt Setup")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Settings öffnen" })).toBeInTheDocument();
   });
