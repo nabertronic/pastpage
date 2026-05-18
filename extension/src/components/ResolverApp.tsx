@@ -516,7 +516,7 @@ function ResolverContent({
                         key={`${source.providerId}:${source.url}`}
                         source={source}
                         actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
-                        variant="ghost"
+                        variant="secondary"
                       />
                     ))}
                   </div>
@@ -576,11 +576,7 @@ function ResolverContent({
                         key={`${source.providerId}:${source.url}`}
                         source={source}
                         actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
-                        variant={
-                          status.failedProviders.some((provider) => provider.providerId === source.providerId)
-                            ? "secondary"
-                            : "ghost"
-                        }
+                        variant="secondary"
                       />
                     ))}
                   </div>
@@ -622,15 +618,15 @@ function ResolverContent({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
+                <LinkButton href={request.originalUrl} variant="secondary" size="sm">
+                  <ExternalLink aria-hidden="true" size={14} />
+                  {t("common.openCurrentPage")}
+                </LinkButton>
                 <CopyButton
                   value={request.originalUrl}
                   label={t("resolver.notFound.copyOriginalUrl")}
                   copiedLabel={t("resolver.notFound.originalUrlCopied")}
                 />
-                <LinkButton href={request.originalUrl} variant="secondary" size="sm">
-                  <ExternalLink aria-hidden="true" size={14} />
-                  {t("common.openCurrentPage")}
-                </LinkButton>
               </div>
               {status.manualSources.length > 0 ? (
                 <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
@@ -643,11 +639,7 @@ function ResolverContent({
                         key={`${source.providerId}:${source.url}`}
                         source={source}
                         actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
-                        variant={
-                          status.failedProviders.some((provider) => provider.providerId === source.providerId)
-                            ? "secondary"
-                            : "ghost"
-                        }
+                        variant="secondary"
                       />
                     ))}
                   </div>
@@ -719,6 +711,7 @@ function ArchiveSnapshotCard({
           value={snapshotTargetUrl(snapshot)}
           label={t("resolver.found.copyArchiveLink")}
           copiedLabel={t("resolver.found.archiveLinkCopied")}
+          variant="ghost"
         />
       </div>
     </div>
@@ -732,7 +725,7 @@ function ManualArchiveSourceCard({
 }: {
   source: ManualArchiveSource;
   actionLabel: string;
-  variant: "ghost" | "secondary";
+  variant: "secondary";
 }) {
   const { t } = useI18n();
 
@@ -748,6 +741,7 @@ function ManualArchiveSourceCard({
           value={source.url}
           label={t("resolver.found.copyArchiveLink")}
           copiedLabel={t("resolver.found.archiveLinkCopied")}
+          variant="ghost"
         />
       </div>
     </div>
@@ -761,7 +755,7 @@ function ManualArchiveSourceButton({
 }: {
   source: ManualArchiveSource;
   actionLabel: string;
-  variant: "ghost" | "secondary";
+  variant: "secondary";
 }) {
   return (
     <LinkButton href={source.url} target="_blank" rel="noreferrer" size="sm" variant={variant}>

@@ -5,11 +5,13 @@ import { Button, LinkButton } from "./Button";
 export function CopyButton({
   value,
   label = "Copy link",
-  copiedLabel = "Copied"
+  copiedLabel = "Copied",
+  variant = "secondary"
 }: {
   value: string;
   label?: string;
   copiedLabel?: string;
+  variant?: "primary" | "secondary" | "ghost" | "quiet";
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -20,7 +22,7 @@ export function CopyButton({
   }
 
   return (
-    <Button type="button" variant="secondary" size="sm" onClick={() => void copy()} aria-live="polite">
+    <Button type="button" variant={variant} size="sm" onClick={() => void copy()} aria-live="polite">
       {copied ? <Check aria-hidden="true" size={14} /> : <Copy aria-hidden="true" size={14} />}
       {copied ? copiedLabel : label}
     </Button>
