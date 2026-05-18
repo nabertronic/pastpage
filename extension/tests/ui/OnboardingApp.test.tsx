@@ -22,11 +22,25 @@ describe("OnboardingApp", () => {
     expect(screen.getByText("Open the puzzle menu")).toBeInTheDocument();
     expect(screen.getByText("Open PastPage gear menu")).toBeInTheDocument();
     expect(screen.getByText("Pin to Toolbar")).toBeInTheDocument();
+    expect(document.querySelector('[data-browser-icon="firefox-puzzle"]')).not.toBeNull();
+    expect(document.querySelector('[data-browser-icon="chrome-puzzle"]')).toBeNull();
     expect(screen.queryByText("PASTPAGE")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Rate on Firefox" })).toHaveAttribute(
       "href",
       "https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/"
     );
+  });
+
+  it("renders the Chrome extension puzzle icon in Chromium builds", () => {
+    (browser.runtime.getURL as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (path: string) => `chrome-extension://test/${path}`
+    );
+
+    render(<OnboardingApp />);
+
+    expect(screen.getByText("Open puzzle by bar")).toBeInTheDocument();
+    expect(document.querySelector('[data-browser-icon="chrome-puzzle"]')).not.toBeNull();
+    expect(document.querySelector('[data-browser-icon="firefox-puzzle"]')).toBeNull();
   });
 
   it("opens the settings page in a tab from the customize action", async () => {

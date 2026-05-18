@@ -11,12 +11,12 @@ import {
   MousePointerClick,
   PanelTopOpen,
   Pin,
-  Puzzle,
   Search,
   Settings2,
   Star
 } from "lucide-react";
 import { Button, LinkButton } from "./Button";
+import { BrowserPuzzleIcon } from "./BrowserPuzzleIcon";
 import { LogoMark } from "./LogoMark";
 import { PageShell } from "./PageShell";
 import {
@@ -81,7 +81,7 @@ export function OnboardingApp() {
     <PageShell title={copy.title} description={copy.description}>
       <div className="space-y-5">
         <Hero copy={copy} />
-        <PinSection copy={copy} isFirefox={isFirefox} />
+        <PinSection copy={copy} browser={isFirefox ? "firefox" : "chrome"} isFirefox={isFirefox} />
         <CapabilitiesSection copy={copy} />
         <CustomizeSection copy={copy} />
         <Footer copy={copy} storeUrl={storeUrl} browserName={browserName} />
@@ -124,7 +124,15 @@ function Hero({ copy }: { copy: Copy }) {
   );
 }
 
-function PinSection({ copy, isFirefox }: { copy: Copy; isFirefox: boolean }) {
+function PinSection({
+  copy,
+  browser,
+  isFirefox
+}: {
+  copy: Copy;
+  browser: "chrome" | "firefox";
+  isFirefox: boolean;
+}) {
   const steps = isFirefox ? copy.pinStepsFirefox : copy.pinStepsChromium;
 
   return (
@@ -143,7 +151,7 @@ function PinSection({ copy, isFirefox }: { copy: Copy; isFirefox: boolean }) {
           <li key={step.label} className="flex flex-1 items-center gap-2 md:gap-0">
             <div className="flex flex-1 items-center gap-3 rounded-md border border-stone-200 bg-stone-50/80 px-3 py-3 dark:border-stone-800 dark:bg-stone-900/60">
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-stone-200 bg-white text-stone-700 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50">
-                <PinStepIcon name={step.icon} />
+                <PinStepIcon name={step.icon} browser={browser} />
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
@@ -168,10 +176,16 @@ function PinSection({ copy, isFirefox }: { copy: Copy; isFirefox: boolean }) {
   );
 }
 
-function PinStepIcon({ name }: { name: "puzzle" | "click" | "pin" | "settings" }) {
+function PinStepIcon({
+  name,
+  browser
+}: {
+  name: "puzzle" | "click" | "pin" | "settings";
+  browser: "chrome" | "firefox";
+}) {
   switch (name) {
     case "puzzle":
-      return <Puzzle aria-hidden="true" size={16} />;
+      return <BrowserPuzzleIcon browser={browser} size={16} />;
     case "click":
       return <MousePointerClick aria-hidden="true" size={16} />;
     case "pin":
