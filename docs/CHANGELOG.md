@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.6
+
+- Corrected the onboarding pinning copy in all supported onboarding languages so it consistently refers to the toolbar instead of the address bar.
+- Replaced the generic onboarding puzzle icon with the actual browser-specific extensions icon, so Chrome/Chromium and Firefox now each show the symbol users see in their own browser UI.
+- Unified resolver follow-up action styling so manual archive providers now always use bordered check buttons, archive-copy buttons match the yellow action-link treatment, and the not-found action order now shows `Open current page` before `Copy original URL`.
+
 ## v1.0.5
 
 - Added durable automatic WebCite resolver support, so PastPage now checks WebCite alongside the other automatic archives instead of exposing it only as a manual follow-up source.
