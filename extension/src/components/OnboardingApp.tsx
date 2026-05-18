@@ -375,8 +375,8 @@ const COPY: Record<CopyLocale, Copy> = {
     pinKicker: "",
     pinTitle: "Pin the toolbar icon",
     pinBody:
-      "Pinning keeps PastPage by the address bar, so archive lookups stay one click away on any page.",
-    pinHint: "Once the icon sits beside the address bar, archive lookup is always within reach.",
+      "Pinning keeps PastPage in the toolbar, so archive lookups stay one click away on any page.",
+    pinHint: "Once the icon sits in the toolbar, archive lookup is always within reach.",
     stepLabel: "Step",
     pinStepsChromium: [
       { label: "Open puzzle by bar", icon: "puzzle" },
@@ -426,8 +426,8 @@ const COPY: Record<CopyLocale, Copy> = {
     pinKicker: "",
     pinTitle: "Symbol an die Toolbar pinnen",
     pinBody:
-      "Angepinnt bleibt PastPage an der Adressleiste, damit die Archivsuche auf jeder Seite nur einen Klick entfernt ist.",
-    pinHint: "Sobald das Symbol neben der Adressleiste sitzt, ist die Archivsuche immer griffbereit.",
+      "Angepinnt bleibt PastPage in der Symbolleiste, damit die Archivsuche auf jeder Seite nur einen Klick entfernt ist.",
+    pinHint: "Sobald das Symbol in der Symbolleiste sitzt, ist die Archivsuche immer griffbereit.",
     stepLabel: "Schritt",
     pinStepsChromium: [
       { label: "Puzzle an Leiste", icon: "puzzle" },
@@ -479,8 +479,8 @@ const COPY: Record<CopyLocale, Copy> = {
     pinKicker: "",
     pinTitle: "Fija el icono en la barra",
     pinBody:
-      "Al fijarlo, PastPage queda junto a la barra de direcciones para que las búsquedas en archivos estén a un clic en cualquier página.",
-    pinHint: "Cuando el icono quede junto a la barra de direcciones, la búsqueda en archivos siempre estará a mano.",
+      "Al fijarlo, PastPage queda en la barra de herramientas para que las búsquedas en archivos estén a un clic en cualquier página.",
+    pinHint: "Cuando el icono quede en la barra de herramientas, la búsqueda en archivos siempre estará a mano.",
     stepLabel: "Paso",
     pinStepsChromium: [
       { label: "Abre el menú del puzzle", icon: "puzzle" },
@@ -532,8 +532,8 @@ const COPY: Record<CopyLocale, Copy> = {
     pinKicker: "",
     pinTitle: "Épingler l'icône dans la barre",
     pinBody:
-      "Une fois épinglé, PastPage reste près de la barre d'adresse pour garder la recherche d'archives à un clic sur n'importe quelle page.",
-    pinHint: "Quand l'icône est placée près de la barre d'adresse, la recherche d'archives reste toujours accessible.",
+      "Une fois épinglé, PastPage reste dans la barre d'outils pour garder la recherche d'archives à un clic sur n'importe quelle page.",
+    pinHint: "Quand l'icône est placée dans la barre d'outils, la recherche d'archives reste toujours accessible.",
     stepLabel: "Étape",
     pinStepsChromium: [
       { label: "Ouvrez le menu puzzle", icon: "puzzle" },
