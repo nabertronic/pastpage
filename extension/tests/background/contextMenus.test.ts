@@ -109,7 +109,7 @@ describe("background context menus", () => {
 
     expect(browser.tabs.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        active: false,
+        active: true,
         openerTabId: 9
       })
     );

@@ -71,7 +71,7 @@ export const SettingsSchema = z.object({
 export type Settings = z.infer<typeof SettingsSchema>;
 
 export const DEFAULT_SETTINGS: Settings = {
-  openBehavior: "new-tab-background",
+  openBehavior: "new-tab-foreground",
   providerMenuOpenBehavior: "new-tab-foreground",
   enabledProviders: ALL_PROVIDER_IDS.filter(
     (providerId) => providerId !== "arquivo-pt" && providerId !== "perma-cc"

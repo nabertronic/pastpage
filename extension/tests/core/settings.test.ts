@@ -3,7 +3,7 @@ import { DEFAULT_SETTINGS, parseSettings } from "@/core/settings";
 
 describe("settings", () => {
   it("uses privacy-preserving defaults", () => {
-    expect(DEFAULT_SETTINGS.openBehavior).toBe("new-tab-background");
+    expect(DEFAULT_SETTINGS.openBehavior).toBe("new-tab-foreground");
     expect(DEFAULT_SETTINGS.providerMenuOpenBehavior).toBe("new-tab-foreground");
     expect(DEFAULT_SETTINGS.enabledProviders.length).toBeGreaterThan(0);
     expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("arquivo-pt");

@@ -383,7 +383,7 @@ describe("ResolverApp", () => {
       expect(
         createSpy.mock.calls.some(
           ([options]) =>
-            options.active === false &&
+            options.active === true &&
             options.openerTabId === undefined &&
             options.url === "https://web.archive.org/web/20240102030405/https://example.com/missing-foreground"
         )
@@ -392,7 +392,7 @@ describe("ResolverApp", () => {
     expect(
       createSpy.mock.calls.filter(
         ([options]) =>
-          options.active === false &&
+          options.active === true &&
           options.url === "https://web.archive.org/web/20240102030405/https://example.com/missing-foreground"
       )
     ).toHaveLength(1);
@@ -712,7 +712,7 @@ describe("ResolverApp", () => {
     await waitFor(() =>
       expect(createSpy).toHaveBeenCalledWith({
         url: "https://archive.ph/20240203040506/https://example.com/missing",
-        active: false,
+        active: true,
         openerTabId: undefined
       })
     );
