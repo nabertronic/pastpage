@@ -250,10 +250,10 @@ describe("HistoryApp", () => {
       "scopedProviderId",
       "outcome",
       "snapshotCount",
-      "Wayback Machine Timestamp",
-      "Wayback Machine URL",
-      "Ghostarchive Timestamp",
-      "Ghostarchive URL",
+      "waybackMachineTimestamp",
+      "waybackMachineUrl",
+      "ghostarchiveTimestamp",
+      "ghostarchiveUrl",
       "failedProviders",
       "checkedAttempts"
     ]);
@@ -345,10 +345,10 @@ describe("HistoryApp", () => {
       "scopedProviderId",
       "outcome",
       "snapshotCount",
-      "Wayback Machine Timestamp",
-      "Wayback Machine URL",
-      "WebCite Timestamp",
-      "WebCite URL",
+      "waybackMachineTimestamp",
+      "waybackMachineUrl",
+      "webciteTimestamp",
+      "webciteUrl",
       "failedProviders",
       "checkedAttempts"
     ]);

@@ -778,8 +778,8 @@ function buildHistoryCsv(
   const providerColumns = [...orderedProviderColumns, ...missingProviderColumns];
 
   const snapshotHeaders = providerColumns.flatMap((providerId) => {
-    const providerName = PROVIDERS[providerId].displayName;
-    return [`${providerName} Timestamp`, `${providerName} URL`];
+    const providerKey = toCamelCaseHeader(PROVIDERS[providerId].displayName);
+    return [`${providerKey}Timestamp`, `${providerKey}Url`];
   });
 
   const rows = history.map((entry) => [
@@ -809,4 +809,20 @@ function buildHistoryCsv(
 
 function escapeCsvCell(value: string): string {
   return `"${value.replaceAll('"', '""')}"`;
+}
+
+function toCamelCaseHeader(value: string): string {
+  const words = value
+    .replace(/[^a-zA-Z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return words
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index === 0) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join("");
 }
