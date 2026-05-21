@@ -32,7 +32,7 @@ import { optionsPageUrl } from "../platform/urls";
 import { useAppliedTheme } from "./useAppliedTheme";
 
 type BrowserKind = "firefox" | "chromium";
-type CopyLocale = "de" | "en" | "es" | "fr";
+type CopyLocale = "de" | "en" | "es" | "fr" | "it" | "pl" | "pt" | "uk";
 
 function detectBrowserKind(): BrowserKind {
   if (typeof browser === "undefined") return "chromium";
@@ -50,6 +50,10 @@ function detectLocale(): CopyLocale {
   if (normalized.startsWith("de")) return "de";
   if (normalized.startsWith("es")) return "es";
   if (normalized.startsWith("fr")) return "fr";
+  if (normalized.startsWith("it")) return "it";
+  if (normalized.startsWith("pl")) return "pl";
+  if (normalized.startsWith("pt")) return "pt";
+  if (normalized.startsWith("uk")) return "uk";
   return "en";
 }
 
@@ -408,8 +412,8 @@ const COPY: Record<CopyLocale, Copy> = {
     moreBody: "Open this if you want extra lookup options.",
     moreOneTitle: "Pick one archive",
     moreOneBody: "Right-click a page to open Wayback Machine, Archive.today, or another archive directly.",
-    moreTwoTitle: "Check where a link leads",
-    moreTwoBody: "Right-click a link to look up the page behind it instead of the page you are on.",
+    moreTwoTitle: "Search archives for a link target",
+    moreTwoBody: "Right-click a link to search archives for the page behind it without opening the page first.",
     moreThreeTitle: "Look up any URL",
     moreThreeBody: "Use Custom URL in the popup to search for a page that is not currently open.",
     moreFourTitle: "Open all archives",
@@ -451,9 +455,9 @@ const COPY: Record<CopyLocale, Copy> = {
     moreBody: "Hier findest du die zusätzlichen Wege für die Suche.",
     moreOneTitle: "Ein Archiv direkt öffnen",
     moreOneBody: "Per Rechtsklick kannst du eine Seite direkt in Wayback Machine, Archive.today oder einem anderen Archiv öffnen.",
-    moreTwoTitle: "Link-Ziel nachschlagen",
+    moreTwoTitle: "Linkziel im Archiv suchen",
     moreTwoBody:
-      'Rechtsklicke auf einen Link und wähle "In Archiv nachschlagen", um die Zielseite statt der aktuellen Seite zu prüfen.',
+      'Rechtsklicke auf einen Link und wähle "In Archiv nachschlagen", um in Archiven nach der Zielseite zu suchen, ohne sie zuerst zu öffnen.',
     moreThreeTitle: "Beliebige URL eingeben",
     moreThreeBody: 'Im Menü kannst du unter "URL" auch Seiten suchen, die gerade nicht offen sind.',
     moreFourTitle: "Alle Archive öffnen",
@@ -495,8 +499,8 @@ const COPY: Record<CopyLocale, Copy> = {
     moreBody: "Ábrelo si quieres formas extra de buscar páginas.",
     moreOneTitle: "Abrir un archivo concreto",
     moreOneBody: "Haz clic derecho en una página para abrirla directamente en Wayback Machine, Archive.today u otro archivo.",
-    moreTwoTitle: "Consultar el destino de un enlace",
-    moreTwoBody: "Haz clic derecho en un enlace para buscar la página a la que apunta, no la que estás viendo ahora.",
+    moreTwoTitle: "Buscar en archivos el destino de un enlace",
+    moreTwoBody: "Haz clic derecho en un enlace para buscar en archivos la página a la que apunta sin abrirla primero.",
     moreThreeTitle: "Introducir cualquier URL",
     moreThreeBody: "Usa «URL personalizada» en el panel para buscar una página que no tienes abierta.",
     moreFourTitle: "Abrir todos los archivos",
@@ -538,8 +542,8 @@ const COPY: Record<CopyLocale, Copy> = {
     moreBody: "Ouvrez cette section pour afficher les autres façons de chercher.",
     moreOneTitle: "Ouvrir une archive précise",
     moreOneBody: "Faites un clic droit sur une page pour l'ouvrir directement dans Wayback Machine, Archive.today ou une autre archive.",
-    moreTwoTitle: "Vérifier la cible d'un lien",
-    moreTwoBody: "Faites un clic droit sur un lien pour chercher la page visée plutôt que la page actuelle.",
+    moreTwoTitle: "Chercher la cible d'un lien dans les archives",
+    moreTwoBody: "Faites un clic droit sur un lien pour chercher dans les archives la page visée sans l'ouvrir d'abord.",
     moreThreeTitle: "Saisir n'importe quelle URL",
     moreThreeBody: "Utilisez « URL personnalisée » dans le panneau pour chercher une page qui n'est pas ouverte.",
     moreFourTitle: "Ouvrir toutes les archives",
@@ -551,5 +555,177 @@ const COPY: Record<CopyLocale, Copy> = {
     footerNote: "Outil open source pour retrouver des sources et suivre ce qui a changé.",
     rateOn: "Évaluer sur {{browser}}",
     privacyLink: "Confidentialité"
+  },
+  it: {
+    title: `Benvenuto in ${EXTENSION_NAME}`,
+    description: "Trova una versione precedente quando una pagina non c'è più o è cambiata.",
+    pinKicker: "",
+    pinTitle: "Fissa l'icona nella barra degli strumenti",
+    pinBody: "In questo modo `Controlla la pagina corrente` è sempre a un clic.",
+    pinHint: "Una volta fissata l'icona, puoi controllare subito qualsiasi pagina aperta.",
+    stepLabel: "Passaggio",
+    pinStepsChromium: [
+      { label: "Apri il menu puzzle", icon: "puzzle" },
+      { label: "Trova PastPage", icon: "click" },
+      { label: "Fai clic sul pin", icon: "pin" }
+    ],
+    pinStepsFirefox: [
+      { label: "Apri il menu puzzle", icon: "puzzle" },
+      { label: "Apri il menu ingranaggio di PastPage", icon: "settings" },
+      { label: "Fissa alla barra degli strumenti", icon: "pin" }
+    ],
+    actionsKicker: "",
+    actionsTitle: "Inizia da queste due opzioni",
+    actionsBody: "",
+    primaryOneTitle: "Barra di recupero",
+    primaryOneBody: "Quando una pagina si rompe, PastPage mostra in alto una barra con un pulsante per cercare una versione archiviata.",
+    primaryTwoTitle: "Controlla la pagina corrente",
+    primaryTwoBody: "Fai clic sull'icona di PastPage per cercare versioni archiviate della pagina che stai guardando.",
+    moreTitle: "Altre possibilità",
+    moreBody: "Apri questa sezione se vuoi altri modi per cercare.",
+    moreOneTitle: "Apri un archivio specifico",
+    moreOneBody: "Con il clic destro puoi aprire una pagina direttamente in Wayback Machine, Archive.today o un altro archivio.",
+    moreTwoTitle: "Cerca negli archivi la destinazione di un link",
+    moreTwoBody: "Fai clic destro su un link per cercare negli archivi la pagina di destinazione senza aprirla prima.",
+    moreThreeTitle: "Inserisci qualsiasi URL",
+    moreThreeBody: "Nel menu, sotto `URL`, puoi cercare anche pagine che non sono aperte in questo momento.",
+    moreFourTitle: "Apri tutti gli archivi",
+    moreFourBody: "Apri tutti gli archivi attivati in schede separate se vuoi confrontare i risultati fianco a fianco.",
+    customizeKicker: "",
+    customizeTitle: "Regola i dettagli",
+    customizeBody: "Scegli come si aprono i risultati, come appare la barra di recupero e quali siti PastPage deve ignorare.",
+    openSettingsCta: "Apri impostazioni",
+    footerNote: "Strumento open source per la ricerca negli archivi web durante la ricerca online.",
+    rateOn: "Valuta su {{browser}}",
+    privacyLink: "Privacy"
+  },
+  pl: {
+    title: `Witamy w ${EXTENSION_NAME}`,
+    description: "Znajdź wcześniejszą wersję strony, gdy zniknęła albo została zmieniona.",
+    pinKicker: "",
+    pinTitle: "Przypnij ikonę do paska narzędzi",
+    pinBody: "Dzięki temu `Sprawdź bieżącą stronę` jest zawsze o jedno kliknięcie.",
+    pinHint: "Gdy ikona jest przypięta, możesz od razu sprawdzić każdą otwartą stronę.",
+    stepLabel: "Krok",
+    pinStepsChromium: [
+      { label: "Otwórz menu puzzli", icon: "puzzle" },
+      { label: "Znajdź PastPage", icon: "click" },
+      { label: "Kliknij pinezkę", icon: "pin" }
+    ],
+    pinStepsFirefox: [
+      { label: "Otwórz menu puzzli", icon: "puzzle" },
+      { label: "Otwórz menu koła zębatego PastPage", icon: "settings" },
+      { label: "Przypnij do paska narzędzi", icon: "pin" }
+    ],
+    actionsKicker: "",
+    actionsTitle: "Zacznij od tych dwóch opcji",
+    actionsBody: "",
+    primaryOneTitle: "Pasek ratunkowy",
+    primaryOneBody: "Gdy strona przestaje działać, PastPage pokazuje u góry pasek z przyciskiem do szukania wersji archiwalnej.",
+    primaryTwoTitle: "Sprawdź bieżącą stronę",
+    primaryTwoBody: "Kliknij ikonę PastPage, aby wyszukać wersje archiwalne strony, którą właśnie oglądasz.",
+    moreTitle: "Więcej możliwości",
+    moreBody: "Otwórz tę sekcję, jeśli chcesz skorzystać z dodatkowych sposobów wyszukiwania.",
+    moreOneTitle: "Otwórz wybrane archiwum",
+    moreOneBody: "Kliknięciem prawym przyciskiem możesz otworzyć stronę bezpośrednio w Wayback Machine, Archive.today albo innym archiwum.",
+    moreTwoTitle: "Szukaj w archiwach celu linku",
+    moreTwoBody: "Kliknij prawym przyciskiem link, aby wyszukać w archiwach stronę docelową bez otwierania jej najpierw.",
+    moreThreeTitle: "Wpisz dowolny URL",
+    moreThreeBody: "W menu, pod `URL`, możesz wyszukać także strony, które nie są teraz otwarte.",
+    moreFourTitle: "Otwórz wszystkie archiwa",
+    moreFourBody: "Otwórz wszystkie włączone archiwa w osobnych kartach, jeśli chcesz porównać wyniki obok siebie.",
+    customizeKicker: "",
+    customizeTitle: "Dopasuj szczegóły",
+    customizeBody: "Ustaw, jak mają się otwierać wyniki, jak ma wyglądać pasek ratunkowy i które strony PastPage ma ignorować.",
+    openSettingsCta: "Otwórz ustawienia",
+    footerNote: "Narzędzie open source do wyszukiwania w archiwach webowych podczas researchu online.",
+    rateOn: "Oceń w {{browser}}",
+    privacyLink: "Prywatność"
+  },
+  pt: {
+    title: `Bem-vindo ao ${EXTENSION_NAME}`,
+    description: "Encontre uma versão anterior quando uma página desapareceu ou foi alterada.",
+    pinKicker: "",
+    pinTitle: "Fixe o ícone na barra de ferramentas",
+    pinBody: "Assim, `Consultar a página atual` fica sempre a um clique.",
+    pinHint: "Depois de fixar o ícone, pode verificar imediatamente qualquer página aberta.",
+    stepLabel: "Passo",
+    pinStepsChromium: [
+      { label: "Abra o menu do puzzle", icon: "puzzle" },
+      { label: "Encontre o PastPage", icon: "click" },
+      { label: "Clique no alfinete", icon: "pin" }
+    ],
+    pinStepsFirefox: [
+      { label: "Abra o menu do puzzle", icon: "puzzle" },
+      { label: "Abra o menu de engrenagem do PastPage", icon: "settings" },
+      { label: "Fixar à barra de ferramentas", icon: "pin" }
+    ],
+    actionsKicker: "",
+    actionsTitle: "Comece por estas duas opções",
+    actionsBody: "",
+    primaryOneTitle: "Barra de recuperação",
+    primaryOneBody: "Quando uma página falha, o PastPage mostra uma barra no topo com um botão para procurar uma versão arquivada.",
+    primaryTwoTitle: "Consultar a página atual",
+    primaryTwoBody: "Clique no ícone do PastPage para procurar versões arquivadas da página que está a ver.",
+    moreTitle: "Mais possibilidades",
+    moreBody: "Abra esta secção se quiser outras formas de procurar.",
+    moreOneTitle: "Abrir um arquivo específico",
+    moreOneBody: "Com o clique direito, pode abrir uma página diretamente no Wayback Machine, Archive.today ou noutro arquivo.",
+    moreTwoTitle: "Procurar nos arquivos o destino de um link",
+    moreTwoBody: "Clique com o botão direito num link para procurar nos arquivos a página de destino sem a abrir primeiro.",
+    moreThreeTitle: "Introduzir qualquer URL",
+    moreThreeBody: "No menu, em `URL`, também pode procurar páginas que não estão abertas neste momento.",
+    moreFourTitle: "Abrir todos os arquivos",
+    moreFourBody: "Abra todos os arquivos ativados em separadores próprios se quiser comparar os resultados lado a lado.",
+    customizeKicker: "",
+    customizeTitle: "Ajustar detalhes",
+    customizeBody: "Escolha como os resultados são abertos, como a barra de recuperação aparece e que sites o PastPage deve ignorar.",
+    openSettingsCta: "Abrir definições",
+    footerNote: "Ferramenta open source para pesquisa em arquivos web durante a investigação online.",
+    rateOn: "Avaliar no {{browser}}",
+    privacyLink: "Privacidade"
+  },
+  uk: {
+    title: `Ласкаво просимо до ${EXTENSION_NAME}`,
+    description: "Знайдіть попередню версію сторінки, якщо вона зникла або була змінена.",
+    pinKicker: "",
+    pinTitle: "Закріпіть піктограму на панелі інструментів",
+    pinBody: "Так `Перевірити поточну сторінку` завжди буде на відстані одного кліку.",
+    pinHint: "Коли піктограму закріплено, ви можете одразу перевірити будь-яку відкриту сторінку.",
+    stepLabel: "Крок",
+    pinStepsChromium: [
+      { label: "Відкрийте меню пазла", icon: "puzzle" },
+      { label: "Знайдіть PastPage", icon: "click" },
+      { label: "Натисніть шпильку", icon: "pin" }
+    ],
+    pinStepsFirefox: [
+      { label: "Відкрийте меню пазла", icon: "puzzle" },
+      { label: "Відкрийте меню шестерні PastPage", icon: "settings" },
+      { label: "Закріпити на панелі інструментів", icon: "pin" }
+    ],
+    actionsKicker: "",
+    actionsTitle: "Почніть із цих двох варіантів",
+    actionsBody: "",
+    primaryOneTitle: "Панель відновлення",
+    primaryOneBody: "Коли сторінка ламається, PastPage показує вгорі панель із кнопкою для пошуку архівної версії.",
+    primaryTwoTitle: "Перевірити поточну сторінку",
+    primaryTwoBody: "Натисніть піктограму PastPage, щоб знайти архівні версії сторінки, яку ви зараз переглядаєте.",
+    moreTitle: "Більше можливостей",
+    moreBody: "Відкрийте цей розділ, якщо хочете інші способи пошуку.",
+    moreOneTitle: "Відкрити конкретний архів",
+    moreOneBody: "Клацніть правою кнопкою, щоб відкрити сторінку безпосередньо у Wayback Machine, Archive.today або в іншому архіві.",
+    moreTwoTitle: "Шукати в архівах ціль посилання",
+    moreTwoBody: "Клацніть правою кнопкою на посиланні, щоб шукати в архівах цільову сторінку, не відкриваючи її спочатку.",
+    moreThreeTitle: "Ввести будь-який URL",
+    moreThreeBody: "У меню, в розділі `URL`, можна шукати навіть сторінки, які зараз не відкриті.",
+    moreFourTitle: "Відкрити всі архіви",
+    moreFourBody: "Відкрийте всі увімкнені архіви в окремих вкладках, якщо хочете порівняти результати поруч.",
+    customizeKicker: "",
+    customizeTitle: "Налаштувати деталі",
+    customizeBody: "Виберіть, як відкривати результати, як має виглядати панель відновлення і які сайти PastPage має ігнорувати.",
+    openSettingsCta: "Відкрити налаштування",
+    footerNote: "Інструмент open source для пошуку у вебархівах під час онлайн-досліджень.",
+    rateOn: "Оцінити у {{browser}}",
+    privacyLink: "Конфіденційність"
   }
 };

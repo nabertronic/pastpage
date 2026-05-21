@@ -17,7 +17,7 @@ export function ErrorSummary({ error }: { error: DetectedError }) {
   const explanation = explainDetectedError(error, t);
 
   return (
-    <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+    <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
       <div className="flex gap-3">
         <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-md bg-yellow-400 text-stone-950">
           <Icon aria-hidden="true" size={19} />
@@ -26,10 +26,10 @@ export function ErrorSummary({ error }: { error: DetectedError }) {
           <h2 className="text-base font-semibold text-stone-950 dark:text-yellow-50">
             {explanation.title}
           </h2>
-          <p className="mt-1 text-sm leading-6 text-stone-700 dark:text-stone-300">
+          <p className="mt-1 text-sm leading-6 text-[var(--wf-muted)] dark:text-stone-300">
             {explanation.short}
           </p>
-          <div className="mt-3 rounded-md bg-stone-100 p-2 dark:bg-stone-900">
+          <div className="mt-3 rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] p-2 dark:border-stone-800 dark:bg-stone-900">
             <p className="break-all px-1 text-xs text-stone-700 dark:text-stone-300">{error.originalUrl}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <OpenLinkButton href={error.originalUrl} label={t("common.openOriginal")} />

@@ -151,6 +151,27 @@ describe("waybackProvider", () => {
     ).rejects.toThrow(/503/);
   });
 
+  it("throws a rate-limited error on 429 responses", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429 });
+    await expect(
+      waybackProvider.lookup(
+        { strategy: "exact", url: "https://example.com" },
+        fetchImpl as unknown as typeof fetch
+      )
+    ).rejects.toThrow(/rate-limited/i);
+  });
+
+  it("throws a server-error on 503 responses", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+    const { ProviderLookupError } = await import("@/core/providers/types");
+    await expect(
+      waybackProvider.lookup(
+        { strategy: "exact", url: "https://example.com" },
+        fetchImpl as unknown as typeof fetch
+      )
+    ).rejects.toSatisfy((e: unknown) => e instanceof ProviderLookupError && (e as any).reason === "server-error");
+  });
+
   it("exposes the calendar URL as the direct link", () => {
     expect(waybackProvider.buildDirectLinkUrl("https://example.com")).toBe(
       "https://web.archive.org/web/*/https://example.com"

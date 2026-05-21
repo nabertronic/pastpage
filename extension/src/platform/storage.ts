@@ -16,6 +16,7 @@ export type LocalMeta = {
   reviewPromptShownAt?: number;
   searchReviewPromptCount?: number;
   searchReviewPromptShownAt?: number;
+  lastSeenWhatsNewVersion?: string;
 };
 
 function parseTimestamp(value: unknown): number | undefined {
@@ -37,7 +38,8 @@ function parseMeta(value: unknown): LocalMeta {
     searchCount: parseCount(meta.searchCount),
     reviewPromptShownAt: parseTimestamp(meta.reviewPromptShownAt),
     searchReviewPromptCount: parseCount(meta.searchReviewPromptCount),
-    searchReviewPromptShownAt: parseTimestamp(meta.searchReviewPromptShownAt)
+    searchReviewPromptShownAt: parseTimestamp(meta.searchReviewPromptShownAt),
+    lastSeenWhatsNewVersion: typeof meta.lastSeenWhatsNewVersion === "string" ? meta.lastSeenWhatsNewVersion : undefined
   };
 }
 
@@ -51,11 +53,19 @@ export async function saveSettings(settings: Settings): Promise<Settings> {
   return settings;
 }
 
+export function getCachedSettings(): Settings | undefined {
+  return undefined;
+}
+
 export async function ensureSettings(): Promise<Settings> {
   const stored = await browser.storage.local.get(SETTINGS_KEY);
   if (stored[SETTINGS_KEY]) return parseSettings(stored[SETTINGS_KEY]);
   await saveSettings(DEFAULT_SETTINGS);
   return DEFAULT_SETTINGS;
+}
+
+export function resetStorageCachesForTests(): void {
+  return;
 }
 
 export async function getLocalMeta(): Promise<LocalMeta> {
@@ -66,6 +76,14 @@ export async function getLocalMeta(): Promise<LocalMeta> {
 async function saveLocalMeta(meta: LocalMeta): Promise<LocalMeta> {
   await browser.storage.local.set({ [META_KEY]: meta });
   return meta;
+}
+
+export async function markWhatsNewVersionSeen(version: string): Promise<void> {
+  const meta = await getLocalMeta();
+  await saveLocalMeta({
+    ...meta,
+    lastSeenWhatsNewVersion: version
+  });
 }
 
 function createHistoryId(): string {

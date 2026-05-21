@@ -8,7 +8,7 @@ import { Spinner } from "./Spinner";
 import { SourceSummary } from "./SourceSummary";
 import { ResearcherFooter } from "./AppLinks";
 import { explainHttpStatus, explainNavigationError } from "../core/errors";
-import { lookupArchives, type LookupProgressStep } from "../core/lookup";
+import { lookupArchives, type LookupLiveUpdate, type LookupProgressStep } from "../core/lookup";
 import type { LookupRequest } from "../core/lookupRequest";
 import { getProvider } from "../core/providers";
 import type { ProviderId } from "../core/providers/types";
@@ -23,6 +23,7 @@ import { I18nProvider, resolveLocaleFromLanguageMode, useI18n } from "../i18n";
 import type { TranslationKey } from "../i18n";
 import { thanksPageUrl } from "../platform/urls";
 import { openArchiveUrl } from "../platform/archiveNavigation";
+import { cn } from "../lib/cn";
 import {
   completeHistoryEntry,
   consumeFirstArchiveReviewPrompt,
@@ -33,12 +34,108 @@ import { useAppliedTheme } from "./useAppliedTheme";
 
 const autoOpenedSnapshots = new Set<string>();
 
+export function resetResolverAutoOpenStateForTests() {
+  autoOpenedSnapshots.clear();
+}
+
 function snapshotTargetUrl(snapshot: ArchiveSnapshot) {
   return snapshot.openUrl ?? snapshot.archiveUrl;
 }
 
 function snapshotCardDescription(t: ReturnType<typeof useI18n>["t"], snapshot: ArchiveSnapshot) {
   return snapshot.verification === "unverified" ? t("resolver.unverified.cardNote") : undefined;
+}
+
+type ManualSourceMeta = {
+  badgeLabel: string;
+  badgeTone: "danger" | "warning" | "info";
+  badgeTitle?: string;
+};
+
+function manualSourceMeta(
+  t: ReturnType<typeof useI18n>["t"],
+  source: ManualArchiveSource,
+  failedProviders: FailedProvider[]
+): ManualSourceMeta {
+  const failedProvider = failedProviders.find((provider) => provider.providerId === source.providerId);
+
+  if (source.providerId === "archive-today" && failedProvider?.reason === "challenge-required") {
+    return {
+      badgeLabel: t("resolver.manual.badge.captcha"),
+      badgeTone: "danger",
+      badgeTitle: t("resolver.manual.archiveTodayChallenge")
+    };
+  }
+
+  if (source.providerId === "wayback" && failedProvider?.reason === "rate-limited") {
+    return {
+      badgeLabel: t("resolver.manual.badge.tooManyRequests"),
+      badgeTone: "danger",
+      badgeTitle: t("resolver.manual.waybackRateLimited")
+    };
+  }
+
+  if (source.providerId === "yandex-cache") {
+    return {
+      badgeLabel: t("resolver.manual.badge.manual"),
+      badgeTone: "warning",
+      badgeTitle: t("resolver.manual.yandexManualHelp")
+    };
+  }
+
+  if (failedProvider?.reason === "rate-limited") {
+    return {
+      badgeLabel: t("resolver.manual.badge.tooManyRequests"),
+      badgeTone: "danger",
+      badgeTitle: t("resolver.manual.rateLimited", { provider: source.label })
+    };
+  }
+
+  if (failedProvider?.reason === "timeout") {
+    return {
+      badgeLabel: t("resolver.manual.badge.timeout"),
+      badgeTone: "danger",
+      badgeTitle: t("resolver.manual.timeout", { provider: source.label })
+    };
+  }
+
+  if (failedProvider?.reason === "server-error") {
+    return {
+      badgeLabel: t("resolver.manual.badge.serviceError"),
+      badgeTone: "danger",
+      badgeTitle: t("resolver.manual.serviceError", { provider: source.label })
+    };
+  }
+
+  if (failedProvider) {
+    return {
+      badgeLabel: t("resolver.manual.badge.serviceError"),
+      badgeTone: "danger",
+      badgeTitle: t("resolver.manual.serviceError", { provider: source.label })
+    };
+  }
+
+  return {
+    badgeLabel: t("resolver.manual.badge.notFound"),
+    badgeTone: "info",
+    badgeTitle: t("resolver.manual.notFound", { provider: source.label })
+  };
+}
+
+function renderManualSourceCards(
+  t: ReturnType<typeof useI18n>["t"],
+  sources: ManualArchiveSource[],
+  failedProviders: FailedProvider[]
+) {
+  return sources.map((source) => (
+    <ManualArchiveSourceCard
+      key={`${source.providerId}:${source.url}`}
+      source={source}
+      meta={manualSourceMeta(t, source, failedProviders)}
+      actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
+      variant="action"
+    />
+  ));
 }
 
 function mergeUniqueSnapshots(
@@ -74,7 +171,12 @@ type PendingLookupStep = {
 };
 
 type ResolverStatus =
-  | { kind: "loading"; pendingSteps: PendingLookupStep[] }
+  | {
+      kind: "loading";
+      pendingSteps: PendingLookupStep[];
+      failedProviders: FailedProvider[];
+      manualSources: ManualArchiveSource[];
+    }
   | {
       kind: "found";
       snapshot: ArchiveSnapshot;
@@ -90,6 +192,8 @@ type ResolverStatus =
       additionalSnapshots: ArchiveSnapshot[];
       failedProviders: FailedProvider[];
       manualSources: ManualArchiveSource[];
+      isCheckingMore: boolean;
+      pendingSteps: PendingLookupStep[];
     }
   | {
       kind: "not-found";
@@ -144,7 +248,8 @@ function requestFromParams(params: URLSearchParams): LookupRequest {
 }
 
 export function ResolverApp() {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const initialSettings = useRef<Settings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<Settings>(initialSettings.current);
   useAppliedTheme(settings.themeMode);
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const request = useMemo(() => requestFromParams(params), [params]);
@@ -152,12 +257,18 @@ export function ResolverApp() {
   const historyId = useMemo(() => params.get("historyId") ?? undefined, [params]);
   const openedArchiveUrl = useRef<string | null>(null);
   const bufferedSnapshots = useRef<ArchiveSnapshot[]>([]);
+  const pendingAutoOpenSnapshot = useRef<ArchiveSnapshot | null>(null);
   const [status, setStatus] = useState<ResolverStatus>({
     kind: "loading",
-    pendingSteps: []
+    pendingSteps: [],
+    failedProviders: [],
+    manualSources: []
   });
   const [pendingStepIndex, setPendingStepIndex] = useState(0);
-  const pendingSteps = status.kind === "loading" || status.kind === "found" ? status.pendingSteps : [];
+  const pendingSteps =
+    status.kind === "loading" || status.kind === "found" || status.kind === "unverified"
+      ? status.pendingSteps
+      : [];
   const pendingStepKey = pendingSteps
     .map((step) => `${step.providerId}:${step.strategy}:${step.url}`)
     .join("|");
@@ -170,7 +281,7 @@ export function ResolverApp() {
 
     const intervalId = window.setInterval(() => {
       setPendingStepIndex((current) => (current + 1) % pendingSteps.length);
-    }, 1000);
+    }, 500);
 
     return () => {
       window.clearInterval(intervalId);
@@ -187,16 +298,53 @@ export function ResolverApp() {
   useEffect(() => {
     let active = true;
 
-    async function lookup() {
-      const currentSettings = await getSettings();
-      if (!active) return;
-      setSettings(currentSettings);
+    const lookupAffectsResult = (a: Settings, b: Settings) =>
+      a.urlMatchingMode === b.urlMatchingMode &&
+      a.providerTimeoutSeconds === b.providerTimeoutSeconds &&
+      a.waybackHost === b.waybackHost &&
+      a.archiveTodayHost === b.archiveTodayHost &&
+      a.enabledProviders.length === b.enabledProviders.length &&
+      a.enabledProviders.every((providerId, index) => providerId === b.enabledProviders[index]);
 
-      void incrementSearchCountAndCheckReviewPrompt().then((shouldPrompt) => {
+    const openPreferredSnapshot = (snapshot: ArchiveSnapshot, currentSettings: Settings, allowAutoOpen: boolean) => {
+      const targetUrl = snapshotTargetUrl(snapshot);
+      const autoOpenKey = `${request.originalUrl}::${targetUrl}`;
+      if (openedArchiveUrl.current !== null || autoOpenedSnapshots.has(autoOpenKey)) return;
+
+      if (!allowAutoOpen) {
+        pendingAutoOpenSnapshot.current = snapshot;
+        return;
+      }
+
+      openedArchiveUrl.current = targetUrl;
+      autoOpenedSnapshots.add(autoOpenKey);
+      pendingAutoOpenSnapshot.current = null;
+
+      void consumeFirstArchiveReviewPrompt().then((shouldPrompt) => {
         if (shouldPrompt) {
           void browser.tabs.create({ url: thanksPageUrl(), active: false });
         }
       });
+
+      if (currentSettings.resolverSuccessBehavior === "manual-open-only") return;
+
+      if (currentSettings.resolverSuccessBehavior === "replace-resolver") {
+        window.location.assign(targetUrl);
+        return;
+      }
+
+      void openArchiveUrl(targetUrl, currentSettings.openBehavior);
+    };
+
+    let latestRunId = 0;
+    let authoritativeSettingsReady = false;
+    let resolvedSettings = initialSettings.current;
+
+    async function runLookup(currentSettings: Settings, allowAutoOpen: boolean) {
+      const runId = ++latestRunId;
+
+      if (!active || runId !== latestRunId) return;
+      setSettings(currentSettings);
 
       const providerScope = scopedProviderId
         ? currentSettings.enabledProviders.includes(scopedProviderId)
@@ -209,21 +357,28 @@ export function ResolverApp() {
         currentSettings.urlMatchingMode,
         fetch,
         (step: LookupProgressStep, activeSteps) => {
-          if (!active) return;
+          if (!active || runId !== latestRunId) return;
           setStatus((current) =>
-            current.kind === "found"
+            current.kind === "found" || current.kind === "unverified"
               ? {
                   ...current,
                   pendingSteps: activeSteps
                 }
+              : current.kind === "loading"
+                ? {
+                    ...current,
+                    pendingSteps: activeSteps
+                  }
               : {
                   kind: "loading",
-                  pendingSteps: activeSteps
-                }
+                  pendingSteps: activeSteps,
+                  failedProviders: current.kind === "not-found" ? current.failedProviders : [],
+                  manualSources: current.kind === "not-found" ? current.manualSources : []
+              }
           );
         },
         (snapshot: ArchiveSnapshot) => {
-          if (!active) return;
+          if (!active || runId !== latestRunId) return;
 
           setStatus((current) => {
             if (current.kind !== "found") {
@@ -242,19 +397,19 @@ export function ResolverApp() {
           });
         },
         (snapshot: ArchiveSnapshot) => {
-          if (!active) return;
+          if (!active || runId !== latestRunId) return;
 
           setStatus((current) => {
             const targetUrl = snapshotTargetUrl(snapshot);
             const bufferedAdditionalSnapshots = mergeUniqueSnapshots(
-              current.kind === "found" ? current.additionalSnapshots : [],
+              current.kind === "found" || current.kind === "unverified" ? current.additionalSnapshots : [],
               bufferedSnapshots.current,
               targetUrl
             );
             bufferedSnapshots.current = [];
 
             const additionalSnapshots =
-              current.kind === "found"
+              current.kind === "found" || current.kind === "unverified"
                 ? mergeUniqueSnapshots(bufferedAdditionalSnapshots, current.additionalSnapshots, targetUrl)
                 : bufferedAdditionalSnapshots;
 
@@ -262,43 +417,93 @@ export function ResolverApp() {
               kind: "found",
               snapshot,
               additionalSnapshots,
-              failedProviders: current.kind === "found" ? current.failedProviders : [],
-              manualSources: current.kind === "found" ? current.manualSources : [],
+              failedProviders:
+                current.kind === "found" || current.kind === "unverified" || current.kind === "loading"
+                  ? current.failedProviders
+                  : [],
+              manualSources:
+                current.kind === "found" || current.kind === "unverified" || current.kind === "loading"
+                  ? current.manualSources
+                  : [],
               isCheckingMore: true,
-              pendingSteps: current.kind === "found" ? current.pendingSteps : []
+              pendingSteps:
+                current.kind === "found" || current.kind === "unverified" || current.kind === "loading"
+                  ? current.pendingSteps
+                  : []
             };
           });
 
-          const targetUrl = snapshotTargetUrl(snapshot);
-          const autoOpenKey = `${request.originalUrl}::${targetUrl}`;
-          if (openedArchiveUrl.current !== null || autoOpenedSnapshots.has(autoOpenKey)) return;
-
-          openedArchiveUrl.current = targetUrl;
-          autoOpenedSnapshots.add(autoOpenKey);
-
-          void consumeFirstArchiveReviewPrompt().then((shouldPrompt) => {
-            if (shouldPrompt) {
-              void browser.tabs.create({ url: thanksPageUrl(), active: false });
-            }
-          });
-
-          if (currentSettings.resolverSuccessBehavior === "manual-open-only") return;
-
-          window.setTimeout(() => {
-            if (currentSettings.resolverSuccessBehavior === "replace-resolver") {
-              window.location.assign(targetUrl);
-              return;
-            }
-
-            void openArchiveUrl(targetUrl, currentSettings.openBehavior);
-          }, 900);
+          openPreferredSnapshot(
+            snapshot,
+            authoritativeSettingsReady ? resolvedSettings : currentSettings,
+            allowAutoOpen || authoritativeSettingsReady
+          );
         },
         providerScope,
         currentSettings,
-        currentSettings.providerTimeoutSeconds * 1000
+        currentSettings.providerTimeoutSeconds * 1000,
+        (snapshot: ArchiveSnapshot) => {
+          if (!active || runId !== latestRunId) return;
+
+          setStatus((current) => {
+            const targetUrl = snapshotTargetUrl(snapshot);
+
+            if (current.kind === "loading") {
+              const additionalSnapshots = mergeUniqueSnapshots([], bufferedSnapshots.current, targetUrl);
+              return {
+                kind: "unverified",
+                snapshot,
+                additionalSnapshots,
+                failedProviders: current.failedProviders,
+                manualSources: current.manualSources,
+                isCheckingMore: true,
+                pendingSteps: current.pendingSteps
+              };
+            }
+
+            if (current.kind === "unverified") {
+              if (snapshotTargetUrl(current.snapshot) === targetUrl) {
+                return current;
+              }
+
+              return {
+                ...current,
+                additionalSnapshots: mergeUniqueSnapshots(current.additionalSnapshots, [snapshot])
+              };
+            }
+
+            if (current.kind === "found") {
+              if (snapshotTargetUrl(current.snapshot) === targetUrl) {
+                return current;
+              }
+
+              return {
+                ...current,
+                additionalSnapshots: mergeUniqueSnapshots(current.additionalSnapshots, [snapshot])
+              };
+            }
+
+            return current;
+          });
+        },
+        ({ failedProviders, manualSources }: LookupLiveUpdate) => {
+          if (!active || runId !== latestRunId) return;
+
+          setStatus((current) => {
+            if (current.kind === "found" || current.kind === "unverified" || current.kind === "loading") {
+              return {
+                ...current,
+                failedProviders,
+                manualSources
+              };
+            }
+
+            return current;
+          });
+        }
       );
 
-      if (!active) return;
+      if (!active || runId !== latestRunId) return;
 
       if (result.status === "found") {
         const resultSnapshots = [result.snapshot, ...result.additionalSnapshots];
@@ -333,7 +538,9 @@ export function ResolverApp() {
           snapshot: result.snapshot,
           additionalSnapshots: result.additionalSnapshots,
           failedProviders: result.failedProviders,
-          manualSources: result.manualSources
+          manualSources: result.manualSources,
+          isCheckingMore: false,
+          pendingSteps: []
         });
         return;
       }
@@ -361,12 +568,33 @@ export function ResolverApp() {
       }
     }
 
-    void lookup();
+    const optimisticSettings = initialSettings.current;
+    void incrementSearchCountAndCheckReviewPrompt().then((shouldPrompt) => {
+      if (shouldPrompt) {
+        void browser.tabs.create({ url: thanksPageUrl(), active: false });
+      }
+    });
+    void runLookup(optimisticSettings, false);
+    void getSettings().then((loadedSettings) => {
+      if (!active) return;
+      authoritativeSettingsReady = true;
+      resolvedSettings = loadedSettings;
+      setSettings(loadedSettings);
+
+      if (lookupAffectsResult(optimisticSettings, loadedSettings)) {
+        if (pendingAutoOpenSnapshot.current) {
+          openPreferredSnapshot(pendingAutoOpenSnapshot.current, loadedSettings, true);
+        }
+        return;
+      }
+
+      void runLookup(loadedSettings, true);
+    });
 
     return () => {
       active = false;
     };
-  }, [request.originalUrl]);
+  }, [request.originalUrl, historyId, scopedProviderId]);
 
   const error =
     request.trigger === "broken-page"
@@ -417,9 +645,15 @@ function ResolverContent({
 }) {
   const { locale, t } = useI18n();
   const strategyList = new Intl.ListFormat(locale, { style: "long", type: "conjunction" });
-  const showStrategyDetails = urlMatchingMode !== "exact-only";
   const scopedProviderName = scopedProviderId ? getProvider(scopedProviderId).displayName : null;
-  const pendingSteps = status.kind === "loading" || status.kind === "found" ? status.pendingSteps : [];
+  const pendingSteps =
+    status.kind === "loading" || status.kind === "found" || status.kind === "unverified"
+      ? status.pendingSteps
+      : [];
+  const checkedStrategies = status.kind === "not-found" ? status.checked : [];
+  const showStrategyDetails =
+    urlMatchingMode !== "exact-only" &&
+    (pendingSteps.some((step) => step.strategy === "cleaned") || checkedStrategies.includes("cleaned"));
   const activeStep = pendingSteps.length > 0 ? pendingSteps[pendingStepIndex % pendingSteps.length] : null;
   const activeStepLabel = activeStep
     ? showStrategyDetails
@@ -444,17 +678,29 @@ function ResolverContent({
       }
     >
       <div className="space-y-4">
-        {error ? (
-          <ErrorSummary error={error} />
-        ) : (
-          <SourceSummary url={request.originalUrl} scopedProviderId={scopedProviderId} />
-        )}
+          {error ? (
+            <ErrorSummary error={error} />
+          ) : (
+            <SourceSummary url={request.originalUrl} scopedProviderId={scopedProviderId} />
+          )}
 
-        <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+          <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
           {status.kind === "loading" ? (
-            <div className="flex items-center gap-3 text-sm">
-              <Search aria-hidden="true" className="text-yellow-700 dark:text-yellow-300" size={18} />
-              <Spinner label={activeStepLabel} />
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-sm">
+                <Search aria-hidden="true" className="text-yellow-700 dark:text-yellow-300" size={18} />
+                <Spinner label={activeStepLabel} />
+              </div>
+              {status.manualSources.length > 0 ? (
+                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
+                  <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
+                    {t("resolver.found.additionalSources")}
+                  </h3>
+                  <div className="space-y-2">
+                    {renderManualSourceCards(t, status.manualSources, status.failedProviders)}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -478,11 +724,7 @@ function ResolverContent({
                   {status.isCheckingMore ? (
                     <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
                       <Spinner
-                        label={
-                          activeStep
-                            ? `${t("resolver.found.checkingMore")} ${activeStepLabel}`
-                            : t("resolver.found.checkingMore")
-                        }
+                        label={activeStep ? activeStepLabel : t("resolver.found.checkingMore")}
                       />
                     </div>
                   ) : null}
@@ -490,7 +732,7 @@ function ResolverContent({
                 </div>
               </div>
               {status.additionalSnapshots.length > 0 ? (
-                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
                     {t("resolver.found.additionalMatches")}
                   </h3>
@@ -506,19 +748,12 @@ function ResolverContent({
                 </div>
               ) : null}
               {status.manualSources.length > 0 ? (
-                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
                     {t("resolver.found.additionalSources")}
                   </h3>
                   <div className="space-y-2">
-                    {status.manualSources.map((source) => (
-                      <ManualArchiveSourceCard
-                        key={`${source.providerId}:${source.url}`}
-                        source={source}
-                        actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
-                        variant="secondary"
-                      />
-                    ))}
+                    {renderManualSourceCards(t, status.manualSources, status.failedProviders)}
                   </div>
                 </div>
               ) : null}
@@ -543,6 +778,13 @@ function ResolverContent({
                       {t("resolver.found.cleanedHint")}
                     </p>
                   ) : null}
+                  {status.isCheckingMore ? (
+                    <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+                      <Spinner
+                        label={activeStep ? activeStepLabel : t("resolver.found.checkingMore")}
+                      />
+                    </div>
+                  ) : null}
                   <ArchiveSnapshotCard
                     snapshot={status.snapshot}
                     description={t("resolver.unverified.cardNote")}
@@ -550,7 +792,7 @@ function ResolverContent({
                 </div>
               </div>
               {status.additionalSnapshots.length > 0 ? (
-                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
                     {t("resolver.unverified.additionalMatches")}
                   </h3>
@@ -566,19 +808,12 @@ function ResolverContent({
                 </div>
               ) : null}
               {status.manualSources.length > 0 ? (
-                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <p className="text-sm text-stone-600 dark:text-stone-300">
                     {t("resolver.unverified.alsoCheckSources")}
                   </p>
                   <div className="space-y-2">
-                    {status.manualSources.map((source) => (
-                      <ManualArchiveSourceCard
-                        key={`${source.providerId}:${source.url}`}
-                        source={source}
-                        actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
-                        variant="secondary"
-                      />
-                    ))}
+                    {renderManualSourceCards(t, status.manualSources, status.failedProviders)}
                   </div>
                 </div>
               ) : null}
@@ -597,7 +832,7 @@ function ResolverContent({
                         ? t("resolver.notFound.descriptionScoped", {
                             provider: scopedProviderName,
                             strategies: strategyList.format(
-                              status.checked.map((strategy) =>
+                              checkedStrategies.map((strategy) =>
                                 t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
                               )
                             )
@@ -608,7 +843,7 @@ function ResolverContent({
                       : showStrategyDetails
                         ? t("resolver.notFound.description", {
                             strategies: strategyList.format(
-                              status.checked.map((strategy) =>
+                              checkedStrategies.map((strategy) =>
                                 t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
                               )
                             )
@@ -617,31 +852,13 @@ function ResolverContent({
                   </p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <LinkButton href={request.originalUrl} variant="secondary" size="sm">
-                  <ExternalLink aria-hidden="true" size={14} />
-                  {t("common.openCurrentPage")}
-                </LinkButton>
-                <CopyButton
-                  value={request.originalUrl}
-                  label={t("resolver.notFound.copyOriginalUrl")}
-                  copiedLabel={t("resolver.notFound.originalUrlCopied")}
-                />
-              </div>
               {status.manualSources.length > 0 ? (
-                <div className="space-y-2 border-t border-stone-200 pt-3 dark:border-stone-800">
+                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <p className="text-sm text-stone-600 dark:text-stone-300">
                     {t("resolver.notFound.alsoCheckSources")}
                   </p>
                   <div className="space-y-2">
-                    {status.manualSources.map((source) => (
-                      <ManualArchiveSourceCard
-                        key={`${source.providerId}:${source.url}`}
-                        source={source}
-                        actionLabel={t("resolver.manual.checkOnProvider", { provider: source.label })}
-                        variant="secondary"
-                      />
-                    ))}
+                    {renderManualSourceCards(t, status.manualSources, status.failedProviders)}
                   </div>
                 </div>
               ) : null}
@@ -669,10 +886,10 @@ function ResolverContent({
               </div>
             </div>
           ) : null}
-        </section>
+          </section>
 
-        <ResearcherFooter />
-      </div>
+          <ResearcherFooter />
+        </div>
     </PageShell>
   );
 }
@@ -687,7 +904,7 @@ function ArchiveSnapshotCard({
   const { t } = useI18n();
 
   return (
-    <div className="mt-3 rounded-md bg-stone-100 p-2 dark:bg-stone-900">
+    <div className="mt-3 rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-raised)] p-3 dark:border-stone-800 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
         <p className="text-xs font-semibold text-stone-900 dark:text-yellow-50">
           {getProvider(snapshot.providerId).displayName}
@@ -703,7 +920,7 @@ function ArchiveSnapshotCard({
         <p className="mt-2 px-1 text-xs text-stone-600 dark:text-stone-400">{description}</p>
       ) : null}
       <div className="mt-2 flex flex-wrap gap-2">
-        <LinkButton href={snapshotTargetUrl(snapshot)} target="_blank" rel="noreferrer" size="sm">
+        <LinkButton href={snapshotTargetUrl(snapshot)} target="_blank" rel="noreferrer" size="sm" variant="action">
           <ExternalLink aria-hidden="true" size={14} />
           {t("resolver.found.openArchivedVersion")}
         </LinkButton>
@@ -711,7 +928,6 @@ function ArchiveSnapshotCard({
           value={snapshotTargetUrl(snapshot)}
           label={t("resolver.found.copyArchiveLink")}
           copiedLabel={t("resolver.found.archiveLinkCopied")}
-          variant="ghost"
         />
       </div>
     </div>
@@ -720,28 +936,59 @@ function ArchiveSnapshotCard({
 
 function ManualArchiveSourceCard({
   source,
+  meta,
   actionLabel,
   variant
 }: {
   source: ManualArchiveSource;
+  meta: ManualSourceMeta;
   actionLabel: string;
-  variant: "secondary";
+  variant: "action";
 }) {
   const { t } = useI18n();
+  const [showTooltip, setShowTooltip] = useState(false);
+  const isYandexCache = source.providerId === "yandex-cache";
 
   return (
-    <div className="mt-3 rounded-md bg-stone-100 p-2 dark:bg-stone-900">
+    <div className="mt-3 rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-raised)] p-3 dark:border-stone-800 dark:bg-stone-900">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1">
         <p className="text-xs font-semibold text-stone-900 dark:text-yellow-50">{source.label}</p>
+        <button
+          type="button"
+          aria-label={meta.badgeLabel}
+          aria-describedby={showTooltip && meta.badgeTitle ? `${source.providerId}-badge-tooltip` : undefined}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onFocus={() => setShowTooltip(true)}
+          onBlur={() => setShowTooltip(false)}
+          className={cn(
+            "relative inline-flex cursor-default items-center rounded-full border px-2 py-0.5 text-[11px] font-medium tracking-[0.04em] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400",
+            meta.badgeTone === "danger"
+              ? "border-red-500/40 bg-red-500/15 text-red-800 dark:border-red-400/30 dark:bg-red-400/10 dark:text-red-200"
+                : meta.badgeTone === "warning"
+                  ? "border-yellow-500/40 bg-yellow-300/15 text-yellow-800 dark:border-yellow-300/30 dark:bg-yellow-300/10 dark:text-yellow-200"
+                  : "border-[var(--wf-border-strong)] bg-[var(--wf-surface-raised)] text-stone-700 dark:border-stone-500/30 dark:bg-stone-600/20 dark:text-stone-400"
+          )}
+        >
+          {meta.badgeLabel}
+          {meta.badgeTitle && showTooltip ? (
+            <span
+              id={`${source.providerId}-badge-tooltip`}
+              role="tooltip"
+              className="pointer-events-none absolute left-1/2 bottom-[calc(100%+6px)] z-50 w-max max-w-72 -translate-x-1/2 rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 py-2 text-xs leading-5 font-normal tracking-normal text-stone-700 shadow-xl dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+            >
+              {meta.badgeTitle}
+            </span>
+          ) : null}
+        </button>
       </div>
       <p className="mt-2 break-all px-1 text-xs text-stone-700 dark:text-stone-300">{source.url}</p>
       <div className="mt-2 flex flex-wrap gap-2">
         <ManualArchiveSourceButton source={source} actionLabel={actionLabel} variant={variant} />
         <CopyButton
           value={source.url}
-          label={t("resolver.found.copyArchiveLink")}
-          copiedLabel={t("resolver.found.archiveLinkCopied")}
-          variant="ghost"
+          label={t(isYandexCache ? "resolver.found.copyCacheLink" : "resolver.found.copyArchiveLink")}
+          copiedLabel={t(isYandexCache ? "resolver.found.cacheLinkCopied" : "resolver.found.archiveLinkCopied")}
         />
       </div>
     </div>
@@ -755,7 +1002,7 @@ function ManualArchiveSourceButton({
 }: {
   source: ManualArchiveSource;
   actionLabel: string;
-  variant: "secondary";
+  variant: "action";
 }) {
   return (
     <LinkButton href={source.url} target="_blank" rel="noreferrer" size="sm" variant={variant}>

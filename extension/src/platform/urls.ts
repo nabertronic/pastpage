@@ -26,6 +26,10 @@ export function thanksPageUrl(): string {
   return browser.runtime.getURL("/thanks.html" as Parameters<typeof browser.runtime.getURL>[0]);
 }
 
+export function whatsNewPageUrl(): string {
+  return browser.runtime.getURL("/whats-new.html" as Parameters<typeof browser.runtime.getURL>[0]);
+}
+
 export function resolverUrl(
   request: LookupRequest,
   sourceTabId?: number,

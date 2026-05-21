@@ -37,10 +37,19 @@ describe("OptionsApp", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Wayback Machine")).toBeInTheDocument();
     expect(screen.getByText("After a snapshot is found")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /only shows found snapshots in the lookup page, opens them automatically in a new tab/i
+      )
+    ).toBeInTheDocument();
     expect(screen.getByText("URL matching")).toBeInTheDocument();
     expect(screen.getByText("Provider timeout")).toBeInTheDocument();
     expect(screen.getByText("Wayback Machine host")).toBeInTheDocument();
     expect(screen.getByText("Archive.today host")).toBeInTheDocument();
+    expect(screen.getByText("Automatic broken-page help")).toBeInTheDocument();
+    expect(screen.queryByText("Status: Active")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause for 1 hour" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Pause for 24 hours" })).toBeInTheDocument();
     expect(screen.getByText("Browser shortcuts")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Manage browser shortcuts" })).toBeInTheDocument();
     expect(screen.getByText("Appearance")).toBeInTheDocument();
@@ -53,6 +62,7 @@ describe("OptionsApp", () => {
     expect(screen.getByText("Version and updates")).toBeInTheDocument();
     expect(screen.getByText("Installed version: 1.0.3")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Check for updates" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "What's new" })).toBeInTheDocument();
     expect(screen.getByText("Sites to ignore")).toBeInTheDocument();
     expect(screen.getByText("Deutsch")).toBeInTheDocument();
     expect(screen.getByText("Español")).toBeInTheDocument();
@@ -113,6 +123,16 @@ describe("OptionsApp", () => {
     expect(within(firefoxReviewSection as HTMLElement).queryByRole("link", { name: "Chrome Web Store" })).not.toBeInTheDocument();
   });
 
+  it("links to the what's new page from the version and updates section", async () => {
+    render(<OptionsApp />);
+
+    const versionSection = (await screen.findByRole("heading", { name: "Version and updates" })).closest("section");
+    expect(versionSection).not.toBeNull();
+
+    const whatsNewLink = within(versionSection as HTMLElement).getByRole("link", { name: "What's new" });
+    expect(whatsNewLink).toHaveAttribute("href", "moz-extension://test/whats-new.html");
+  });
+
   it("resets settings after confirmation", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     storageGetMock.mockResolvedValue({
@@ -151,6 +171,50 @@ describe("OptionsApp", () => {
         }
       })
     );
+  });
+
+  it("saves the broken-page assist toggle", async () => {
+    render(<OptionsApp />);
+    await screen.findByText("Recovery behavior");
+    vi.mocked(browser.storage.local.set).mockClear();
+
+    await userEvent.click(screen.getByRole("button", { name: /enable automatic broken-page help/i }));
+
+    expect(screen.queryByRole("button", { name: "Pause for 1 hour" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pause for 24 hours" })).not.toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.settings": {
+          ...DEFAULT_SETTINGS,
+          brokenPageAssistEnabled: false
+        }
+      })
+    );
+  });
+
+  it("saves a one-hour broken-page snooze and shows resume", async () => {
+    const now = new Date("2026-05-21T10:00:00Z").getTime();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(now);
+
+    render(<OptionsApp />);
+    await screen.findByText("Recovery behavior");
+    vi.mocked(browser.storage.local.set).mockClear();
+
+    await userEvent.click(screen.getByRole("button", { name: "Pause for 1 hour" }));
+
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.settings": {
+          ...DEFAULT_SETTINGS,
+          brokenPageAssistEnabled: true,
+          brokenPageAssistSnoozedUntil: now + 60 * 60 * 1000
+        }
+      })
+    );
+
+    expect(screen.getByRole("button", { name: "Resume now" })).toBeInTheDocument();
+    nowSpy.mockRestore();
   });
 
   it("saves the popup archive icons toggle", async () => {
@@ -269,35 +333,46 @@ describe("OptionsApp", () => {
     );
   });
 
-  it("saves the manual-only resolver behavior", async () => {
+  it("saves the keep-resolver behavior", async () => {
     render(<OptionsApp />);
     await screen.findByText("Recovery behavior");
     vi.mocked(browser.storage.local.set).mockClear();
 
-    await userEvent.selectOptions(screen.getByLabelText("After a snapshot is found"), "manual-open-only");
+    await userEvent.selectOptions(screen.getByLabelText("After a snapshot is found"), "keep-resolver");
 
     await waitFor(() =>
       expect(browser.storage.local.set).toHaveBeenCalledWith({
         "pastPage.settings": {
           ...DEFAULT_SETTINGS,
-          resolverSuccessBehavior: "manual-open-only"
+          resolverSuccessBehavior: "keep-resolver"
         }
       })
     );
   });
 
-  it("saves the manual-only resolver behavior", async () => {
+  it("uses manual-open-only as the default resolver behavior", async () => {
+    render(<OptionsApp />);
+    await screen.findByText("Recovery behavior");
+
+    expect(screen.getByLabelText("After a snapshot is found")).toHaveValue("manual-open-only");
+    expect(
+      (screen.getByRole("option", { name: "Only show results in the lookup page" }) as HTMLOptionElement)
+        .selected
+    ).toBe(true);
+  });
+
+  it("saves the replace-resolver behavior", async () => {
     render(<OptionsApp />);
     await screen.findByText("Recovery behavior");
     vi.mocked(browser.storage.local.set).mockClear();
 
-    await userEvent.selectOptions(screen.getByLabelText("After a snapshot is found"), "manual-open-only");
+    await userEvent.selectOptions(screen.getByLabelText("After a snapshot is found"), "replace-resolver");
 
     await waitFor(() =>
       expect(browser.storage.local.set).toHaveBeenCalledWith({
         "pastPage.settings": {
           ...DEFAULT_SETTINGS,
-          resolverSuccessBehavior: "manual-open-only"
+          resolverSuccessBehavior: "replace-resolver"
         }
       })
     );

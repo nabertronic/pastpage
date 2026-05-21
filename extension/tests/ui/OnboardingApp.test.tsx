@@ -83,7 +83,7 @@ describe("OnboardingApp", () => {
     await userEvent.click(screen.getByRole("button", { name: /More ways to look up pages/i }));
 
     expect(screen.getByText("Pick one archive")).toBeInTheDocument();
-    expect(screen.getByText("Check where a link leads")).toBeInTheDocument();
+    expect(screen.getByText("Search archives for a link target")).toBeInTheDocument();
   });
 
   it("switches to German copy when the browser UI language is German", () => {
@@ -97,5 +97,17 @@ describe("OnboardingApp", () => {
     expect(screen.getByText("Aktuelle Seite nachschlagen")).toBeInTheDocument();
     expect(screen.queryByText("Ein Schritt Setup")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Settings öffnen" })).toBeInTheDocument();
+  });
+
+  it("switches to Italian copy when the browser UI language is Italian", () => {
+    (browser.i18n.getUILanguage as unknown as ReturnType<typeof vi.fn>).mockReturnValue("it-IT");
+
+    render(<OnboardingApp />);
+
+    expect(screen.getByText("Benvenuto in PastPage")).toBeInTheDocument();
+    expect(screen.getByText("Trova una versione precedente quando una pagina non c'è più o è cambiata.")).toBeInTheDocument();
+    expect(screen.getByText("Barra di recupero")).toBeInTheDocument();
+    expect(screen.getByText("Controlla la pagina corrente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apri impostazioni" })).toBeInTheDocument();
   });
 });

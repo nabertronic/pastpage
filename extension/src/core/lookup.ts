@@ -6,7 +6,7 @@ import {
   getAutomaticProvider,
   getProvider
 } from "./providers";
-import type { ProviderId } from "./providers/types";
+import { ProviderLookupError, type ProviderFailureReason, type ProviderId } from "./providers/types";
 import type { UrlMatchingMode } from "./settings";
 import type { ArchiveSnapshot, FailedProvider, ManualArchiveSource } from "./tabState";
 import { buildSearchCandidates, getUrlEligibility, type SearchCandidate } from "./urlPolicy";
@@ -29,6 +29,12 @@ export type LookupProgressCallback = (
   step: LookupProgressStep,
   visibleSteps: LookupProgressStep[]
 ) => void;
+
+export type LookupLiveUpdate = {
+  checked: ProviderAttempt[];
+  failedProviders: FailedProvider[];
+  manualSources: ManualArchiveSource[];
+};
 
 export type MultiArchiveLookupResult =
   | {
@@ -57,8 +63,6 @@ export type MultiArchiveLookupResult =
     }
   | { status: "not-eligible"; reasonKey: TranslationKey };
 
-type WaybackLookupState = "pending" | "hit" | "miss" | "error";
-
 export function lookupArchives(
   rawUrl: string,
   matchingMode: UrlMatchingMode,
@@ -68,7 +72,9 @@ export function lookupArchives(
   onPreferredSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
   providerScope?: ProviderId[],
   hostSettings?: ProviderHostSettings,
-  providerTimeoutMs?: number
+  providerTimeoutMs?: number,
+  onUnverifiedSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
+  onLiveUpdate?: (update: LookupLiveUpdate) => void
 ): Promise<MultiArchiveLookupResult>;
 export async function lookupArchives(
   rawUrl: string,
@@ -79,7 +85,9 @@ export async function lookupArchives(
   onPreferredSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
   providerScope?: ProviderId[],
   hostSettings?: ProviderHostSettings,
-  providerTimeoutMs?: number
+  providerTimeoutMs?: number,
+  onUnverifiedSnapshotFound?: (snapshot: ArchiveSnapshot) => void,
+  onLiveUpdate?: ((update: LookupLiveUpdate) => void) | undefined
 ): Promise<MultiArchiveLookupResult> {
   const eligibility = getUrlEligibility(rawUrl);
   if (!eligibility.eligible) {
@@ -94,18 +102,21 @@ export async function lookupArchives(
   );
   const candidates: SearchCandidate[] = buildSearchCandidates(rawUrl, matchingMode);
   const providerOrderIndex = new Map(order.map((providerId, index) => [providerId, index]));
+  const candidateOrderIndex = new Map(
+    candidates.map((candidate, index) => [`${candidate.strategy}:${candidate.url}`, index] as const)
+  );
 
   const checked: ProviderAttempt[] = [];
   const failedProviderIds = new Set<ProviderId>();
+  const failedProviderReasons = new Map<ProviderId, ProviderFailureReason>();
   const foundSnapshots: ArchiveSnapshot[] = [];
   const foundSnapshotUrls = new Set<string>();
   const unverifiedSnapshots: ArchiveSnapshot[] = [];
   const unverifiedSnapshotUrls = new Set<string>();
-  const currentProviderSteps = new Map<ProviderId, LookupProgressStep>();
+  const currentLookupSteps = new Map<string, LookupProgressStep>();
+  const completedProviderIds = new Set<ProviderId>();
 
-  let waybackState: WaybackLookupState = "pending";
   let openedSnapshot: ArchiveSnapshot | null = null;
-  let bestNonWaybackSnapshot: ArchiveSnapshot | null = null;
 
   const tryEmitPreferredSnapshot = (snapshot: ArchiveSnapshot | null) => {
     if (!snapshot || openedSnapshot) return;
@@ -114,6 +125,12 @@ export async function lookupArchives(
   };
 
   const recordSnapshot = (snapshot: ArchiveSnapshot) => {
+    if (unverifiedSnapshotUrls.delete(snapshot.archiveUrl)) {
+      const index = unverifiedSnapshots.findIndex((candidate) => candidate.archiveUrl === snapshot.archiveUrl);
+      if (index >= 0) {
+        unverifiedSnapshots.splice(index, 1);
+      }
+    }
     if (foundSnapshotUrls.has(snapshot.archiveUrl)) return;
     foundSnapshotUrls.add(snapshot.archiveUrl);
     foundSnapshots.push(snapshot);
@@ -121,120 +138,186 @@ export async function lookupArchives(
   };
 
   const recordUnverifiedSnapshot = (snapshot: ArchiveSnapshot) => {
+    if (foundSnapshotUrls.has(snapshot.archiveUrl)) return;
     if (unverifiedSnapshotUrls.has(snapshot.archiveUrl)) return;
     unverifiedSnapshotUrls.add(snapshot.archiveUrl);
     unverifiedSnapshots.push(snapshot);
+    onUnverifiedSnapshotFound?.(snapshot);
   };
 
-  const maybeEmitFallbackSnapshot = () => {
-    if (waybackState === "pending" || waybackState === "hit") return;
-    tryEmitPreferredSnapshot(bestNonWaybackSnapshot);
-  };
+  const getStepKey = (providerId: ProviderId, candidate: SearchCandidate) =>
+    `${providerId}:${candidate.strategy}:${candidate.url}`;
 
   const emitVisibleSteps = (step: LookupProgressStep) => {
-    const visibleSteps = Array.from(currentProviderSteps.values()).sort(
+    const visibleSteps = Array.from(currentLookupSteps.values()).sort(
       (a, b) =>
         (providerOrderIndex.get(a.providerId) ?? Number.MAX_SAFE_INTEGER) -
-        (providerOrderIndex.get(b.providerId) ?? Number.MAX_SAFE_INTEGER)
+          (providerOrderIndex.get(b.providerId) ?? Number.MAX_SAFE_INTEGER) ||
+        (candidateOrderIndex.get(`${a.strategy}:${a.url}`) ?? Number.MAX_SAFE_INTEGER) -
+          (candidateOrderIndex.get(`${b.strategy}:${b.url}`) ?? Number.MAX_SAFE_INTEGER)
     );
     onProgress?.(step, visibleSteps);
+  };
+
+  const buildFailedProviders = (providerIds: Iterable<ProviderId>): FailedProvider[] =>
+    Array.from(providerIds).map((providerId) => ({
+      providerId,
+      directLink: getProvider(providerId).buildDirectLinkUrl(rawUrl, hostSettings) ?? undefined,
+      reason: failedProviderReasons.get(providerId)
+    }));
+
+  const emitLiveUpdate = () => {
+    const foundProviderIds = new Set(
+      [...foundSnapshots, ...unverifiedSnapshots].map((snapshot) => snapshot.providerId)
+    );
+    const failedProviders = buildFailedProviders(failedProviderIds);
+    const visibleManualProviderIds = new Set<ProviderId>();
+
+    for (const providerId of completedProviderIds) {
+      if (!foundProviderIds.has(providerId)) {
+        visibleManualProviderIds.add(providerId);
+      }
+    }
+
+    for (const providerId of buildManualSourceProviderOrder(rawUrl)) {
+      if (allowedProviderIds && !allowedProviderIds.has(providerId)) continue;
+      if (getProvider(providerId).kind === "manual") {
+        visibleManualProviderIds.add(providerId);
+      }
+    }
+
+    const manualSources = buildManualSources(rawUrl, foundProviderIds, visibleManualProviderIds, hostSettings);
+
+    onLiveUpdate?.({
+      checked: [...checked].sort(
+        (a, b) =>
+          (providerOrderIndex.get(a.providerId) ?? Number.MAX_SAFE_INTEGER) -
+            (providerOrderIndex.get(b.providerId) ?? Number.MAX_SAFE_INTEGER) ||
+          (candidateOrderIndex.get(`${a.strategy}:${a.url}`) ?? Number.MAX_SAFE_INTEGER) -
+            (candidateOrderIndex.get(`${b.strategy}:${b.url}`) ?? Number.MAX_SAFE_INTEGER)
+      ),
+      failedProviders,
+      manualSources
+    });
   };
 
   await Promise.all(
     order.map(async (providerId) => {
       const provider = getAutomaticProvider(providerId);
-      let providerErrored = false;
-      let foundSnapshotForProvider = false;
+      let providerHadError = false;
+      let providerHadResult = false;
 
-      for (const candidate of candidates) {
-        const step = { providerId, phase: "querying", strategy: candidate.strategy, url: candidate.url } as const;
-        currentProviderSteps.set(providerId, step);
-        emitVisibleSteps(step);
+      await Promise.all(
+        candidates.map(async (candidate) => {
+          const stepKey = getStepKey(providerId, candidate);
+          const step = {
+            providerId,
+            phase: "querying",
+            strategy: candidate.strategy,
+            url: candidate.url
+          } as const;
+          currentLookupSteps.set(stepKey, step);
+          emitVisibleSteps(step);
 
-        try {
-          const providerResult = await provider.lookup(
-            candidate,
-            timedFetchImpl,
-            hostSettings,
-            (phase) => {
-              const progressStep = {
-                providerId,
-                phase,
+          try {
+            const providerResult = await provider.lookup(
+              candidate,
+              timedFetchImpl,
+              hostSettings,
+              (phase) => {
+                const progressStep = {
+                  providerId,
+                  phase,
+                  strategy: candidate.strategy,
+                  url: candidate.url
+                } as const;
+                currentLookupSteps.set(stepKey, progressStep);
+                emitVisibleSteps(progressStep);
+              },
+              (snapshot) => {
+                const normalizedSnapshot: ArchiveSnapshot = {
+                  ...snapshot,
+                  originalUrl: rawUrl,
+                  matchedUrl: candidate.url,
+                  strategy: candidate.strategy,
+                  providerId
+                };
+
+                if (snapshot.verification === "unverified") {
+                  recordUnverifiedSnapshot(normalizedSnapshot);
+                }
+              }
+            );
+
+            providerHadResult = true;
+
+            if (providerResult.status === "confirmed" || providerResult.status === "unverified") {
+              const normalizedSnapshot: ArchiveSnapshot = {
+                ...providerResult.snapshot,
+                originalUrl: rawUrl,
+                matchedUrl: candidate.url,
                 strategy: candidate.strategy,
-                url: candidate.url
-              } as const;
-              currentProviderSteps.set(providerId, progressStep);
-              emitVisibleSteps(progressStep);
+                providerId
+              };
+              checked.push({
+                providerId,
+                strategy: candidate.strategy,
+                url: candidate.url,
+                outcome: "hit"
+              });
+              if (providerResult.status === "confirmed") {
+                recordSnapshot(normalizedSnapshot);
+                tryEmitPreferredSnapshot(normalizedSnapshot);
+              } else {
+                recordUnverifiedSnapshot(normalizedSnapshot);
+              }
+              return;
             }
-          );
-          if (providerResult.status === "confirmed" || providerResult.status === "unverified") {
-            const normalizedSnapshot: ArchiveSnapshot = {
-              ...providerResult.snapshot,
-              originalUrl: rawUrl,
-              matchedUrl: candidate.url,
-              strategy: candidate.strategy,
-              providerId
-            };
+
             checked.push({
               providerId,
               strategy: candidate.strategy,
               url: candidate.url,
-              outcome: "hit"
+              outcome: "miss"
             });
-            if (providerResult.status === "confirmed") {
-              foundSnapshotForProvider = true;
-              recordSnapshot(normalizedSnapshot);
-
-              if (providerId === "wayback") {
-                waybackState = "hit";
-                tryEmitPreferredSnapshot(normalizedSnapshot);
-              } else if (
-                !bestNonWaybackSnapshot ||
-                compareSnapshots(normalizedSnapshot, bestNonWaybackSnapshot, providerOrderIndex) < 0
-              ) {
-                bestNonWaybackSnapshot = normalizedSnapshot;
-              }
-
-              maybeEmitFallbackSnapshot();
-            } else {
-              recordUnverifiedSnapshot(normalizedSnapshot);
+          } catch (error) {
+            providerHadError = true;
+            if (error instanceof ProviderLookupError && error.reason) {
+              failedProviderReasons.set(providerId, error.reason);
+            } else if (error instanceof DOMException && error.name === "AbortError") {
+              failedProviderReasons.set(providerId, "timeout");
             }
-            break;
+            checked.push({
+              providerId,
+              strategy: candidate.strategy,
+              url: candidate.url,
+              outcome: "error"
+            });
+          } finally {
+            const lastKnownStep = currentLookupSteps.get(stepKey) ?? step;
+            currentLookupSteps.delete(stepKey);
+            emitVisibleSteps(lastKnownStep);
           }
+        })
+      );
 
-          checked.push({
-            providerId,
-            strategy: candidate.strategy,
-            url: candidate.url,
-            outcome: "miss"
-          });
-        } catch {
-          checked.push({
-            providerId,
-            strategy: candidate.strategy,
-            url: candidate.url,
-            outcome: "error"
-          });
-          providerErrored = true;
-          break;
-        }
-      }
-
-      if (providerErrored) {
+      if (providerHadError && !providerHadResult) {
         failedProviderIds.add(providerId);
       }
-
-      if (providerId === "wayback" && waybackState === "pending") {
-        waybackState = providerErrored ? "error" : foundSnapshotForProvider ? "hit" : "miss";
-        maybeEmitFallbackSnapshot();
-      }
+      completedProviderIds.add(providerId);
+      emitLiveUpdate();
     })
   );
 
-  const failedProviders: FailedProvider[] = Array.from(failedProviderIds).map((providerId) => ({
-    providerId,
-    directLink: getProvider(providerId).buildDirectLinkUrl(rawUrl, hostSettings) ?? undefined
-  }));
+  checked.sort(
+    (a, b) =>
+      (providerOrderIndex.get(a.providerId) ?? Number.MAX_SAFE_INTEGER) -
+        (providerOrderIndex.get(b.providerId) ?? Number.MAX_SAFE_INTEGER) ||
+      (candidateOrderIndex.get(`${a.strategy}:${a.url}`) ?? Number.MAX_SAFE_INTEGER) -
+        (candidateOrderIndex.get(`${b.strategy}:${b.url}`) ?? Number.MAX_SAFE_INTEGER)
+  );
+
+  const failedProviders = buildFailedProviders(failedProviderIds);
 
   const foundProviderIds = new Set(
     [...foundSnapshots, ...unverifiedSnapshots].map((snapshot) => snapshot.providerId)

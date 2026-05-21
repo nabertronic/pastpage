@@ -1,7 +1,9 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ResolverApp } from "@/components/ResolverApp";
+import { ResolverApp, resetResolverAutoOpenStateForTests } from "@/components/ResolverApp";
 import { DEFAULT_SETTINGS } from "@/core/settings";
+import { resetStorageCachesForTests } from "@/platform/storage";
 
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
 
@@ -50,6 +52,8 @@ function notFoundFetch() {
 
 describe("ResolverApp", () => {
   beforeEach(() => {
+    resetStorageCachesForTests();
+    resetResolverAutoOpenStateForTests();
     vi.mocked(browser.tabs.create).mockClear();
     storageGetMock.mockResolvedValue({
       "pastPage.settings": DEFAULT_SETTINGS
@@ -70,9 +74,397 @@ describe("ResolverApp", () => {
       expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
     );
     expect(screen.getByText(/404: Page not found/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /Open original/i })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: /Copy original URL/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/Check on Perma\.cc/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /Check on /i }).length).toBeGreaterThan(0);
+  });
+
+  it("shows a manual Archive.today fallback hint when Archive.today returns 429", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+          };
+        }
+
+        if (host.includes("archive.ph")) {
+          return {
+            ok: false,
+            status: 429,
+            text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+          };
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    const badge = await screen.findByRole("button", { name: "Captcha" });
+    await userEvent.hover(badge);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/Archive\.today asked for a manual challenge step/i);
+    await userEvent.unhover(badge);
+    expect(screen.getByText(/Check on Archive\.today/i)).toBeInTheDocument();
+  });
+
+  it("shows a Wayback rate-limit hint when Wayback returns 429", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: false,
+            status: 429,
+            json: vi.fn().mockResolvedValue([])
+          };
+        }
+
+        if (host.includes("archive.ph") || host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    const badge = await screen.findByRole("button", { name: "Too Many Requests" });
+    await userEvent.hover(badge);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/Wayback Machine rate-limited this request/i);
+    await userEvent.unhover(badge);
+    expect(screen.getByText(/Check on Wayback Machine/i)).toBeInTheDocument();
+  });
+
+  it("shows a manual-help badge for Yandex Cache with hover instructions", async () => {
+    vi.stubGlobal("fetch", notFoundFetch());
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Check on Yandex Cache/i)).toBeInTheDocument());
+    const badge = screen.getByRole("button", { name: "Manual" });
+    await userEvent.hover(badge);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/Yandex Cache always has to be checked manually/i);
+    await userEvent.unhover(badge);
+    expect(screen.getByText(/Copy cache link/i)).toBeInTheDocument();
+  });
+
+  it("shows provider failures incrementally while another provider is still pending", async () => {
+    let resolveArchiveToday: (value: unknown) => void = () => {};
+    const archiveTodayPending = new Promise((resolve) => {
+      resolveArchiveToday = resolve;
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: false,
+            status: 429,
+            json: vi.fn().mockResolvedValue([])
+          };
+        }
+
+        if (host.includes("archive.ph")) {
+          return archiveTodayPending;
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument());
+    expect(screen.getByText(/Check on Wayback Machine/i)).toBeInTheDocument();
+    expect(screen.getByText(/Check on Yandex Cache/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/No archived HTML snapshot could be confirmed automatically/i)
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveArchiveToday({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+      });
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
+  });
+
+  it("shows a Not Found badge for providers that returned miss", async () => {
+    vi.stubGlobal("fetch", notFoundFetch());
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument());
+    const badges = screen.getAllByRole("button", { name: "Not Found" });
+    expect(badges.length).toBeGreaterThan(0);
+    await userEvent.hover(badges[0]);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/did not have this URL archived/i);
+  });
+
+  it("shows completed provider results before a slow provider finishes", async () => {
+    let resolveArchiveToday: (value: unknown) => void = () => {};
+    const archiveTodayPending = new Promise((resolve) => {
+      resolveArchiveToday = resolve;
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const { hostname, pathname } = new URL(url);
+
+        if (hostname.includes("web.archive.org")) {
+          return pathname.includes("/web/")
+            ? archiveHtmlResponse("Wayback")
+            : {
+                ok: true,
+                status: 200,
+                json: vi.fn().mockResolvedValue([
+                  ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+                  ["20170119233731", "https://example.com/missing", "text/html", "200", "digest", "120"]
+                ])
+              };
+        }
+
+        if (hostname.includes("archive.ph")) {
+          return archiveTodayPending;
+        }
+
+        if (hostname.includes("ghostarchive.org") || hostname.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (hostname.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (hostname.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${hostname}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Archived version found on Wayback Machine/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument());
+    expect(screen.queryByText(/Check on Archive\.today/i)).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveArchiveToday({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+      });
+    });
+
+    await waitFor(() => expect(screen.getByText(/Check on Archive\.today/i)).toBeInTheDocument());
+  });
+
+  it("shows a Service Error badge for providers that failed with a server error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+          };
+        }
+
+        if (host.includes("archive.ph")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: false,
+            status: 503,
+            text: vi.fn().mockResolvedValue("Service Unavailable")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "Service Error" }).length).toBeGreaterThan(0));
+    const badge = screen.getAllByRole("button", { name: "Service Error" })[0];
+    await userEvent.hover(badge);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/returned an error/i);
+  });
+
+  it("shows a Timeout badge for providers that timed out", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+          };
+        }
+
+        if (host.includes("archive.ph")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          const error = new DOMException("The operation was aborted", "AbortError");
+          throw error;
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getAllByRole("button", { name: "Timeout" }).length).toBeGreaterThan(0));
+    const badge = screen.getAllByRole("button", { name: "Timeout" })[0];
+    await userEvent.hover(badge);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(/took too long to respond/i);
   });
 
   it("renders a neutral source summary for a manual-page lookup", async () => {
@@ -84,6 +476,38 @@ describe("ResolverApp", () => {
     await waitFor(() => expect(screen.getByText(/Current source/i)).toBeInTheDocument());
     expect(screen.getByText(/Checking archived versions for this page/i)).toBeInTheDocument();
     expect(screen.queryByText(/404: Page not found/i)).not.toBeInTheDocument();
+  });
+
+  it("starts archive lookup before the async settings read resolves", async () => {
+    let resolveSettings: (value: unknown) => void = () => {};
+    const delayedSettings = new Promise((resolve) => {
+      resolveSettings = resolve;
+    });
+    const fetchMock = notFoundFetch();
+
+    storageGetMock.mockImplementation(async (key: string) => {
+      if (key === "pastPage.settings") {
+        return (await delayedSettings) as Record<string, unknown>;
+      }
+
+      if (key === "pastPage.meta") {
+        return {};
+      }
+
+      return {};
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    window.history.replaceState({}, "", "?trigger=manual-page&url=https%3A%2F%2Fexample.com%2Fstory");
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    resolveSettings({
+      "pastPage.settings": DEFAULT_SETTINGS
+    });
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
   });
 
   it("renders provider-scoped copy for a Perma.cc lookup", async () => {
@@ -306,11 +730,26 @@ describe("ResolverApp", () => {
       await new Promise((resolve) => window.setTimeout(resolve, 1000));
     });
 
-    expect(createSpy).not.toHaveBeenCalled();
+    expect(
+      createSpy.mock.calls.some(
+        ([options]) => options.url === "https://web.archive.org/web/20240102030405/https://example.com/missing"
+      )
+    ).toBe(false);
     expect(window.location.search).toContain("trigger=broken-page");
   });
 
-  it("opens the first hit in a new tab and lists additional archive matches", async () => {
+  it("opens the fastest confirmed hit in a new tab and lists additional archive matches", async () => {
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        resolverSuccessBehavior: "keep-resolver"
+      }
+    });
+    let resolveWayback: (value: unknown) => void = () => {};
+    const delayedWayback = new Promise((resolve) => {
+      resolveWayback = resolve;
+    });
+
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) => {
@@ -319,21 +758,7 @@ describe("ResolverApp", () => {
         if (host.includes("web.archive.org")) {
           return url.includes("/web/")
             ? archiveHtmlResponse("Wayback")
-            : {
-                ok: true,
-                status: 200,
-                json: vi.fn().mockResolvedValue([
-                  ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
-                  [
-                    "20240102030405",
-                    "https://example.com/missing-foreground",
-                    "text/html",
-                    "200",
-                    "digest",
-                    "120"
-                  ]
-                ])
-              };
+            : delayedWayback;
         }
 
         if (host.includes("archive.ph")) {
@@ -378,14 +803,14 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/Other archived versions found/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Archived version found on Archive\.today/i)).toBeInTheDocument());
     await waitFor(() =>
       expect(
         createSpy.mock.calls.some(
           ([options]) =>
             options.active === true &&
             options.openerTabId === undefined &&
-            options.url === "https://web.archive.org/web/20240102030405/https://example.com/missing-foreground"
+            options.url === "https://archive.ph/20240203040506/https://example.com/missing"
         )
       ).toBe(true)
     );
@@ -393,11 +818,27 @@ describe("ResolverApp", () => {
       createSpy.mock.calls.filter(
         ([options]) =>
           options.active === true &&
-          options.url === "https://web.archive.org/web/20240102030405/https://example.com/missing-foreground"
+          options.url === "https://archive.ph/20240203040506/https://example.com/missing"
       )
     ).toHaveLength(1);
+    resolveWayback({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue([
+        ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+        [
+          "20240102030405",
+          "https://example.com/missing-foreground",
+          "text/html",
+          "200",
+          "digest",
+          "120"
+        ]
+      ])
+    });
+    await waitFor(() => expect(screen.getByText(/Other archived versions found/i)).toBeInTheDocument());
     expect(screen.getAllByText(/Open archived version/i).length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText(/Archive.today/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
   });
 
   it("shows an unverified provider snapshot when automatic replay validation is blocked", async () => {
@@ -471,6 +912,81 @@ describe("ResolverApp", () => {
     expect(
       screen.queryByText(/No archived HTML snapshot could be confirmed automatically/i)
     ).not.toBeInTheDocument();
+  });
+
+  it("shows an unverified snapshot early and upgrades it when replay validation later succeeds", async () => {
+    let resolveArchiveTodayReplay: (value: unknown) => void = () => {};
+    const delayedArchiveTodayReplay = new Promise((resolve) => {
+      resolveArchiveTodayReplay = resolve;
+    });
+
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          return {
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+          };
+        }
+
+        if (host.includes("archive.ph")) {
+          return url.includes("/timemap/")
+            ? {
+                ok: true,
+                status: 200,
+                text: vi
+                  .fn()
+                  .mockResolvedValue(
+                    `<https://archive.ph/20240203040506/https://example.com/missing>; rel="memento"; datetime="Sat, 03 Feb 2024 04:05:06 GMT"`
+                  )
+              }
+            : delayedArchiveTodayReplay;
+        }
+
+        if (host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/Archive\.today reported an archived snapshot/i)).toBeInTheDocument()
+    );
+    expect(screen.getByText(/could not verify or open it automatically/i)).toBeInTheDocument();
+
+    resolveArchiveTodayReplay(archiveHtmlResponse("Archive.today"));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Archived version found on Archive\.today/i)).toBeInTheDocument()
+    );
   });
 
   it("does not auto-open an unverified snapshot when manual opening is enabled", async () => {
@@ -624,7 +1140,13 @@ describe("ResolverApp", () => {
     expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
   });
 
-  it("flushes buffered fallback matches into the UI as soon as Wayback misses", async () => {
+  it("shows fallback matches immediately while Wayback is still pending", async () => {
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        resolverSuccessBehavior: "keep-resolver"
+      }
+    });
     let resolveWayback: (value: unknown) => void = () => {};
     const delayedWayback = new Promise((resolve) => {
       resolveWayback = resolve;
@@ -699,12 +1221,6 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    resolveWayback({
-      ok: true,
-      status: 200,
-      json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
-    });
-
     await waitFor(() =>
       expect(screen.getByText(/Archived version found on Archive\.today/i)).toBeInTheDocument()
     );
@@ -721,6 +1237,12 @@ describe("ResolverApp", () => {
         ([options]) => options.url === "https://archive.ph/20240203040506/https://example.com/missing"
       )
     ).toHaveLength(1);
+
+    resolveWayback({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+    });
 
     resolveArquivoPt({
       ok: true,
@@ -845,6 +1367,7 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
+    await waitFor(() => expect(screen.queryByText(/original URL/i)).not.toBeInTheDocument());
     await waitFor(() => expect(screen.getByText(/cleaned URL/i)).toBeInTheDocument());
     resolveSecondLookup({
       ok: true,
@@ -909,13 +1432,15 @@ describe("ResolverApp", () => {
       await vi.advanceTimersByTimeAsync(50);
     });
 
-    expect(screen.getByText(/Wayback Machine|Archive\.today|Megalodon|Web Gyotaku/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Checking /i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Check on Megalodon\/Web Gyotaku/i)).toBeInTheDocument();
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(1100);
+      await vi.advanceTimersByTimeAsync(550);
     });
 
-    expect(screen.getByText(/Archive\.today|Megalodon|Web Gyotaku/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Checking /i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Check on Megalodon\/Web Gyotaku/i)).toBeInTheDocument();
 
     resolveWayback({
       ok: true,
@@ -985,17 +1510,20 @@ describe("ResolverApp", () => {
       await vi.advanceTimersByTimeAsync(50);
     });
 
-    expect(screen.getByText(/Wayback Machine|Archive\.today|Ghostarchive/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Checking /i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1100);
     });
-    expect(screen.getByText(/Wayback Machine|Archive\.today|Ghostarchive/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Checking /i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1100);
     });
-    expect(screen.getByText(/Wayback Machine|Archive\.today|Ghostarchive/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Checking /i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument();
 
     resolveWayback({
       ok: true,

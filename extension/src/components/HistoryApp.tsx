@@ -148,7 +148,7 @@ function HistoryContent({
     <PageShell title={t("historyPage.title")} description={t("historyPage.description")}>
       <div className="space-y-4">
         {/* Stats + status bar */}
-        <section className="rounded-2xl border border-stone-200 bg-white/90 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/88">
+        <section className="rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-surface)] shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/88">
           <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
             <div className="flex items-center gap-6">
               <div>
@@ -184,7 +184,7 @@ function HistoryContent({
         </section>
 
         {/* Search + filters */}
-        <section className="rounded-2xl border border-stone-200 bg-white/92 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/90">
+        <section className="rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-surface)] shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/90">
           <div className="p-4">
             <div className="flex gap-2">
               <label className="relative flex-1">
@@ -199,7 +199,7 @@ function HistoryContent({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("options.history.searchPlaceholder")}
-                  className="h-10 w-full rounded-xl border border-stone-300 bg-white pl-9 pr-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+                  className="h-10 w-full rounded-xl border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] pl-9 pr-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
                 />
               </label>
               <button
@@ -208,7 +208,7 @@ function HistoryContent({
                 className={`inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-sm font-medium transition ${
                   filtersOpen || activeFilterCount > 0
                     ? "border-yellow-400 bg-yellow-50 text-stone-950 dark:border-yellow-300 dark:bg-yellow-300/15 dark:text-yellow-50"
-                    : "border-stone-300 bg-white text-stone-600 hover:border-yellow-400 hover:bg-yellow-50 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-300 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10"
+                    : "border-[var(--wf-border-strong)] bg-[var(--wf-surface)] text-stone-600 hover:border-yellow-400 hover:bg-yellow-50 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-300 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10"
                 }`}
               >
                 <SlidersHorizontal aria-hidden="true" size={14} />
@@ -223,7 +223,7 @@ function HistoryContent({
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex h-10 items-center gap-1 rounded-xl border border-stone-200 bg-white px-3 text-sm text-stone-500 transition hover:border-stone-300 hover:text-stone-950 dark:border-stone-800 dark:bg-stone-950 dark:text-stone-400 dark:hover:border-stone-700 dark:hover:text-yellow-50"
+                  className="inline-flex h-10 items-center gap-1 rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface)] px-3 text-sm text-stone-500 transition hover:border-[var(--wf-border-strong)] hover:text-stone-950 dark:border-stone-800 dark:bg-stone-950 dark:text-stone-400 dark:hover:border-stone-700 dark:hover:text-yellow-50"
                 >
                   <X aria-hidden="true" size={14} />
                   {t("historyPage.filters.clear")}
@@ -240,7 +240,7 @@ function HistoryContent({
                   transition={{ duration: 0.18, ease: "easeOut" }}
                   className="overflow-hidden"
                 >
-                  <div className="mt-4 grid gap-3 border-t border-stone-100 pt-4 sm:grid-cols-2 lg:grid-cols-3 dark:border-stone-900">
+                  <div className="mt-4 grid gap-3 border-t border-[var(--wf-border)] pt-4 sm:grid-cols-2 lg:grid-cols-3 dark:border-stone-900">
                     <SelectField
                       label={t("options.history.filters.outcome")}
                       value={outcomeFilter}
@@ -291,7 +291,7 @@ function HistoryContent({
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="h-10 rounded-xl border border-stone-300 bg-white px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+                        className="h-10 rounded-xl border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
                       />
                     </label>
                     <label className="grid gap-1.5 text-sm">
@@ -302,7 +302,7 @@ function HistoryContent({
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="h-10 rounded-xl border border-stone-300 bg-white px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+                        className="h-10 rounded-xl border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
                       />
                     </label>
                   </div>
@@ -313,19 +313,19 @@ function HistoryContent({
         </section>
 
         {/* History list */}
-        <section className="overflow-hidden rounded-2xl border border-stone-200 bg-white/94 shadow-sm dark:border-stone-800 dark:bg-stone-950/92">
+        <section className="overflow-hidden rounded-2xl border border-[var(--wf-border)] bg-[var(--wf-surface)] shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] dark:border-stone-800 dark:bg-stone-950/92">
           {history.length === 0 ? (
             <EmptyState message={t("options.history.empty")} />
           ) : filteredHistory.length === 0 ? (
             <EmptyState message={t("options.history.noMatches")} />
           ) : (
             <>
-              <ul role="list" className="divide-y divide-stone-100 dark:divide-stone-900">
+              <ul role="list" className="divide-y divide-[var(--wf-border)] dark:divide-stone-900">
                 {visibleHistory.map((entry) => (
                   <HistoryCard key={entry.id} entry={entry} />
                 ))}
               </ul>
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 px-5 py-3 dark:border-stone-900">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--wf-border)] px-5 py-3 dark:border-stone-900">
                 <p className="text-xs text-stone-400 dark:text-stone-500">
                   {t("historyPage.pagination.status", {
                     start: String(filteredHistory.length === 0 ? 0 : pageStart + 1),
@@ -404,7 +404,7 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
 
   return (
     <li className={`border-l-[3px] ${accentClass[entry.outcome]}`}>
-      <div className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-stone-50/80 dark:hover:bg-stone-900/40">
+      <div className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-[var(--wf-surface-raised)] dark:hover:bg-stone-900/40">
         <div className="min-w-0 flex-1">
           {/* URL + timestamp */}
           <div className="flex items-start justify-between gap-3">
@@ -435,7 +435,7 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
               <button
                 type="button"
                 onClick={() => setExpanded((v) => !v)}
-                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-stone-500 transition hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-yellow-50"
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs text-stone-500 transition hover:bg-[var(--wf-surface-muted)] hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-yellow-50"
               >
                 {expanded ? (
                   <ChevronUp aria-hidden="true" size={12} />
@@ -459,11 +459,11 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
                 transition={{ duration: 0.16, ease: "easeOut" }}
                 className="overflow-hidden"
               >
-                <ul className="mt-3 space-y-2 border-t border-stone-100 pt-3 dark:border-stone-900">
+                <ul className="mt-3 space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-900">
                   {entry.resultSnapshots.map((snapshot, index) => (
                     <li
                       key={`${snapshot.openUrl ?? snapshot.archiveUrl}:${index}`}
-                      className="rounded-xl border border-stone-200 bg-stone-50/60 px-3 py-2.5 dark:border-stone-800 dark:bg-stone-900/60"
+                      className="rounded-xl border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] px-3 py-2.5 dark:border-stone-800 dark:bg-stone-900/60"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold text-stone-900 dark:text-yellow-50">
@@ -524,7 +524,7 @@ function OutcomeBadge({ outcome }: { outcome: HistoryOutcome }) {
   };
   const classes = {
     hit: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-    miss: "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400",
+    miss: "bg-[var(--wf-surface-muted)] text-stone-600 dark:bg-stone-800 dark:text-stone-400",
     unknown: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
   } as Record<HistoryOutcome, string>;
 
@@ -561,7 +561,7 @@ function TriggerChip({ trigger }: { trigger: HistoryTrigger }) {
     "all-archives": "options.history.trigger.all-archives"
   };
   return (
-    <span className="inline-flex rounded-full bg-stone-100 px-2 py-0.5 text-[11px] text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+    <span className="inline-flex rounded-full border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] px-2 py-0.5 text-[11px] text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400">
       {t(labels[trigger])}
     </span>
   );

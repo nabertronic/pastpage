@@ -3,6 +3,18 @@ import type { ProviderHostSettings } from "../providerHosts";
 import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshot } from "../tabState";
 
+export type ProviderFailureReason = "challenge-required" | "rate-limited" | "server-error" | "timeout";
+
+export class ProviderLookupError extends Error {
+  readonly reason?: ProviderFailureReason;
+
+  constructor(message: string, reason?: ProviderFailureReason) {
+    super(message);
+    this.name = "ProviderLookupError";
+    this.reason = reason;
+  }
+}
+
 export const ProviderIdSchema = z.enum([
   "wayback",
   "archive-today",
@@ -46,7 +58,8 @@ export type AutomaticArchiveProvider = BaseArchiveProvider & {
     candidate: SearchCandidate,
     fetchImpl: typeof fetch,
     hostSettings?: ProviderHostSettings,
-    onProgress?: (phase: "querying" | "verifying") => void
+    onProgress?: (phase: "querying" | "verifying") => void,
+    onSnapshot?: (snapshot: ArchiveSnapshot) => void
   ): Promise<ArchiveProviderLookupResult>;
 };
 

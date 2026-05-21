@@ -49,14 +49,14 @@ export function buildAutomaticProviderOrder(rawUrl: string): ProviderId[] {
 
 export function buildManualSourceProviderOrder(rawUrl: string): ProviderId[] {
   const context = classifyArchivePriority(rawUrl);
-  const automatic = buildAutomaticProviderOrderFromContext(context).filter((id) =>
-    PROVIDERS[id].isRelevant(context)
-  );
   const manual = buildManualDirectLinkProvidersFromContext(context).filter((id) =>
     PROVIDERS[id].isRelevant(context)
   );
+  const automatic = buildAutomaticProviderOrderFromContext(context).filter((id) =>
+    PROVIDERS[id].isRelevant(context)
+  );
 
-  return [...automatic, ...manual];
+  return [...manual, ...automatic];
 }
 
 export type ProviderAction = {

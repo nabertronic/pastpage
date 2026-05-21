@@ -103,17 +103,17 @@ export const de: MessageCatalog = {
   "options.providerContextMenu.newWindow": "Neues Fenster",
   "options.afterSnapshot.label": "Nachdem ein Snapshot gefunden wurde",
   "options.afterSnapshot.description":
-    "Legen Sie fest, ob PastPage den ersten gefundenen Snapshot automatisch öffnet und ob die Suchseite geöffnet bleibt.",
-  "options.afterSnapshot.keepResolver": "Suchseite geöffnet lassen",
-  "options.afterSnapshot.replaceResolver": "Such-Tab für Archiv verwenden",
-  "options.afterSnapshot.manualOpenOnly": "Nicht automatisch öffnen",
+    "Legen Sie fest, ob PastPage gefundene Snapshots nur auf der Suchseite anzeigt, sie automatisch in einem neuen Tab öffnet und die Suchseite offen hält oder den Such-Tab direkt durch das Archiv ersetzt.",
+  "options.afterSnapshot.keepResolver": "Automatisch öffnen und Suchseite offen halten",
+  "options.afterSnapshot.replaceResolver": "Automatisch im Such-Tab öffnen",
+  "options.afterSnapshot.manualOpenOnly": "Nur auf der Suchseite anzeigen",
   "options.urlMatching.label": "URL-Abgleich",
   "options.urlMatching.description":
-    "Legen Sie fest, wie genau die Archivsuche der ursprünglichen URL folgen soll.",
+    "Wählen Sie, ob PastPage nur die ursprüngliche URL prüft oder zusätzlich parallel eine bereinigte Fallback-URL versucht.",
   "options.providerTimeout.label": "Provider-Timeout",
   "options.providerTimeout.description":
     "Legen Sie fest, wie viele Sekunden jeder Archiv-Anbieter maximal Zeit hat, bevor PastPage zum nächsten Schritt übergeht.",
-  "options.urlMatching.exactThenCleaned": "Zuerst exakt, dann bereinigt",
+  "options.urlMatching.exactThenCleaned": "Ursprüngliche URL + bereinigter Fallback",
   "options.urlMatching.exactOnly": "Nur exakt",
   "options.urlMatching.cleanedFirst": "Zuerst bereinigt",
   "options.waybackHost.label": "Wayback-Machine-Host",
@@ -179,6 +179,8 @@ export const de: MessageCatalog = {
     "Bewertungen helfen anderen Forschenden dabei, datenschutzfreundliche Wiederherstellungswerkzeuge zu finden.",
   "options.version.title": "Version und Updates",
   "options.version.current": "Installierte Version: {{version}}",
+  "options.whatsNew.description": "Sehen Sie, was sich in den letzten PastPage-Versionen geändert hat.",
+  "options.whatsNew.open": "What's new",
   "options.updates.check": "Nach Updates suchen",
   "options.updates.checking": "Suche nach Updates…",
   "options.updates.unknownVersion": "eine neuere Version",
@@ -200,6 +202,15 @@ export const de: MessageCatalog = {
   "options.updates.firefox.listingFallback":
     "Der Firefox-Add-ons-Eintrag wurde geöffnet, weil sich der Add-ons-Manager nicht direkt öffnen ließ. Prüfen Sie dort die aktuelle Veröffentlichung oder suchen Sie im Firefox-Add-ons-Manager manuell nach Updates.",
   "options.updates.firefox.openListing": "Firefox-Add-ons-Eintrag öffnen",
+  "whatsNew.title": "Neuigkeiten",
+  "whatsNew.description": "Alle Neuerungen der letzten PastPage-Versionen im Überblick.",
+  "whatsNew.releaseNotes": "Release Notes",
+  "whatsNew.currentVersion": "Aktuelle Version: {{version}}",
+  "whatsNew.latestBadge": "Neueste",
+  "whatsNew.versionSummary": "{{count}} Änderungen",
+  "whatsNew.expand": "{{version}} aufklappen",
+  "whatsNew.collapse": "{{version}} einklappen",
+  "whatsNew.empty": "Es sind noch keine Changelog-Einträge verfügbar.",
   "footer.description":
     "PastPage ist ein Open-Source-Werkzeug für Journalist:innen und Forschende, um archivierte Versionen verschwundener Seiten aufzufinden.",
   "thanks.firstTitle": "PastPage hat zum ersten Mal geholfen",
@@ -237,6 +248,8 @@ export const de: MessageCatalog = {
   "resolver.found.openArchivedVersion": "Archivierte Version öffnen",
   "resolver.found.copyArchiveLink": "Archivlink kopieren",
   "resolver.found.archiveLinkCopied": "Archivlink kopiert",
+  "resolver.found.copyCacheLink": "Cache-Link kopieren",
+  "resolver.found.cacheLinkCopied": "Cache-Link kopiert",
   "resolver.unverified.title": "{{provider}} meldet einen archivierten Snapshot",
   "resolver.unverified.description":
     "PastPage hat einen konkreten Archiv-Snapshot gefunden, konnte ihn aber nicht automatisch verifizieren oder öffnen.",
@@ -244,6 +257,26 @@ export const de: MessageCatalog = {
   "resolver.unverified.additionalMatches": "Weitere nicht automatisch verifizierte Snapshots",
   "resolver.unverified.alsoCheckSources": "Diese Archivquellen kannst du ebenfalls manuell prüfen:",
   "resolver.manual.checkOnProvider": "Bei {{provider}} prüfen",
+  "resolver.manual.badge.captcha": "Captcha",
+  "resolver.manual.badge.tooManyRequests": "Too Many Requests",
+  "resolver.manual.badge.manual": "Manuell",
+  "resolver.manual.badge.notFound": "Nicht gefunden",
+  "resolver.manual.badge.serviceError": "Dienstfehler",
+  "resolver.manual.badge.timeout": "Zeitüberschreitung",
+  "resolver.manual.archiveTodayChallenge":
+    "Archive.today verlangt einen manuellen Challenge-Schritt, daher konnte PastPage dort nicht automatisch prüfen.",
+  "resolver.manual.waybackRateLimited":
+    "Wayback Machine hat diese Anfrage gedrosselt. Das passiert häufiger mit VPNs oder geteilten IP-Adressen. Versuche es später erneut oder öffne Wayback manuell.",
+  "resolver.manual.yandexManualHelp":
+    "Yandex Cache muss immer manuell geprüft werden: Öffne den Link, und wenn es ein Ergebnis gibt, nutze das Drei-Punkte-Menü daneben und öffne dort die Cache-Version.",
+  "resolver.manual.notFound":
+    "{{provider}} hat diese URL nicht archiviert. Du kannst trotzdem manuell prüfen. Die Seite wurde möglicherweise inzwischen archiviert.",
+  "resolver.manual.serviceError":
+    "{{provider}} hat einen Fehler zurückgegeben. Der Dienst ist möglicherweise vorübergehend nicht verfügbar. Versuche es manuell.",
+  "resolver.manual.timeout":
+    "{{provider}} hat zu lange gebraucht. Versuche es manuell oder später erneut.",
+  "resolver.manual.rateLimited":
+    "{{provider}} hat diese Anfrage gedrosselt. Versuche es später erneut oder prüfe manuell.",
   "resolver.notFound.title": "Kein archivierter HTML-Snapshot konnte automatisch bestätigt werden",
   "resolver.notFound.description":
     "Für alle Archivdienste wurde ein URL-Abgleich mit {{strategies}} geprüft, aber kein funktionierender archivierter HTML-Snapshot konnte automatisch bestätigt werden.",
@@ -262,6 +295,7 @@ export const de: MessageCatalog = {
   "sourceSummary.description": "Archivierte Versionen für diese Seite werden geprüft.",
   "sourceSummary.descriptionScoped": "Archivierte Versionen für diese Seite werden bei {{provider}} geprüft.",
   "topbar.cta": "Archivierte Version finden",
+  "topbar.snooze": "1 Std. pausieren",
   "topbar.dismiss": "PastPage ausblenden",
   "topbar.legalReason":
     "451: Aus rechtlichen Gründen nicht verfügbar. Neueste archivierte Version suchen?",
@@ -358,6 +392,17 @@ export const de: MessageCatalog = {
   "options.onboarding.title": "Erste Schritte",
   "options.onboarding.description": "Einführung erneut öffnen, um Anpinnen, Funktionen und Einstellungen nachzuschlagen.",
   "options.onboarding.openGuide": "Einführung öffnen",
+  "options.brokenPageAssist.label": "Automatische Hilfe bei defekten Seiten",
+  "options.brokenPageAssist.description":
+    "Bietet automatische Wiederherstellungshilfe nur auf defekten HTTP-Fehlerseiten an.",
+  "options.brokenPageAssist.toggleLabel": "Automatische Hilfe bei defekten Seiten aktivieren",
+  "options.brokenPageAssist.toggleDescription": "Automatische Hilfe bei defekten Seiten aktivieren",
+  "options.brokenPageAssist.statusActive": "Status: Aktiv",
+  "options.brokenPageAssist.statusPaused": "Status: Pausiert bis {{value}}",
+  "options.brokenPageAssist.statusOff": "Status: Aus",
+  "options.brokenPageAssist.pauseOneHour": "1 Stunde pausieren",
+  "options.brokenPageAssist.pauseOneDay": "24 Stunden pausieren",
+  "options.brokenPageAssist.resume": "Jetzt fortsetzen",
   "options.history.enabled.label": "Suchverlauf speichern",
   "options.history.enabled.description":
     "Einen lokalen Verlauf von Archivsuchen, Ergebnissen und bestätigten Treffern speichern.",

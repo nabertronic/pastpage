@@ -71,7 +71,8 @@ export async function selectLatestWorkingSnapshot(
   snapshots: ArchiveSnapshotCandidate[],
   fetchImpl: typeof fetch,
   maxCandidates = snapshots.length,
-  onProgress?: (phase: "verifying") => void
+  onProgress?: (phase: "verifying") => void,
+  onSnapshot?: (snapshot: ArchiveSnapshot) => void
 ): Promise<ArchiveProviderLookupResult> {
   const ordered = [...snapshots]
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
@@ -80,6 +81,11 @@ export async function selectLatestWorkingSnapshot(
   if (ordered.length === 0) {
     return { status: "miss" };
   }
+
+  onSnapshot?.({
+    ...ordered[0],
+    verification: "unverified"
+  });
 
   for (const snapshot of ordered) {
     onProgress?.("verifying");

@@ -1,5 +1,6 @@
 import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshotCandidate } from "../tabState";
+import { ProviderLookupError } from "./types";
 import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { isLikelyWorkingSnapshotHtml } from "./snapshotValidation";
 
@@ -62,6 +63,14 @@ export function parseWebCiteTopFrame(html: string): WebCiteTopFrame {
   return { permalinkId, captures };
 }
 
+function isWebCiteFramesetResponse(html: string): boolean {
+  return /<frameset\b/i.test(html) && /topframe\.php/i.test(html) && /mainframe\.php/i.test(html);
+}
+
+function isWebCiteNoSnapshotResponse(html: string): boolean {
+  return /we do not have any snapshots of the given url/i.test(html);
+}
+
 async function fetchWebCiteDocument(
   url: string,
   fetchImpl: typeof fetch,
@@ -81,12 +90,12 @@ async function verifyWebCiteCapture(
 ): Promise<{ permalinkId: string | null; html: string | null }> {
   const queryResponse = await fetchWebCiteDocument(buildWebCiteCaptureUrl(captureId), fetchImpl);
   if (!queryResponse.ok) {
-    throw new Error(`WebCite returned ${queryResponse.status} for capture ${captureId}`);
+    throw new ProviderLookupError(`WebCite returned ${queryResponse.status} for capture ${captureId}`, queryResponse.status >= 500 ? "server-error" : undefined);
   }
 
   const topframeResponse = await fetchWebCiteDocument(`${WEBCITE_BASE_URL}/topframe.php`, fetchImpl);
   if (!topframeResponse.ok) {
-    throw new Error(`WebCite topframe returned ${topframeResponse.status}`);
+    throw new ProviderLookupError(`WebCite topframe returned ${topframeResponse.status}`, topframeResponse.status >= 500 ? "server-error" : undefined);
   }
 
   const topframe = parseWebCiteTopFrame(await topframeResponse.text());
@@ -116,12 +125,20 @@ async function lookup(
 ): Promise<ArchiveProviderLookupResult> {
   const queryResponse = await fetchWebCiteDocument(buildWebCiteQueryUrl(candidate.url), fetchImpl);
   if (!queryResponse.ok) {
-    throw new Error(`WebCite returned ${queryResponse.status}`);
+    throw new ProviderLookupError(`WebCite returned ${queryResponse.status}`, queryResponse.status >= 500 ? "server-error" : queryResponse.status === 429 ? "rate-limited" : undefined);
+  }
+
+  const queryHtml = await queryResponse.text();
+  if (isWebCiteNoSnapshotResponse(queryHtml)) {
+    return { status: "miss" };
+  }
+  if (!isWebCiteFramesetResponse(queryHtml)) {
+    return { status: "miss" };
   }
 
   const topframeResponse = await fetchWebCiteDocument(`${WEBCITE_BASE_URL}/topframe.php`, fetchImpl);
   if (!topframeResponse.ok) {
-    throw new Error(`WebCite topframe returned ${topframeResponse.status}`);
+    throw new ProviderLookupError(`WebCite topframe returned ${topframeResponse.status}`, topframeResponse.status >= 500 ? "server-error" : undefined);
   }
 
   const topframe = parseWebCiteTopFrame(await topframeResponse.text());

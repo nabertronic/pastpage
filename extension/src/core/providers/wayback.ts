@@ -4,7 +4,11 @@ import type { ProviderHostSettings, WaybackHost } from "../providerHosts";
 import { buildWaybackBaseUrl } from "../providerHosts";
 import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveCheckStrategy, ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
-import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
+import {
+  ProviderLookupError,
+  type ArchiveProviderLookupResult,
+  type AutomaticArchiveProvider
+} from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
 const CdxRowObjectSchema = z.object({
@@ -129,7 +133,8 @@ async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch,
   hostSettings?: ProviderHostSettings,
-  onProgress?: (phase: "querying" | "verifying") => void
+  onProgress?: (phase: "querying" | "verifying") => void,
+  onSnapshot?: (snapshot: ArchiveSnapshot) => void
 ): Promise<ArchiveProviderLookupResult> {
   const response = await fetchImpl(buildCdxUrl(candidate.url, hostSettings), {
     method: "GET",
@@ -137,7 +142,13 @@ async function lookup(
   });
 
   if (!response.ok) {
-    throw new Error(`Wayback CDX returned ${response.status}`);
+    if (response.status === 429) {
+      throw new ProviderLookupError("Wayback Machine rate-limited this request", "rate-limited");
+    }
+    if (response.status >= 500) {
+      throw new ProviderLookupError(`Wayback CDX returned ${response.status}`, "server-error");
+    }
+    throw new ProviderLookupError(`Wayback CDX returned ${response.status}`);
   }
 
   const payload = (await response.json()) as unknown;
@@ -151,7 +162,8 @@ async function lookup(
     parseCdxResponse(rows, candidate.strategy, hostSettings),
     fetchImpl,
     undefined,
-    onProgress ? () => onProgress("verifying") : undefined
+    onProgress ? () => onProgress("verifying") : undefined,
+    onSnapshot
   );
 }
 
@@ -166,7 +178,13 @@ export async function lookupCaptureCount(
   });
 
   if (!response.ok) {
-    throw new Error(`Wayback CDX returned ${response.status}`);
+    if (response.status === 429) {
+      throw new ProviderLookupError("Wayback Machine rate-limited this request", "rate-limited");
+    }
+    if (response.status >= 500) {
+      throw new ProviderLookupError(`Wayback CDX returned ${response.status}`, "server-error");
+    }
+    throw new ProviderLookupError(`Wayback CDX returned ${response.status}`);
   }
 
   return parseCaptureCountResponse((await response.json()) as unknown);

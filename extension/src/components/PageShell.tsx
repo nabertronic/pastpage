@@ -14,7 +14,7 @@ export function PageShell({
   narrow?: boolean;
 }) {
   return (
-    <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,rgba(245,200,0,0.06),transparent_55%),linear-gradient(160deg,#ffffff_0%,#f8f8f8_100%)] px-4 py-6 text-stone-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,212,0,0.18),transparent_35%),linear-gradient(135deg,#12100b_0%,#1d1a10_48%,#0d0c09_100%)] dark:text-yellow-50">
+    <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,rgba(245,200,0,0.08),transparent_55%),linear-gradient(160deg,#fffdfa_0%,var(--wf-bg)_100%)] px-4 py-6 text-stone-950 dark:bg-[radial-gradient(circle_at_top_left,rgba(255,212,0,0.18),transparent_35%),linear-gradient(135deg,#12100b_0%,#1d1a10_48%,#0d0c09_100%)] dark:text-yellow-50">
       <div className={narrow ? "mx-auto max-w-xl" : "mx-auto max-w-5xl"}>
         <header className="mb-6 flex items-start gap-3">
           <motion.div
@@ -28,7 +28,7 @@ export function PageShell({
           <div>
             <h1 className="text-2xl font-semibold tracking-normal">{title}</h1>
             {description ? (
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-stone-600 dark:text-stone-300">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--wf-muted)] dark:text-stone-300">
                 {description}
               </p>
             ) : null}

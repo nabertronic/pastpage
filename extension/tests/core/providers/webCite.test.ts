@@ -18,6 +18,17 @@ const SAMPLE_TOPFRAME_HTML = `
   </table>
 `;
 
+const SAMPLE_QUERY_FRAMESET_HTML = `
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+  <html>
+    <head><title>WebCite query result</title></head>
+    <frameset rows="60,*" frameborder="0">
+      <frame src="./topframe.php" name="nav" />
+      <frame src="./mainframe.php" name="main" />
+    </frameset>
+  </html>
+`;
+
 describe("webCiteProvider", () => {
   it("builds query and capture URLs", () => {
     expect(buildWebCiteQueryUrl("https://example.com")).toBe(
@@ -79,7 +90,7 @@ describe("webCiteProvider", () => {
       return {
         ok: true,
         status: 200,
-        text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+        text: vi.fn().mockResolvedValue(SAMPLE_QUERY_FRAMESET_HTML)
       };
     });
 
@@ -114,7 +125,7 @@ describe("webCiteProvider", () => {
       return {
         ok: true,
         status: 200,
-        text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+        text: vi.fn().mockResolvedValue(SAMPLE_QUERY_FRAMESET_HTML)
       };
     });
 
@@ -124,6 +135,39 @@ describe("webCiteProvider", () => {
         fetchImpl as unknown as typeof fetch
       )
     ).resolves.toEqual({ status: "miss" });
+  });
+
+  it("returns a miss when the query page says the URL was not archived even if topframe has stale data", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/topframe.php")) {
+        return {
+          ok: true,
+          status: 200,
+          text: vi.fn().mockResolvedValue(SAMPLE_TOPFRAME_HTML)
+        };
+      }
+
+      return {
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue(`
+          <html>
+            <head><title>Error</title></head>
+            <body>
+              <p>We do not have any snapshots of the given URL https://example.com in our database.</p>
+            </body>
+          </html>
+        `)
+      };
+    });
+
+    await expect(
+      webCiteProvider.lookup(
+        { strategy: "exact", url: "https://example.com" },
+        fetchImpl as unknown as typeof fetch
+      )
+    ).resolves.toEqual({ status: "miss" });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   it("returns an unverified snapshot when the replay HTML looks broken", async () => {
@@ -148,7 +192,7 @@ describe("webCiteProvider", () => {
       return {
         ok: true,
         status: 200,
-        text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+        text: vi.fn().mockResolvedValue(SAMPLE_QUERY_FRAMESET_HTML)
       };
     });
 

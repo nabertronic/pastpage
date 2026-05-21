@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState, type CSSProperties, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { ArrowDown, ArrowUp, BookOpen, Check, ExternalLink, GripVertical, RefreshCw, RotateCcw, Star, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Check, ExternalLink, GripVertical, RefreshCw, RotateCcw, Sparkles, Star, Trash2 } from "lucide-react";
 import { Button, LinkButton } from "./Button";
 import { PageShell } from "./PageShell";
 import { ResearcherFooter } from "./AppLinks";
 import { NumberField, SelectField, ToggleRow } from "./FieldControls";
 import { LogoMark } from "./LogoMark";
 import { ARCHIVE_TODAY_HOST_OPTIONS, WAYBACK_HOST_OPTIONS } from "../core/providerHosts";
-import { DEFAULT_SETTINGS, SettingsSchema, type Settings } from "../core/settings";
+import {
+  DEFAULT_SETTINGS,
+  SettingsSchema,
+  isBrokenPageAssistSnoozed,
+  type Settings
+} from "../core/settings";
 import { I18nProvider, resolveLocaleFromLanguageMode, useI18n } from "../i18n";
 import { PROVIDERS } from "../core/providers";
 import type { ProviderId } from "../core/providers/types";
@@ -22,7 +27,8 @@ import {
   openExtensionShortcutSettings,
   type UpdateCheckResult
 } from "../platform/runtimeInfo";
-import { historyPageUrl, onboardingPageUrl } from "../platform/urls";
+import { historyPageUrl, onboardingPageUrl, whatsNewPageUrl } from "../platform/urls";
+import { cn } from "../lib/cn";
 
 export function OptionsApp() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
@@ -104,7 +110,7 @@ function OptionsContent({
   setNewDomain: Dispatch<SetStateAction<string>>;
   addDomain: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const browserName = getExtensionBrowser();
   const currentVersion = getExtensionVersion();
   const enabledProviders = new Set(settings.enabledProviders);
@@ -118,6 +124,8 @@ function OptionsContent({
   const [providerTimeoutDraft, setProviderTimeoutDraft] = useState(() => String(settings.providerTimeoutSeconds));
   const storeUrl = getExtensionStoreUrl(browserName);
   const hasStoreListing = hasExtensionStoreListing(browserName);
+  const brokenPageAssistPaused = isBrokenPageAssistSnoozed(settings);
+  const brokenPageAssistPausedUntil = brokenPageAssistPaused ? settings.brokenPageAssistSnoozedUntil : undefined;
 
   useEffect(() => {
     setProviderTimeoutDraft(String(settings.providerTimeoutSeconds));
@@ -189,11 +197,42 @@ function OptionsContent({
     });
   }
 
+  function updateBrokenPageAssist(enabled: boolean) {
+    setSettings((current) => ({
+      ...current,
+      brokenPageAssistEnabled: enabled,
+      brokenPageAssistSnoozedUntil: undefined
+    }));
+  }
+
+  function snoozeBrokenPageAssist(durationMs: number) {
+    setSettings((current) => ({
+      ...current,
+      brokenPageAssistEnabled: true,
+      brokenPageAssistSnoozedUntil: Date.now() + durationMs
+    }));
+  }
+
+  function resumeBrokenPageAssist() {
+    setSettings((current) => ({
+      ...current,
+      brokenPageAssistEnabled: true,
+      brokenPageAssistSnoozedUntil: undefined
+    }));
+  }
+
+  function formatBrokenPageAssistUntil(timestamp: number) {
+    return new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(timestamp);
+  }
+
   return (
     <PageShell title={t("options.title")} description={t("options.description")}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-4">
-          <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+          <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
             <h2 className="text-base font-semibold">{t("options.recoveryBehavior")}</h2>
             <div className="mt-4 grid gap-4">
               <SelectField
@@ -257,8 +296,7 @@ function OptionsContent({
                 onChange={(urlMatchingMode) => setSettings((current) => ({ ...current, urlMatchingMode }))}
                 options={[
                   { value: "exact-then-cleaned", label: t("options.urlMatching.exactThenCleaned") },
-                  { value: "exact-only", label: t("options.urlMatching.exactOnly") },
-                  { value: "cleaned-first", label: t("options.urlMatching.cleanedFirst") }
+                  { value: "exact-only", label: t("options.urlMatching.exactOnly") }
                 ]}
               />
 
@@ -300,6 +338,81 @@ function OptionsContent({
                 }))}
               />
 
+              <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] dark:border-stone-800 dark:bg-stone-950/92">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium leading-6">{t("options.brokenPageAssist.label")}</p>
+                    <p className="text-sm leading-6 text-stone-600 dark:text-stone-300">
+                      {t("options.brokenPageAssist.description")}
+                    </p>
+                    {brokenPageAssistPausedUntil ? (
+                      <p className="mt-2 text-xs leading-5 text-stone-500 dark:text-stone-400">
+                        {t("options.brokenPageAssist.statusPaused", {
+                          value: formatBrokenPageAssistUntil(brokenPageAssistPausedUntil)
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={t("options.brokenPageAssist.toggleLabel")}
+                    aria-pressed={settings.brokenPageAssistEnabled}
+                    className="shrink-0 rounded-md focus-visible:outline-yellow-400"
+                    onClick={() => updateBrokenPageAssist(!settings.brokenPageAssistEnabled)}
+                  >
+                    <span
+                      className={cn(
+                        "relative mt-0.5 block overflow-hidden rounded-full border transition-colors",
+                        settings.brokenPageAssistEnabled
+                          ? "border-yellow-400 bg-yellow-400"
+                          : "border-stone-300 bg-stone-200 dark:border-stone-700 dark:bg-stone-800"
+                      )}
+                      style={{ width: 44, height: 24 }}
+                    >
+                      <span
+                        className="absolute rounded-full bg-white shadow transition-transform"
+                        style={{
+                          width: 18,
+                          height: 18,
+                          top: 2,
+                          left: 2,
+                          transform: settings.brokenPageAssistEnabled ? "translateX(20px)" : "translateX(0)"
+                        }}
+                      />
+                    </span>
+                  </button>
+                </div>
+
+                {settings.brokenPageAssistEnabled ? (
+                  <div className="mt-3 flex flex-wrap justify-end gap-2">
+                    {brokenPageAssistPaused ? (
+                      <Button type="button" variant="secondary" size="sm" onClick={resumeBrokenPageAssist}>
+                        {t("options.brokenPageAssist.resume")}
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => snoozeBrokenPageAssist(60 * 60 * 1000)}
+                        >
+                          {t("options.brokenPageAssist.pauseOneHour")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => snoozeBrokenPageAssist(24 * 60 * 60 * 1000)}
+                        >
+                          {t("options.brokenPageAssist.pauseOneDay")}
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ) : null}
+              </section>
+
               <div>
                 <p className="text-sm font-medium leading-6">{t("options.sitesToIgnore.title")}</p>
                 <p className="text-sm leading-6 text-stone-600 dark:text-stone-300">
@@ -307,7 +420,7 @@ function OptionsContent({
                 </p>
                 <div className="mt-3 flex gap-2">
                   <input
-                    className="min-w-0 flex-1 rounded-md border border-stone-300 bg-white px-3 py-2 text-sm transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950"
+                    className="min-w-0 flex-1 rounded-md border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] px-3 py-2 text-sm transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950"
                     placeholder="example.com"
                     value={newDomain}
                     onChange={(event) => setNewDomain(event.target.value)}
@@ -317,7 +430,7 @@ function OptionsContent({
                   </Button>
                 </div>
                 {settings.domainExceptions.length ? (
-                  <ul className="mt-3 divide-y divide-stone-200 rounded-md border border-stone-200 text-sm dark:divide-stone-800 dark:border-stone-800">
+                  <ul className="mt-3 divide-y divide-[var(--wf-border)] rounded-md border border-[var(--wf-border)] text-sm dark:divide-stone-800 dark:border-stone-800">
                     {settings.domainExceptions.map((domain) => (
                       <li key={domain} className="flex items-center justify-between gap-2 px-3 py-2">
                         <span>{domain}</span>
@@ -342,7 +455,7 @@ function OptionsContent({
             </div>
           </section>
 
-          <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+          <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
             <h2 className="text-base font-semibold">{t("options.archives.label")}</h2>
             <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
               {t("options.archives.description")}
@@ -375,7 +488,7 @@ function OptionsContent({
                         type="button"
                         draggable={false}
                         aria-label={t("options.archives.dragHandle", { provider: PROVIDERS[providerId].displayName })}
-                        className="flex shrink-0 cursor-grab items-center rounded-md border border-stone-200 bg-stone-50 px-2 text-stone-500 transition hover:border-yellow-400 hover:bg-yellow-50 hover:text-stone-950 active:cursor-grabbing dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10 dark:hover:text-yellow-50"
+                        className="flex shrink-0 cursor-grab items-center rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] px-2 text-stone-500 transition hover:border-yellow-400 hover:bg-yellow-50 hover:text-stone-950 active:cursor-grabbing dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10 dark:hover:text-yellow-50"
                       >
                         <GripVertical aria-hidden="true" size={16} />
                       </button>
@@ -427,7 +540,7 @@ function OptionsContent({
             </div>
           </section>
 
-          <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+          <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
             <h2 className="text-base font-semibold">{t("options.appearance")}</h2>
             <div className="mt-4 grid gap-4">
               <ToggleRow
@@ -518,12 +631,12 @@ function OptionsContent({
                 </span>
                 <span className="flex items-center gap-3">
                   <input
-                    className="h-11 w-16 cursor-pointer rounded-md border border-stone-300 bg-white p-1 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950"
+                    className="h-11 w-16 cursor-pointer rounded-md border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] p-1 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950"
                     type="color"
                     value={settings.bannerColor}
                     onChange={(event) => setSettings((current) => ({ ...current, bannerColor: event.target.value }))}
                   />
-                  <span className="rounded-md bg-stone-100 px-3 py-2 font-mono text-xs text-stone-700 dark:bg-stone-900 dark:text-stone-300">
+                  <span className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] px-3 py-2 font-mono text-xs text-stone-700 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300">
                     {settings.bannerColor}
                   </span>
                 </span>
@@ -538,12 +651,12 @@ function OptionsContent({
                 </span>
                 <span className="flex items-center gap-3">
                   <input
-                    className="h-11 w-16 cursor-pointer rounded-md border border-stone-300 bg-white p-1 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950"
+                    className="h-11 w-16 cursor-pointer rounded-md border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] p-1 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950"
                     type="color"
                     value={settings.actionColor}
                     onChange={(event) => setSettings((current) => ({ ...current, actionColor: event.target.value }))}
                   />
-                  <span className="rounded-md bg-stone-100 px-3 py-2 font-mono text-xs text-stone-700 dark:bg-stone-900 dark:text-stone-300">
+                  <span className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] px-3 py-2 font-mono text-xs text-stone-700 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300">
                     {settings.actionColor}
                   </span>
                 </span>
@@ -623,7 +736,7 @@ function OptionsContent({
             </div>
           </section>
 
-          <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+          <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-base font-semibold">{t("options.history.title")}</h2>
@@ -656,7 +769,7 @@ function OptionsContent({
             </div>
           </section>
 
-          <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
+          <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
             <h2 className="text-base font-semibold">{t("options.shortcuts.title")}</h2>
             <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
               {t("options.shortcuts.description")}
@@ -700,7 +813,7 @@ function OptionsContent({
                 {t("options.reset.button")}
               </Button>
             </div>
-            <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm dark:border-stone-800 dark:bg-stone-950/92">
+            <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] dark:border-stone-800 dark:bg-stone-950/92">
               <h2 className="text-sm font-semibold">{t("options.review.title")}</h2>
               <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
                 {t("options.review.description")}
@@ -714,13 +827,24 @@ function OptionsContent({
                 </div>
               ) : null}
             </section>
-            <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm dark:border-stone-800 dark:bg-stone-950/92">
+            <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] dark:border-stone-800 dark:bg-stone-950/92">
               <h2 className="text-sm font-semibold">{t("options.version.title")}</h2>
               <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
                 {t("options.version.current", { version: currentVersion })}
               </p>
+              <LinkButton
+                className="mt-2 w-full"
+                href={whatsNewPageUrl()}
+                target="_blank"
+                rel="noreferrer"
+                variant="quiet"
+                size="sm"
+              >
+                <Sparkles aria-hidden="true" size={14} />
+                {t("options.whatsNew.open")}
+              </LinkButton>
               {browserName === "chrome" ? (
-                <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
+                <p className="mt-2 text-sm leading-6 text-stone-600 dark:text-stone-300">
                   {t("options.updates.chrome.description")}
                 </p>
               ) : null}
@@ -743,18 +867,18 @@ function OptionsContent({
                 ) : null}
               </div>
               {updateResult ? (
-                <p className="mt-3 rounded-md bg-stone-100 px-3 py-2 text-sm leading-6 text-stone-700 dark:bg-stone-900 dark:text-stone-200">
+                <p className="mt-3 rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface-muted)] px-3 py-2 text-sm leading-6 text-stone-700 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200">
                   {formatUpdateMessage(t, updateResult)}
                 </p>
               ) : null}
             </section>
-            <section className="rounded-md border border-stone-200 bg-white/95 p-4 shadow-sm dark:border-stone-800 dark:bg-stone-950/92">
+            <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] dark:border-stone-800 dark:bg-stone-950/92">
               <h2 className="text-sm font-semibold">{t("options.onboarding.title")}</h2>
               <p className="mt-1 text-sm leading-6 text-stone-600 dark:text-stone-300">
                 {t("options.onboarding.description")}
               </p>
               <LinkButton
-                className="mt-3"
+                className="mt-3 w-full"
                 href={onboardingPageUrl()}
                 target="_blank"
                 rel="noreferrer"
@@ -792,7 +916,7 @@ function isMacOS() {
 
 function ShortcutKey({ children }: { children: ReactNode }) {
   return (
-    <kbd className="rounded border border-stone-300 bg-stone-100 px-1.5 py-0.5 font-mono text-xs font-semibold text-stone-700 shadow-[0_1px_0_rgba(0,0,0,0.15)] dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:shadow-[0_1px_0_rgba(0,0,0,0.4)]">
+    <kbd className="rounded border border-[var(--wf-border-strong)] bg-[var(--wf-surface-muted)] px-1.5 py-0.5 font-mono text-xs font-semibold text-stone-700 shadow-[0_1px_0_rgba(0,0,0,0.15)] dark:border-stone-600 dark:bg-stone-800 dark:text-stone-200 dark:shadow-[0_1px_0_rgba(0,0,0,0.4)]">
       {children}
     </kbd>
   );

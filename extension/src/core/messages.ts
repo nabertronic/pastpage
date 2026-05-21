@@ -19,7 +19,8 @@ const ArchiveSnapshotSchema = z.object({
 
 const FailedProviderSchema = z.object({
   providerId: ProviderIdSchema,
-  directLink: z.string()
+  directLink: z.string(),
+  reason: z.enum(["challenge-required", "rate-limited"]).optional()
 });
 
 const LookupStatusSchema = z.union([

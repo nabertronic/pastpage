@@ -1,8 +1,27 @@
 # Changelog
 
+## v1.0.7
+
+- Added a `What's new` page that opens after updates and is also available from Settings.
+- Refined the light theme surfaces so resolver cards, settings panels, history sections, and related controls now use clearer but calmer contrast instead of blending into white-on-white layouts.
+- New installations now use `Browser default` as the theme, so PastPage follows the browser appearance unless you choose a fixed light or dark theme.
+- Manual archive links now show clearer failure reasons, including `Not Found`, `Timeout`, `Service Error`, and `Too Many Requests`, with short explanations when automatic checking could not finish.
+- The default result behavior is now `Only show results in the lookup page`, so archive hits are not opened automatically unless you want that.
+- The result-opening options were renamed to make the differences clearer: only show results, open automatically and keep the lookup page open, or open automatically in the lookup tab.
+- Archive lookups now use the first confirmed hit as soon as it is ready instead of effectively favoring Wayback by waiting longer.
+- Provider-reported snapshots can now appear earlier as unverified results and are upgraded automatically if PastPage confirms them a moment later.
+- While archive checks are still running, completed provider outcomes now appear in the resolver immediately instead of waiting for the slowest remaining provider to finish first.
+- Manual follow-up sources now stay visible incrementally during ongoing lookups, and `Yandex Cache` is always listed first among the sources to verify manually.
+- The default timeout per archive provider was reduced from 60 seconds to 30 seconds so slow services block the final result for less time.
+- When PastPage also tries a cleaned URL fallback, those checks now run in parallel instead of one after another, which makes these lookups feel faster.
+- Automatic broken-page help now appears only for real website error pages, not for local connection problems like DNS, timeout, or certificate errors.
+- Automatic broken-page help can now be paused for 1 hour or 24 hours, resumed later, or turned off completely in Settings.
+- Fixed WebCite automatic lookups so they no longer trust stale topframe.php session data and therefore stop surfacing unrelated captures when WebCite's direct URL query actually has no snapshot for the requested page.
+
 ## v1.0.6
 
 - Simplified the onboarding flow around the two primary actions, removed the duplicated lead card, and tightened the German onboarding copy to use clearer archive-search wording.
+- Added the same simplified onboarding flow and dedicated localized copy for Italian, Polish, Portuguese, and Ukrainian instead of falling back to English.
 - Corrected the onboarding pinning copy in all supported onboarding languages so it consistently refers to the toolbar instead of the address bar.
 - Replaced the generic onboarding puzzle icon with the actual browser-specific extensions icon, so Chrome/Chromium and Firefox now each show the symbol users see in their own browser UI.
 - Unified resolver follow-up action styling so manual archive providers now always use bordered check buttons, archive-copy buttons match the yellow action-link treatment, and the not-found action order now shows `Open current page` before `Copy original URL`.
@@ -23,7 +42,7 @@
 - Updated mixed resolver results so confirmed snapshots stay first and any unverified candidates are listed after them instead of being dropped.
 - Revised resolver copy in all supported languages to distinguish between `could not confirm automatically` and `no archive exists`, and to guide users toward manual verification when needed.
 - Added an explicit resolver progress phase for snapshot verification, so status text can now show steps like checking a provider first and verifying a reported snapshot afterward.
-- Hid `original URL` / strategy wording in resolver status and not-found copy when the lookup runs in `exact-only` mode, while keeping it visible when cleaned-URL fallback is actually in play.
+- Hid `original URL` / strategy wording in resolver status and not-found copy when the lookup runs in exact-only mode, while keeping it visible when cleaned-URL fallback is actually in play.
 
 ## v1.0.3
 
@@ -38,7 +57,7 @@
 - Added a central per-provider timeout, defaulting to 60 seconds and configurable down to the second in settings.
 - Renamed Web Gyotaku to Megalodon across the UI and docs, while keeping `Megalodon/Web Gyotaku` as the visible archive label outside the popup and context menu.
 - Added automatic Software Heritage resolver support for repository URLs and supported code pages.
-- Adjusted the first thanks-page view to use first-time wording instead of repeat/milestone copy, and removed the awkward `1 searches` phrasing.
+- Adjusted the first thanks-page view to use first-time wording instead of repeat/milestone copy, and removed the awkward 1 searches phrasing.
 - Updated Perma.cc so automatic hits now come only from the public Perma.cc API, while manual popup/context-menu actions open a provider-scoped resolver lookup instead of sending users to the generic Perma.cc landing page.
 - Updated the resolver copy for provider-scoped Perma.cc lookups so the page clearly says that only Perma.cc is being checked, rather than implying that all archive providers were searched.
 - Moved Perma.cc behind Megalodon and WebCite in the popup and context menu, and disabled it by default; it can still be re-enabled in the settings.

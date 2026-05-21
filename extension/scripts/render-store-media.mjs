@@ -585,8 +585,7 @@ function buildResolverPanel() {
 
   const BASE_BTN = "display:inline-flex;align-items:center;justify-content:center;gap:8px;height:32px;padding:0 10px;border-radius:6px;font:600 12px/1 ui-sans-serif,sans-serif;text-decoration:none;white-space:nowrap;";
   const btnPrimary = (icon, label) => `<span style="${BASE_BTN}border:1px solid #fde047;background:#ffd400;color:#0c0a09;box-shadow:0 8px 24px rgba(255,212,0,0.22);">${icon}${label}</span>`;
-  const btnSecondary = (icon, label) => `<span style="${BASE_BTN}border:1px solid #d6d3d1;background:#fff;color:#0c0a09;">${icon}${label}</span>`;
-  const btnGhost = (icon, label) => `<span style="${BASE_BTN}border:1px solid transparent;background:transparent;color:#44403c;">${icon}${label}</span>`;
+  const btnAction = (icon, label) => `<span style="${BASE_BTN}border:1px solid #57534e;background:#0c0a09;color:#ffd400;box-shadow:0 0 0 1px rgba(255,255,255,0.03);">${icon}${label}</span>`;
 
   const snapshotCard = (provider, ts, url) => `
     <div style="margin-top:12px;border-radius:6px;background:#f5f5f4;padding:8px;">
@@ -595,14 +594,14 @@ function buildResolverPanel() {
         <p style="margin:0;font:400 11px/1 ui-sans-serif,sans-serif;text-transform:uppercase;letter-spacing:0.12em;color:#78716c;">${ts}</p>
       </div>
       <p style="margin:8px 0 0;padding:0 4px;font:400 12px/1.5 ui-sans-serif,sans-serif;color:#44403c;word-break:break-all;">${url}</p>
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnPrimary(iconExternal, "Open archived version")}${btnSecondary(iconCopy, "Copy archive link")}</div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnAction(iconExternal, "Open archived version")}${btnAction(iconCopy, "Copy archive link")}</div>
     </div>`;
 
   const manualSourceCard = (provider, url) => `
     <div style="border-radius:6px;background:#f5f5f4;padding:8px;">
       <p style="margin:0;padding:0 4px;font:600 12px/1 ui-sans-serif,sans-serif;color:#0c0a09;">${provider}</p>
       <p style="margin:8px 0 0;padding:0 4px;font:400 12px/1.5 ui-sans-serif,sans-serif;color:#44403c;word-break:break-all;">${url}</p>
-      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnGhost(iconExternal, `Check on ${provider}`)}${btnSecondary(iconCopy, "Copy archive link")}</div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnAction(iconExternal, `Check on ${provider}`)}${btnAction(iconCopy, provider === "Yandex Cache" ? "Copy cache link" : "Copy archive link")}</div>
     </div>`;
 
   const footerLinks = [
@@ -639,7 +638,7 @@ function buildResolverPanel() {
               <p style="margin:4px 0 0;font:400 14px/1.5 ui-sans-serif,sans-serif;color:#57534e;">Checking archived versions for this page.</p>
               <div style="margin-top:12px;border-radius:6px;background:#f5f5f4;padding:8px;">
                 <p style="margin:0;padding:0 4px;font:400 12px/1.5 ui-sans-serif,sans-serif;color:#44403c;word-break:break-all;">${targetUrl}</p>
-                <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnSecondary(iconExternal, "Open current page")}${btnSecondary(iconCopy, "Copy URL")}</div>
+                <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">${btnAction(iconExternal, "Open current page")}${btnAction(iconCopy, "Copy URL")}</div>
               </div>
             </div>
           </div>

@@ -72,6 +72,34 @@ describe("snapshotValidation", () => {
     }
   });
 
+  it("surfaces the newest candidate as unverified before replay verification finishes", async () => {
+    let resolveValidation: (value: unknown) => void = () => {};
+    const delayedValidation = new Promise((resolve) => {
+      resolveValidation = resolve;
+    });
+    const surfacedSnapshots: Array<"confirmed" | "unverified"> = [];
+
+    const validationPromise = selectLatestWorkingSnapshot(
+      [candidate],
+      vi.fn().mockImplementation(() => delayedValidation) as unknown as typeof fetch,
+      1,
+      undefined,
+      (snapshot) => surfacedSnapshots.push(snapshot.verification)
+    );
+
+    expect(surfacedSnapshots).toEqual(["unverified"]);
+
+    resolveValidation({
+      ok: true,
+      redirected: false,
+      headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+      text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
+    });
+
+    const result = await validationPromise;
+    expect(result.status).toBe("confirmed");
+  });
+
   it("returns a miss when no candidates exist", async () => {
     const result = await selectLatestWorkingSnapshot([], vi.fn() as unknown as typeof fetch);
     expect(result).toEqual({ status: "miss" });

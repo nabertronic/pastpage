@@ -1,8 +1,7 @@
 import {
   explainHttpStatus,
   explainNavigationError,
-  isRelevantHttpStatus,
-  isRelevantNavigationError
+  isRelevantHttpStatus
 } from "../src/core/errors";
 import { lookupArchives } from "../src/core/lookup";
 import { createManualPageLookupRequest, type LookupRequest } from "../src/core/lookupRequest";
@@ -10,14 +9,21 @@ import type { HistoryTrigger } from "../src/core/history";
 import { buildProviderActions, getProvider, type ProviderId } from "../src/core/providers";
 import { parseRuntimeMessage, type RuntimeMessage } from "../src/core/messages";
 import { getLookupTargetState } from "../src/core/lookupTarget";
+import { isBrokenPageAssistActive, type Settings } from "../src/core/settings";
 import type { DetectedError, TabState } from "../src/core/tabState";
 import { idleTabState } from "../src/core/tabState";
-import { getUrlEligibility } from "../src/core/urlPolicy";
 import { createTranslator, resolveLocaleFromLanguageMode, type TranslationKey } from "../src/i18n";
 import { openArchiveUrl } from "../src/platform/archiveNavigation";
 import { updateBadge } from "../src/platform/badge";
-import { createHistoryEntry, ensureSettings, getSettings, saveSettings } from "../src/platform/storage";
-import { fallbackUrl, onboardingPageUrl, resolverUrl } from "../src/platform/urls";
+import {
+  createHistoryEntry,
+  ensureSettings,
+  getLocalMeta,
+  getSettings,
+  markWhatsNewVersionSeen,
+  saveSettings
+} from "../src/platform/storage";
+import { onboardingPageUrl, resolverUrl, whatsNewPageUrl } from "../src/platform/urls";
 
 const tabStates = new Map<number, TabState>();
 const ROOT_CONTEXT_MENU_ID = "pastpage-root";
@@ -243,16 +249,6 @@ function detectedHttpError(url: string, statusCode: number): DetectedError {
   };
 }
 
-function detectedNavigationError(url: string, browserError: string): DetectedError {
-  return {
-    kind: "navigation",
-    originalUrl: url,
-    browserError,
-    explanation: explainNavigationError(browserError),
-    detectedAt: Date.now()
-  };
-}
-
 function isMutedByDomain(rawUrl: string, domainExceptions: string[]) {
   try {
     const hostname = new URL(rawUrl).hostname.toLowerCase();
@@ -262,11 +258,16 @@ function isMutedByDomain(rawUrl: string, domainExceptions: string[]) {
   }
 }
 
-async function recordBrokenPage(tabId: number, error: DetectedError) {
+async function recordBrokenPage(tabId: number, error: DetectedError): Promise<boolean> {
   const settings = await getSettings();
+  if (!isBrokenPageAssistActive(settings)) {
+    await clearState(tabId);
+    return false;
+  }
+
   if (isMutedByDomain(error.originalUrl, settings.domainExceptions)) {
     await clearState(tabId);
-    return;
+    return false;
   }
 
   await setState(tabId, {
@@ -274,6 +275,7 @@ async function recordBrokenPage(tabId: number, error: DetectedError) {
     error,
     lookup: { status: "idle" }
   });
+  return true;
 }
 
 function lookupRequestToDetectedError(request: LookupRequest): DetectedError | null {
@@ -297,6 +299,27 @@ async function refreshTrackedBadges() {
   await Promise.all(
     Array.from(trackedTabIds).map((tabId) => updateBadge(tabId, getState(tabId)))
   );
+}
+
+async function clearBrokenStates() {
+  const brokenTabIds = [...tabStates.entries()]
+    .filter(([, state]) => state.status === "broken")
+    .map(([tabId]) => tabId);
+
+  await Promise.all(brokenTabIds.map((tabId) => clearState(tabId)));
+}
+
+async function applySettings(settings: Settings) {
+  const savedSettings = await saveSettings(settings);
+  await ensureContextMenu();
+
+  if (isBrokenPageAssistActive(savedSettings)) {
+    await refreshTrackedBadges();
+  } else {
+    await clearBrokenStates();
+  }
+
+  return savedSettings;
 }
 
 async function startResolver(request: LookupRequest, tabId?: number, historyTrigger?: HistoryTrigger) {
@@ -681,6 +704,24 @@ export default defineBackground(() => {
         url: onboardingPageUrl(),
         active: true
       });
+      return;
+    }
+
+    if (details.reason === "update") {
+      void (async () => {
+        const currentVersion = browser.runtime.getManifest().version;
+        const meta = await getLocalMeta();
+
+        if (meta.lastSeenWhatsNewVersion === currentVersion) {
+          return;
+        }
+
+        await browser.tabs.create({
+          url: whatsNewPageUrl(),
+          active: true
+        });
+        await markWhatsNewVersionSeen(currentVersion);
+      })();
     }
   });
 
@@ -698,32 +739,6 @@ export default defineBackground(() => {
       if (details.statusCode >= 200 && details.statusCode < 400) {
         void clearState(details.tabId);
       }
-    },
-    { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] }
-  );
-
-  browser.webRequest.onErrorOccurred.addListener(
-    (details) => {
-      if (details.tabId < 0 || details.type !== "main_frame") return;
-
-      if (!getUrlEligibility(details.url).eligible) {
-        return;
-      }
-
-      if (!isRelevantNavigationError(details.error)) {
-        return;
-      }
-
-      const error = detectedNavigationError(details.url, details.error);
-      void recordBrokenPage(details.tabId, error).then(async () => {
-        await browser.tabs
-          .create({
-            url: fallbackUrl(error, details.tabId),
-            active: true,
-            openerTabId: details.tabId
-          })
-          .catch(() => undefined);
-      });
     },
     { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] }
   );
@@ -798,9 +813,7 @@ export default defineBackground(() => {
         return { settings: await getSettings() };
 
       case "UPDATE_SETTINGS": {
-        const settings = await saveSettings(message.settings);
-        await ensureContextMenu();
-        await refreshTrackedBadges();
+        const settings = await applySettings(message.settings);
         return { settings };
       }
 

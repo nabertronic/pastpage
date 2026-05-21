@@ -1,8 +1,12 @@
 import type { ArchiveTodayHost, ProviderHostSettings } from "../providerHosts";
 import { buildArchiveTodayBaseUrl } from "../providerHosts";
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshotCandidate } from "../tabState";
-import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
+import type { ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
+import {
+  ProviderLookupError,
+  type ArchiveProviderLookupResult,
+  type AutomaticArchiveProvider
+} from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 import { timestampFromDate } from "./common";
 
@@ -39,7 +43,8 @@ async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch,
   hostSettings?: ProviderHostSettings,
-  onProgress?: (phase: "querying" | "verifying") => void
+  onProgress?: (phase: "querying" | "verifying") => void,
+  onSnapshot?: (snapshot: ArchiveSnapshot) => void
 ): Promise<ArchiveProviderLookupResult> {
   const url = `${buildArchiveTodayBaseUrl(resolveArchiveTodayHost(hostSettings))}/timemap/${candidate.url}`;
   const response = await fetchImpl(url, {
@@ -49,7 +54,13 @@ async function lookup(
 
   if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
-    throw new Error(`Archive.today timemap returned ${response.status}`);
+    if (response.status === 429) {
+      throw new ProviderLookupError("Archive.today requires a manual challenge step", "challenge-required");
+    }
+    if (response.status >= 500) {
+      throw new ProviderLookupError(`Archive.today timemap returned ${response.status}`, "server-error");
+    }
+    throw new ProviderLookupError(`Archive.today timemap returned ${response.status}`);
   }
 
   const body = await response.text();
@@ -65,7 +76,13 @@ async function lookup(
       providerId: "archive-today" as const
     }));
 
-  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
+  return selectLatestWorkingSnapshot(
+    snapshots,
+    fetchImpl,
+    10,
+    onProgress ? () => onProgress("verifying") : undefined,
+    onSnapshot
+  );
 }
 
 export const archiveTodayProvider: AutomaticArchiveProvider = {

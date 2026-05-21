@@ -23,7 +23,8 @@ export type HistoryAttempt = z.infer<typeof HistoryAttemptSchema>;
 
 export const HistoryFailedProviderSchema = z.object({
   providerId: ProviderIdSchema,
-  directLink: z.string().optional()
+  directLink: z.string().optional(),
+  reason: z.enum(["challenge-required", "rate-limited"]).optional()
 });
 export type HistoryFailedProvider = z.infer<typeof HistoryFailedProviderSchema>;
 

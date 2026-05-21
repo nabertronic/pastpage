@@ -1,6 +1,7 @@
 import { z } from "../../lib/mini-zod";
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
+import { ProviderLookupError } from "./types";
 import type { ArchivePriorityContext, ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
@@ -60,7 +61,8 @@ async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch,
   _hostSettings?: never,
-  onProgress?: (phase: "querying" | "verifying") => void
+  onProgress?: (phase: "querying" | "verifying") => void,
+  onSnapshot?: (snapshot: ArchiveSnapshot) => void
 ): Promise<ArchiveProviderLookupResult> {
   const response = await fetchImpl(buildArquivoPtUrlSearchUrl(candidate.url), {
     method: "GET",
@@ -69,7 +71,9 @@ async function lookup(
 
   if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
-    throw new Error(`Arquivo.pt returned ${response.status}`);
+    if (response.status === 429) throw new ProviderLookupError("Arquivo.pt rate-limited this request", "rate-limited");
+    if (response.status >= 500) throw new ProviderLookupError(`Arquivo.pt returned ${response.status}`, "server-error");
+    throw new ProviderLookupError(`Arquivo.pt returned ${response.status}`);
   }
 
   const json = (await response.json()) as unknown;
@@ -95,7 +99,13 @@ async function lookup(
     });
   }
 
-  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
+  return selectLatestWorkingSnapshot(
+    snapshots,
+    fetchImpl,
+    10,
+    onProgress ? () => onProgress("verifying") : undefined,
+    onSnapshot
+  );
 }
 
 export const arquivoPtProvider: AutomaticArchiveProvider = {

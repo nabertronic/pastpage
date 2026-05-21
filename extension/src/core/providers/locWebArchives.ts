@@ -1,5 +1,6 @@
 import type { SearchCandidate } from "../urlPolicy";
-import type { ArchiveSnapshotCandidate } from "../tabState";
+import type { ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
+import { ProviderLookupError } from "./types";
 import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
 import { absoluteUrl } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
@@ -33,7 +34,8 @@ async function lookup(
   candidate: SearchCandidate,
   fetchImpl: typeof fetch,
   _hostSettings?: never,
-  onProgress?: (phase: "querying" | "verifying") => void
+  onProgress?: (phase: "querying" | "verifying") => void,
+  onSnapshot?: (snapshot: ArchiveSnapshot) => void
 ): Promise<ArchiveProviderLookupResult> {
   const timelineUrl = `https://webarchive.loc.gov/all/*/${candidate.url}`;
   const response = await fetchImpl(timelineUrl, {
@@ -43,7 +45,9 @@ async function lookup(
 
   if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
-    throw new Error(`Library of Congress Web Archives returned ${response.status}`);
+    if (response.status === 429) throw new ProviderLookupError("Library of Congress Web Archives rate-limited this request", "rate-limited");
+    if (response.status >= 500) throw new ProviderLookupError(`Library of Congress Web Archives returned ${response.status}`, "server-error");
+    throw new ProviderLookupError(`Library of Congress Web Archives returned ${response.status}`);
   }
 
   const html = await response.text();
@@ -58,7 +62,13 @@ async function lookup(
       providerId: "loc-web-archives" as const
     }));
 
-  return selectLatestWorkingSnapshot(snapshots, fetchImpl, 10, onProgress ? () => onProgress("verifying") : undefined);
+  return selectLatestWorkingSnapshot(
+    snapshots,
+    fetchImpl,
+    10,
+    onProgress ? () => onProgress("verifying") : undefined,
+    onSnapshot
+  );
 }
 
 export const locWebArchivesProvider: AutomaticArchiveProvider = {

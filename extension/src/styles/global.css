@@ -3,12 +3,14 @@
 
 :root {
   color-scheme: light;
-  --wf-bg: #f8f8f8;
-  --wf-surface: #ffffff;
-  --wf-surface-muted: #f0f0f0;
-  --wf-border: #e0e0e0;
+  --wf-bg: #f3efe7;
+  --wf-surface: #fffdfa;
+  --wf-surface-muted: #f8f4ec;
+  --wf-surface-raised: #f8f4ec;
+  --wf-border: #d8cfbf;
+  --wf-border-strong: #c8bca7;
   --wf-text: #111111;
-  --wf-muted: #737373;
+  --wf-muted: #625d52;
   --wf-accent: #f5c800;
   --wf-accent-strong: #a37a00;
   --wf-accent-soft: #fef4c0;
@@ -23,7 +25,9 @@
   --wf-bg: #11100c;
   --wf-surface: #1b1912;
   --wf-surface-muted: #2a2618;
+  --wf-surface-raised: #221f17;
   --wf-border: #5d5227;
+  --wf-border-strong: #766936;
   --wf-text: #fff9df;
   --wf-muted: #d2c89d;
   --wf-accent: #ffd400;

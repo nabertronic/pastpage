@@ -99,10 +99,10 @@ export const es = {
   "options.providerContextMenu.newWindow": "Nueva ventana",
   "options.afterSnapshot.label": "Después de encontrar un snapshot",
   "options.afterSnapshot.description":
-    "Elige si PastPage abre automáticamente el primer snapshot encontrado y si la página de búsqueda permanece abierta.",
-  "options.afterSnapshot.keepResolver": "Mantener la página de búsqueda abierta",
-  "options.afterSnapshot.replaceResolver": "Usar la pestaña de búsqueda para el archivo",
-  "options.afterSnapshot.manualOpenOnly": "No abrir automáticamente",
+    "Elige si PastPage solo muestra los snapshots encontrados en la página de búsqueda, los abre automáticamente mientras mantiene abierta la página de búsqueda o sustituye la pestaña de búsqueda por el archivo.",
+  "options.afterSnapshot.keepResolver": "Abrir automáticamente y mantener abierta la página de búsqueda",
+  "options.afterSnapshot.replaceResolver": "Abrir automáticamente en la pestaña de búsqueda",
+  "options.afterSnapshot.manualOpenOnly": "Solo mostrar resultados en la página de búsqueda",
   "options.urlMatching.label": "Coincidencia de URL",
   "options.urlMatching.description":
     "Decide con qué precisión debe seguir la búsqueda de archivo la URL original.",
@@ -175,6 +175,8 @@ export const es = {
     "Las valoraciones ayudan a otros investigadores a encontrar herramientas de recuperación con privacidad.",
   "options.version.title": "Versión y actualizaciones",
   "options.version.current": "Versión instalada: {{version}}",
+  "options.whatsNew.description": "Consulta qué cambió en las versiones recientes de PastPage.",
+  "options.whatsNew.open": "What's new",
   "options.updates.check": "Buscar actualizaciones",
   "options.updates.checking": "Buscando actualizaciones…",
   "options.updates.unknownVersion": "una versión más reciente",
@@ -196,6 +198,15 @@ export const es = {
   "options.updates.firefox.listingFallback":
     "Se abrió la ficha de Firefox Add-ons porque no fue posible abrir directamente el Administrador de complementos. Verifica allí la última versión publicada o ejecuta Buscar actualizaciones desde el administrador de complementos de Firefox.",
   "options.updates.firefox.openListing": "Abrir ficha de Firefox Add-ons",
+  "whatsNew.title": "Novedades",
+  "whatsNew.description": "Descubre los cambios de las últimas versiones de PastPage.",
+  "whatsNew.releaseNotes": "Notas de la versión",
+  "whatsNew.currentVersion": "Versión actual: {{version}}",
+  "whatsNew.latestBadge": "Más reciente",
+  "whatsNew.versionSummary": "{{count}} cambios",
+  "whatsNew.expand": "Expandir {{version}}",
+  "whatsNew.collapse": "Contraer {{version}}",
+  "whatsNew.empty": "Todavía no hay entradas del changelog disponibles.",
   "footer.description":
     "PastPage es una herramienta de código abierto para periodistas e investigadores que buscan versiones archivadas de páginas desaparecidas.",
   "thanks.firstTitle": "PastPage ayudó por primera vez",
@@ -233,6 +244,8 @@ export const es = {
   "resolver.found.openArchivedVersion": "Abrir versión archivada",
   "resolver.found.copyArchiveLink": "Copiar enlace de archivo",
   "resolver.found.archiveLinkCopied": "Enlace de archivo copiado",
+  "resolver.found.copyCacheLink": "Copiar enlace de caché",
+  "resolver.found.cacheLinkCopied": "Enlace de caché copiado",
   "resolver.unverified.title": "{{provider}} informó una captura archivada",
   "resolver.unverified.description":
     "PastPage encontró una captura archivada concreta, pero no pudo verificarla ni abrirla automáticamente.",
@@ -240,6 +253,26 @@ export const es = {
   "resolver.unverified.additionalMatches": "Otras capturas archivadas sin verificar",
   "resolver.unverified.alsoCheckSources": "También puedes verificar manualmente estas fuentes de archivo:",
   "resolver.manual.checkOnProvider": "Comprobar en {{provider}}",
+  "resolver.manual.badge.captcha": "Captcha",
+  "resolver.manual.badge.tooManyRequests": "Too Many Requests",
+  "resolver.manual.badge.manual": "Manual",
+  "resolver.manual.badge.notFound": "No encontrado",
+  "resolver.manual.badge.serviceError": "Error del servicio",
+  "resolver.manual.badge.timeout": "Tiempo agotado",
+  "resolver.manual.archiveTodayChallenge":
+    "Archive.today pidió un paso manual de verificación, así que PastPage no pudo comprobarlo automáticamente.",
+  "resolver.manual.waybackRateLimited":
+    "Wayback Machine limitó esta solicitud. Esto ocurre con más frecuencia en VPN o IP compartidas. Inténtalo más tarde o abre Wayback manualmente.",
+  "resolver.manual.yandexManualHelp":
+    "Yandex Cache siempre debe comprobarse manualmente: abre el enlace y, si hay un resultado, usa el menú de tres puntos junto a él para abrir la versión en caché.",
+  "resolver.manual.notFound":
+    "{{provider}} no tenía esta URL archivada. Aún puedes comprobar manualmente. La página puede haber sido archivada desde entonces.",
+  "resolver.manual.serviceError":
+    "{{provider}} devolvió un error. El servicio puede estar temporalmente no disponible. Intenta comprobar manualmente.",
+  "resolver.manual.timeout":
+    "{{provider}} tardó demasiado en responder. Intenta comprobar manualmente o inténtalo más tarde.",
+  "resolver.manual.rateLimited":
+    "{{provider}} limitó esta solicitud. Inténtalo más tarde o comprueba manualmente.",
   "resolver.notFound.description":
     "Se comprobó la coincidencia de URL {{strategies}} en todos los proveedores de archivo, pero no se pudo confirmar automáticamente una captura HTML archivada que funcione.",
   "resolver.notFound.descriptionScoped":
@@ -258,6 +291,7 @@ export const es = {
   "sourceSummary.description": "Comprobando versiones archivadas de esta página.",
   "sourceSummary.descriptionScoped": "Comprobando versiones archivadas de esta página en {{provider}}.",
   "topbar.cta": "Buscar versión archivada",
+  "topbar.snooze": "Pause 1h",
   "topbar.dismiss": "Descartar PastPage",
   "topbar.legalReason": "451: No disponible por razones legales. ¿Buscar la última versión archivada?",
   "topbar.default": "{{title}}. ¿Buscar una versión archivada?",
@@ -338,6 +372,16 @@ export const es = {
   "options.onboarding.title": "Primeros pasos",
   "options.onboarding.description": "Vuelve a abrir la guía de configuración para revisar el anclaje, las funciones y los ajustes.",
   "options.onboarding.openGuide": "Abrir guía",
+  "options.brokenPageAssist.label": "Automatic broken-page help",
+  "options.brokenPageAssist.description": "Offer automatic recovery help on broken HTTP pages only.",
+  "options.brokenPageAssist.toggleLabel": "Enable automatic broken-page help",
+  "options.brokenPageAssist.toggleDescription": "Enable automatic broken-page help",
+  "options.brokenPageAssist.statusActive": "Status: Active",
+  "options.brokenPageAssist.statusPaused": "Status: Paused until {{value}}",
+  "options.brokenPageAssist.statusOff": "Status: Off",
+  "options.brokenPageAssist.pauseOneHour": "Pause for 1 hour",
+  "options.brokenPageAssist.pauseOneDay": "Pause for 24 hours",
+  "options.brokenPageAssist.resume": "Resume now",
   "options.history.enabled.label": "Guardar historial de búsquedas",
   "options.history.enabled.description":
     "Guardar un historial local de búsquedas en archivos, resultados y coincidencias confirmadas.",

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("background onboarding install flow", () => {
+  const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
@@ -24,7 +26,20 @@ describe("background onboarding install flow", () => {
     });
 
     vi.mocked(browser.tabs.create).mockClear();
+    storageGetMock.mockResolvedValue({});
     onInstalled?.({ reason: "update" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: "moz-extension://test//whats-new.html",
+      active: true
+    });
+
+    vi.mocked(browser.tabs.create).mockClear();
+    storageGetMock.mockResolvedValue({
+      "pastPage.meta": { lastSeenWhatsNewVersion: "1.0.3" }
+    });
+    onInstalled?.({ reason: "update" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(browser.tabs.create).not.toHaveBeenCalled();
   });
 });

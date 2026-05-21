@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS, parseSettings } from "@/core/settings";
+import { DEFAULT_SETTINGS, isBrokenPageAssistActive, parseSettings } from "@/core/settings";
 
 describe("settings", () => {
   it("uses privacy-preserving defaults", () => {
     expect(DEFAULT_SETTINGS.openBehavior).toBe("new-tab-foreground");
     expect(DEFAULT_SETTINGS.providerMenuOpenBehavior).toBe("new-tab-foreground");
+    expect(DEFAULT_SETTINGS.brokenPageAssistEnabled).toBe(true);
     expect(DEFAULT_SETTINGS.enabledProviders.length).toBeGreaterThan(0);
     expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("arquivo-pt");
     expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("perma-cc");
@@ -26,17 +27,24 @@ describe("settings", () => {
     expect(DEFAULT_SETTINGS.waybackHost).toBe("web.archive.org");
     expect(DEFAULT_SETTINGS.archiveTodayHost).toBe("archive.ph");
     expect(DEFAULT_SETTINGS.urlMatchingMode).toBe("exact-then-cleaned");
-    expect(DEFAULT_SETTINGS.providerTimeoutSeconds).toBe(60);
-    expect(DEFAULT_SETTINGS.themeMode).toBe("dark");
+    expect(DEFAULT_SETTINGS.providerTimeoutSeconds).toBe(30);
+    expect(DEFAULT_SETTINGS.themeMode).toBe("browser");
     expect(DEFAULT_SETTINGS.badgeEnabled).toBe(true);
     expect(DEFAULT_SETTINGS.bannerTheme).toBe("auto-contrast");
     expect(DEFAULT_SETTINGS.bannerColor).toBe("#11100c");
     expect(DEFAULT_SETTINGS.actionColor).toBe("#ffd400");
-    expect(DEFAULT_SETTINGS.resolverSuccessBehavior).toBe("keep-resolver");
+    expect(DEFAULT_SETTINGS.resolverSuccessBehavior).toBe("manual-open-only");
   });
 
   it("falls back when settings are invalid", () => {
     expect(parseSettings({ openBehavior: "bad" })).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it("normalizes the obsolete cleaned-first URL matching mode to the parallel fallback mode", () => {
+    expect(parseSettings({ urlMatchingMode: "cleaned-first" })).toEqual({
+      ...DEFAULT_SETTINGS,
+      urlMatchingMode: "exact-then-cleaned"
+    });
   });
 
   it("accepts custom banner and action colors", () => {
@@ -73,6 +81,29 @@ describe("settings", () => {
       ...DEFAULT_SETTINGS,
       historyEnabled: false
     });
+  });
+
+  it("accepts a stored broken-page snooze timestamp", () => {
+    expect(parseSettings({ brokenPageAssistSnoozedUntil: 1234567890 })).toEqual({
+      ...DEFAULT_SETTINGS,
+      brokenPageAssistSnoozedUntil: 1234567890
+    });
+  });
+
+  it("ignores invalid broken-page snooze timestamps", () => {
+    expect(parseSettings({ brokenPageAssistSnoozedUntil: -1 })).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it("treats expired snooze timestamps as active", () => {
+    expect(
+      isBrokenPageAssistActive(
+        {
+          ...DEFAULT_SETTINGS,
+          brokenPageAssistSnoozedUntil: 5
+        },
+        10
+      )
+    ).toBe(true);
   });
 
   it("accepts the configured enabledProviders setting", () => {

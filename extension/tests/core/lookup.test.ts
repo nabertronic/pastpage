@@ -1,5 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { lookupArchives } from "@/core/lookup";
+
+const WEB_CITE_FRAMESET_HTML = `
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+  <html>
+    <head><title>WebCite query result</title></head>
+    <frameset rows="60,*" frameborder="0">
+      <frame src="./topframe.php" name="nav" />
+      <frame src="./mainframe.php" name="main" />
+    </frameset>
+  </html>
+`;
 import type { LookupProgressStep } from "@/core/lookup";
 
 function emptyWaybackResponse() {
@@ -147,11 +158,11 @@ describe("lookupArchives", () => {
       expect(result.snapshot.archiveUrl).toContain("web.archive.org/web/20240101000000id_");
       expect(result.snapshot.openUrl).toContain("web.archive.org/web/20240101000000/");
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "yandex-cache",
         "archive-today",
         "ghostarchive",
         "web-gyotaku",
-        "webcite",
-        "yandex-cache"
+        "webcite"
       ]);
     }
   });
@@ -195,10 +206,10 @@ describe("lookupArchives", () => {
         "archive-today"
       ]);
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "yandex-cache",
         "ghostarchive",
         "web-gyotaku",
-        "webcite",
-        "yandex-cache"
+        "webcite"
       ]);
     }
   });
@@ -350,7 +361,7 @@ describe("lookupArchives", () => {
         return {
           ok: true,
           status: 200,
-          text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+          text: vi.fn().mockResolvedValue(WEB_CITE_FRAMESET_HTML)
         };
       }
     });
@@ -368,11 +379,11 @@ describe("lookupArchives", () => {
       expect(result.snapshot.openUrl).toBe("https://www.webcitation.org/perma-123");
       expect(result.snapshot.timestamp).toBe("20190607070409");
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "yandex-cache",
         "wayback",
         "archive-today",
         "ghostarchive",
-        "web-gyotaku",
-        "yandex-cache"
+        "web-gyotaku"
       ]);
     }
   });
@@ -413,7 +424,7 @@ describe("lookupArchives", () => {
         return {
           ok: true,
           status: 200,
-          text: vi.fn().mockResolvedValue("<html><frameset></frameset></html>")
+          text: vi.fn().mockResolvedValue(WEB_CITE_FRAMESET_HTML)
         };
       }
     });
@@ -478,10 +489,10 @@ describe("lookupArchives", () => {
         "ghostarchive"
       ]);
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "yandex-cache",
         "wayback",
         "web-gyotaku",
-        "webcite",
-        "yandex-cache"
+        "webcite"
       ]);
     }
   });
@@ -538,7 +549,7 @@ describe("lookupArchives", () => {
     }
   });
 
-  it("opens a faster fallback only after Wayback finishes without a hit", async () => {
+  it("emits a faster confirmed hit immediately while Wayback is still pending", async () => {
     let resolveWayback: (value: unknown) => void = () => {};
     const delayedWayback = new Promise((resolve) => {
       resolveWayback = resolve;
@@ -574,8 +585,7 @@ describe("lookupArchives", () => {
       (snapshot) => preferred.push(snapshot.providerId)
     );
 
-    await Promise.resolve();
-    expect(preferred).toEqual([]);
+    await vi.waitFor(() => expect(preferred).toEqual(["archive-today"]));
 
     resolveWayback({
       ok: true,
@@ -639,7 +649,7 @@ describe("lookupArchives", () => {
       }
     );
 
-    expect(steps).toEqual([
+    expect(Array.from(new Set(steps))).toEqual([
       "wayback:exact",
       "archive-today:exact",
       "arquivo-pt:exact",
@@ -670,7 +680,7 @@ describe("lookupArchives", () => {
       }
     );
 
-    expect(steps).toEqual([
+    expect(Array.from(new Set(steps))).toEqual([
       "wayback:exact",
       "archive-today:exact",
       "web-gyotaku:exact",
@@ -701,7 +711,7 @@ describe("lookupArchives", () => {
       }
     );
 
-    expect(ukSteps).toEqual([
+    expect(Array.from(new Set(ukSteps))).toEqual([
       "wayback",
       "archive-today",
       "uk-gov-web-archive",
@@ -731,7 +741,7 @@ describe("lookupArchives", () => {
       }
     );
 
-    expect(usSteps).toEqual([
+    expect(Array.from(new Set(usSteps))).toEqual([
       "wayback",
       "archive-today",
       "ghostarchive",
@@ -765,15 +775,80 @@ describe("lookupArchives", () => {
     if (result.status === "not-found") {
       expect(result.failedProviders).toHaveLength(1);
       expect(result.failedProviders[0].providerId).toBe("archive-today");
+      expect(result.failedProviders[0].reason).toBeUndefined();
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "yandex-cache",
         "wayback",
         "archive-today",
         "ghostarchive",
         "software-heritage",
         "web-gyotaku",
-        "webcite",
-        "yandex-cache"
+        "webcite"
       ]);
+    }
+  });
+
+  it("marks Archive.today 429 responses as a manual challenge fallback", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => ({
+        ok: false,
+        status: 429,
+        text: vi.fn().mockResolvedValue("<html><body>rate limited</body></html>")
+      }),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("not-found");
+    if (result.status === "not-found") {
+      expect(result.failedProviders).toEqual([
+        expect.objectContaining({
+          providerId: "archive-today",
+          reason: "challenge-required"
+        })
+      ]);
+      expect(result.manualSources.map((source) => source.providerId)).toContain("archive-today");
+    }
+  });
+
+  it("marks Wayback 429 responses as rate-limited while keeping the manual link available", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": () => ({
+        ok: false,
+        status: 429,
+        json: vi.fn().mockResolvedValue([])
+      }),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("not-found");
+    if (result.status === "not-found") {
+      expect(result.failedProviders).toEqual([
+        expect.objectContaining({
+          providerId: "wayback",
+          reason: "rate-limited"
+        })
+      ]);
+      expect(result.manualSources.map((source) => source.providerId)).toContain("wayback");
     }
   });
 
@@ -815,13 +890,76 @@ describe("lookupArchives", () => {
       expect(result.snapshot.providerId).toBe("archive-today");
       expect(result.snapshot.verification).toBe("unverified");
       expect(result.manualSources.map((source) => source.providerId)).toEqual([
+        "yandex-cache",
         "wayback",
         "ghostarchive",
         "web-gyotaku",
-        "webcite",
-        "yandex-cache"
+        "webcite"
       ]);
     }
+  });
+
+  it("starts exact and cleaned candidates in parallel for the same provider", async () => {
+    const waybackRequests: string[] = [];
+    let resolveCleanedLookup: (value: unknown) => void = () => {};
+    const cleanedLookup = new Promise((resolve) => {
+      resolveCleanedLookup = resolve;
+    });
+
+    const fetchImpl = vi.fn(async (url: string) => {
+      const host = new URL(url).hostname;
+
+      if (host.includes("web.archive.org")) {
+        waybackRequests.push(url);
+        if (url.includes("utm_source=test")) {
+          return {
+            ok: true,
+            status: 200,
+            json: vi
+              .fn()
+              .mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+          };
+        }
+
+        return cleanedLookup;
+      }
+
+      if (host.includes("archive.ph") || host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+        return {
+          ok: true,
+          status: 200,
+          text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+        };
+      }
+
+      if (host.includes("api.perma.cc")) {
+        return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+      }
+
+      if (host.includes("arquivo.pt")) {
+        return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+      }
+
+      throw new Error(`unhandled host ${host}`);
+    });
+
+    const lookupPromise = lookupArchives(
+      "https://example.com/missing?utm_source=test",
+      "exact-then-cleaned",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    await vi.waitFor(() => expect(waybackRequests).toHaveLength(2));
+    expect(waybackRequests.some((url) => decodeURIComponent(url).includes("utm_source=test"))).toBe(true);
+    expect(waybackRequests.some((url) => decodeURIComponent(url).includes("https://example.com/missing"))).toBe(true);
+
+    resolveCleanedLookup({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+    });
+
+    await lookupPromise;
   });
 
   it("applies the central timeout to provider requests", async () => {

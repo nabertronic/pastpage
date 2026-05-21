@@ -98,17 +98,17 @@ export const en = {
   "options.providerContextMenu.newWindow": "New window",
   "options.afterSnapshot.label": "After a snapshot is found",
   "options.afterSnapshot.description":
-    "Choose whether PastPage opens the first found snapshot automatically, and whether the lookup page stays open.",
-  "options.afterSnapshot.keepResolver": "Keep lookup page open",
-  "options.afterSnapshot.replaceResolver": "Use lookup tab for archive",
-  "options.afterSnapshot.manualOpenOnly": "Do not open automatically",
+    "Choose whether PastPage only shows found snapshots in the lookup page, opens them automatically in a new tab while keeping the lookup page open, or replaces the lookup page with the archive.",
+  "options.afterSnapshot.keepResolver": "Open automatically and keep lookup page open",
+  "options.afterSnapshot.replaceResolver": "Open automatically in the lookup tab",
+  "options.afterSnapshot.manualOpenOnly": "Only show results in the lookup page",
   "options.urlMatching.label": "URL matching",
   "options.urlMatching.description":
-    "Decide how closely the archive lookup should follow the original URL.",
+    "Choose whether PastPage only checks the original URL or also tries a cleaned fallback in parallel.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
     "Set the maximum number of seconds each archive provider can take before PastPage moves on.",
-  "options.urlMatching.exactThenCleaned": "Exact first, then cleaned",
+  "options.urlMatching.exactThenCleaned": "Original URL + cleaned fallback",
   "options.urlMatching.exactOnly": "Exact only",
   "options.urlMatching.cleanedFirst": "Cleaned first",
   "options.waybackHost.label": "Wayback Machine host",
@@ -173,6 +173,8 @@ export const en = {
     "Ratings help other researchers find privacy-first recovery tools.",
   "options.version.title": "Version and updates",
   "options.version.current": "Installed version: {{version}}",
+  "options.whatsNew.description": "See what changed in recent PastPage releases.",
+  "options.whatsNew.open": "What's new",
   "options.updates.check": "Check for updates",
   "options.updates.checking": "Checking for updates…",
   "options.updates.unknownVersion": "a newer version",
@@ -194,6 +196,15 @@ export const en = {
   "options.updates.firefox.listingFallback":
     "The Firefox Add-ons listing was opened because Add-ons Manager could not be opened directly. Verify the latest release there, or run Check for Updates from Firefox's Add-ons Manager.",
   "options.updates.firefox.openListing": "Open Firefox Add-ons listing",
+  "whatsNew.title": "What's new",
+  "whatsNew.description": "See what changed in recent PastPage updates.",
+  "whatsNew.releaseNotes": "Release notes",
+  "whatsNew.currentVersion": "Current version: {{version}}",
+  "whatsNew.latestBadge": "Latest",
+  "whatsNew.versionSummary": "{{count}} changes",
+  "whatsNew.expand": "Expand {{version}}",
+  "whatsNew.collapse": "Collapse {{version}}",
+  "whatsNew.empty": "No changelog entries are available yet.",
   "footer.description":
     "PastPage is an open source tool for journalists and researchers to surface archived versions of vanished or changed pages.",
   "thanks.firstTitle": "PastPage helped for the first time",
@@ -231,6 +242,8 @@ export const en = {
   "resolver.found.openArchivedVersion": "Open archived version",
   "resolver.found.copyArchiveLink": "Copy archive link",
   "resolver.found.archiveLinkCopied": "Archive link copied",
+  "resolver.found.copyCacheLink": "Copy cache link",
+  "resolver.found.cacheLinkCopied": "Cache link copied",
   "resolver.unverified.title": "{{provider}} reported an archived snapshot",
   "resolver.unverified.description":
     "PastPage found a concrete archive snapshot, but could not verify or open it automatically.",
@@ -238,6 +251,26 @@ export const en = {
   "resolver.unverified.additionalMatches": "Other unverified archive snapshots",
   "resolver.unverified.alsoCheckSources": "You can also verify these archive sources manually:",
   "resolver.manual.checkOnProvider": "Check on {{provider}}",
+  "resolver.manual.badge.captcha": "Captcha",
+  "resolver.manual.badge.tooManyRequests": "Too Many Requests",
+  "resolver.manual.badge.manual": "Manual",
+  "resolver.manual.badge.notFound": "Not Found",
+  "resolver.manual.badge.serviceError": "Service Error",
+  "resolver.manual.badge.timeout": "Timeout",
+  "resolver.manual.archiveTodayChallenge":
+    "Archive.today asked for a manual challenge step, so PastPage could not check it automatically.",
+  "resolver.manual.waybackRateLimited":
+    "Wayback Machine rate-limited this request. This happens more often on VPNs or shared IPs. Try again later or open Wayback manually.",
+  "resolver.manual.yandexManualHelp":
+    "Yandex Cache always has to be checked manually: open the link, and if there is a result, use the three-dot menu next to it to open the cached version.",
+  "resolver.manual.notFound":
+    "{{provider}} did not have this URL archived. You can still check manually. The page may have been archived since.",
+  "resolver.manual.serviceError":
+    "{{provider}} returned an error. The service may be temporarily unavailable. Try checking manually.",
+  "resolver.manual.timeout":
+    "{{provider}} took too long to respond. Try checking manually or try again later.",
+  "resolver.manual.rateLimited":
+    "{{provider}} rate-limited this request. Try again later or check manually.",
   "resolver.notFound.title": "No archived HTML snapshot could be confirmed automatically",
   "resolver.notFound.description":
     "Checked {{strategies}} URL matching across all archive providers, but could not confirm a working archived HTML snapshot automatically.",
@@ -256,6 +289,7 @@ export const en = {
   "sourceSummary.description": "Checking archived versions for this page.",
   "sourceSummary.descriptionScoped": "Checking archived versions for this page on {{provider}}.",
   "topbar.cta": "Find Archived Version",
+  "topbar.snooze": "Pause 1h",
   "topbar.dismiss": "Dismiss PastPage",
   "topbar.legalReason": "451: Unavailable for legal reasons. Find the latest archived version?",
   "topbar.default": "{{title}}. Find an archived version?",
@@ -345,6 +379,16 @@ export const en = {
   "options.onboarding.title": "Getting started",
   "options.onboarding.description": "Open the setup guide again to review pinning, features, and settings.",
   "options.onboarding.openGuide": "Open guide",
+  "options.brokenPageAssist.label": "Automatic broken-page help",
+  "options.brokenPageAssist.description": "Offer automatic recovery help on broken HTTP pages only.",
+  "options.brokenPageAssist.toggleLabel": "Enable automatic broken-page help",
+  "options.brokenPageAssist.toggleDescription": "Enable automatic broken-page help",
+  "options.brokenPageAssist.statusActive": "Status: Active",
+  "options.brokenPageAssist.statusPaused": "Status: Paused until {{value}}",
+  "options.brokenPageAssist.statusOff": "Status: Off",
+  "options.brokenPageAssist.pauseOneHour": "Pause for 1 hour",
+  "options.brokenPageAssist.pauseOneDay": "Pause for 24 hours",
+  "options.brokenPageAssist.resume": "Resume now",
   "options.history.enabled.label": "Save search history",
   "options.history.enabled.description":
     "Keep a local history of archive searches, outcomes, and confirmed matches.",

@@ -1,5 +1,5 @@
 import type { DetectedErrorKind, ErrorExplanation } from "./errors";
-import type { ProviderId } from "./providers/types";
+import type { ProviderFailureReason, ProviderId } from "./providers/types";
 
 export type DetectedError = {
   kind: DetectedErrorKind;
@@ -34,6 +34,7 @@ export type ManualArchiveSource = {
 export type FailedProvider = {
   providerId: ProviderId;
   directLink?: string;
+  reason?: ProviderFailureReason;
 };
 
 export type ArchiveCheckStrategy = "exact" | "cleaned";

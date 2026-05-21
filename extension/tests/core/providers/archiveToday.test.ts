@@ -85,14 +85,25 @@ describe("archiveTodayProvider", () => {
     }
   });
 
-  it("throws on other non-OK responses (so the resolver can offer a direct link)", async () => {
+  it("throws a manual-challenge error on 429 responses", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429 });
     await expect(
       archiveTodayProvider.lookup(
         { strategy: "exact", url: "https://example.com" },
         fetchImpl as unknown as typeof fetch
       )
-    ).rejects.toThrow(/429/);
+    ).rejects.toThrow(/manual challenge step/i);
+  });
+
+  it("throws a server-error on 503 responses", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 503 });
+    const { ProviderLookupError } = await import("@/core/providers/types");
+    await expect(
+      archiveTodayProvider.lookup(
+        { strategy: "exact", url: "https://example.com" },
+        fetchImpl as unknown as typeof fetch
+      )
+    ).rejects.toSatisfy((e: unknown) => e instanceof ProviderLookupError && (e as any).reason === "server-error");
   });
 
   it("builds a direct link to the newest snapshot", () => {

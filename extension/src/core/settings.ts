@@ -43,11 +43,13 @@ export const ResolverSuccessBehaviorSchema = z.enum([
 ]);
 export type ResolverSuccessBehavior = z.infer<typeof ResolverSuccessBehaviorSchema>;
 
-export const DEFAULT_PROVIDER_TIMEOUT_SECONDS = 60;
+export const DEFAULT_PROVIDER_TIMEOUT_SECONDS = 30;
 
 export const SettingsSchema = z.object({
   openBehavior: OpenBehaviorSchema,
   providerMenuOpenBehavior: ProviderMenuOpenBehaviorSchema,
+  brokenPageAssistEnabled: z.boolean(),
+  brokenPageAssistSnoozedUntil: z.number().optional(),
   enabledProviders: z.array(ProviderIdSchema),
   archiveDisplayOrder: z.array(ProviderIdSchema),
   historyEnabled: z.boolean(),
@@ -73,6 +75,7 @@ export type Settings = z.infer<typeof SettingsSchema>;
 export const DEFAULT_SETTINGS: Settings = {
   openBehavior: "new-tab-foreground",
   providerMenuOpenBehavior: "new-tab-foreground",
+  brokenPageAssistEnabled: true,
   enabledProviders: ALL_PROVIDER_IDS.filter(
     (providerId) => providerId !== "arquivo-pt" && providerId !== "perma-cc"
   ),
@@ -98,12 +101,12 @@ export const DEFAULT_SETTINGS: Settings = {
   urlMatchingMode: "exact-then-cleaned",
   providerTimeoutSeconds: DEFAULT_PROVIDER_TIMEOUT_SECONDS,
   language: "browser",
-  themeMode: "dark",
+  themeMode: "browser",
   badgeEnabled: true,
   bannerTheme: "auto-contrast",
   bannerColor: "#11100c",
   actionColor: "#ffd400",
-  resolverSuccessBehavior: "keep-resolver",
+  resolverSuccessBehavior: "manual-open-only",
   domainExceptions: []
 };
 
@@ -112,6 +115,11 @@ export function parseSettings(value: unknown): Settings {
     .catch({})
     .parse(value);
 
+  const urlMatchingMode =
+    partial.urlMatchingMode === "cleaned-first"
+      ? "exact-then-cleaned"
+      : partial.urlMatchingMode ?? DEFAULT_SETTINGS.urlMatchingMode;
+
   const providerTimeoutSeconds =
     typeof partial.providerTimeoutSeconds === "number" &&
     Number.isInteger(partial.providerTimeoutSeconds) &&
@@ -119,9 +127,26 @@ export function parseSettings(value: unknown): Settings {
       ? partial.providerTimeoutSeconds
       : DEFAULT_PROVIDER_TIMEOUT_SECONDS;
 
+  const brokenPageAssistSnoozedUntil =
+    typeof partial.brokenPageAssistSnoozedUntil === "number" &&
+    Number.isFinite(partial.brokenPageAssistSnoozedUntil) &&
+    partial.brokenPageAssistSnoozedUntil > 0
+      ? partial.brokenPageAssistSnoozedUntil
+      : undefined;
+
   return SettingsSchema.parse({
     ...DEFAULT_SETTINGS,
     ...partial,
-    providerTimeoutSeconds
+    urlMatchingMode,
+    providerTimeoutSeconds,
+    brokenPageAssistSnoozedUntil
   });
+}
+
+export function isBrokenPageAssistSnoozed(settings: Settings, now = Date.now()): boolean {
+  return typeof settings.brokenPageAssistSnoozedUntil === "number" && settings.brokenPageAssistSnoozedUntil > now;
+}
+
+export function isBrokenPageAssistActive(settings: Settings, now = Date.now()): boolean {
+  return settings.brokenPageAssistEnabled && !isBrokenPageAssistSnoozed(settings, now);
 }

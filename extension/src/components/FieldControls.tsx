@@ -31,7 +31,7 @@ export function ChoiceGroup<T extends string>({
                 "group min-h-20 rounded-md border p-3 text-left transition-all duration-200 ease-out focus-visible:outline-yellow-400 active:translate-y-px",
                 selected
                   ? "border-yellow-400 bg-yellow-100 shadow-[0_8px_22px_rgba(255,212,0,0.18)] dark:border-yellow-300 dark:bg-yellow-300/15"
-                  : "border-stone-200 bg-white hover:-translate-y-0.5 hover:border-yellow-400 hover:bg-yellow-50 dark:border-stone-800 dark:bg-stone-950 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10"
+                  : "border-[var(--wf-border)] bg-[var(--wf-surface)] hover:-translate-y-0.5 hover:border-yellow-400 hover:bg-yellow-50 dark:border-stone-800 dark:bg-stone-950 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10"
               )}
               onClick={() => onChange(option.value)}
             >
@@ -73,7 +73,7 @@ export function ToggleRow({
     <button
       type="button"
       aria-pressed={checked}
-      className="flex w-full items-start justify-between gap-4 rounded-md border border-stone-200 bg-white p-3 text-left transition-all duration-200 hover:border-yellow-400 hover:bg-yellow-50 focus-visible:outline-yellow-400 dark:border-stone-800 dark:bg-stone-950 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10"
+      className="flex w-full items-start justify-between gap-4 rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-3 text-left transition-all duration-200 hover:border-yellow-400 hover:bg-yellow-50 focus-visible:outline-yellow-400 dark:border-stone-800 dark:bg-stone-950 dark:hover:border-yellow-300 dark:hover:bg-yellow-300/10"
       onClick={() => onChange(!checked)}
     >
       <span className="min-w-0">
@@ -89,7 +89,7 @@ export function ToggleRow({
       <span
         className={cn(
           "relative mt-0.5 h-6 w-11 shrink-0 rounded-full border transition-colors",
-          checked ? "border-yellow-400 bg-yellow-400" : "border-stone-300 bg-stone-200 dark:border-stone-700 dark:bg-stone-800"
+          checked ? "border-yellow-400 bg-yellow-400" : "border-[var(--wf-border-strong)] bg-[var(--wf-surface-muted)] dark:border-stone-700 dark:bg-stone-800"
         )}
       >
         <span
@@ -128,7 +128,7 @@ export function SelectField<T extends string>({
         <select
           id={selectId}
           aria-labelledby={`${selectId}-label`}
-          className="h-10 w-full appearance-none rounded-md border border-stone-300 bg-white px-3 pr-9 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+          className="h-10 w-full appearance-none rounded-md border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] px-3 pr-9 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
           value={value}
           onChange={(event) => onChange(event.target.value as T)}
         >
@@ -174,7 +174,7 @@ export function NumberField({
       <input
         id={inputId}
         aria-labelledby={`${inputId}-label`}
-        className="h-10 w-full rounded-md border border-stone-300 bg-white px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
+        className="h-10 w-full rounded-md border border-[var(--wf-border-strong)] bg-[var(--wf-surface)] px-3 text-sm text-stone-950 transition hover:border-yellow-400 focus-visible:outline-yellow-400 dark:border-stone-700 dark:bg-stone-950 dark:text-yellow-50"
         type="number"
         inputMode="numeric"
         min={min}
