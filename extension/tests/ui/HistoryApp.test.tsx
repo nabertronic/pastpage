@@ -228,6 +228,103 @@ describe("HistoryApp", () => {
     );
   });
 
+  it("deletes a single history entry from the dedicated page", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": [
+        {
+          id: "hist_2",
+          startedAt: Date.parse("2024-02-04T05:06:07Z"),
+          targetUrl: "https://example.com/keep",
+          trigger: "manual-page",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        },
+        {
+          id: "hist_1",
+          startedAt: Date.parse("2024-01-02T03:04:05Z"),
+          targetUrl: "https://example.com/delete",
+          trigger: "provider-direct",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        }
+      ]
+    });
+
+    render(<HistoryApp />);
+
+    const deleteButtons = await screen.findAllByRole("button", { name: "Delete entry" });
+    await userEvent.click(deleteButtons[1]!);
+
+    expect(confirmSpy).toHaveBeenCalledWith("Delete this history entry?");
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.history": [
+          expect.objectContaining({ id: "hist_2" })
+        ]
+      })
+    );
+    expect(screen.queryByText("/delete")).not.toBeInTheDocument();
+    expect(screen.getByText("/keep")).toBeInTheDocument();
+  });
+
+  it("deletes multiple selected history entries in bulk", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": [
+        {
+          id: "hist_3",
+          startedAt: Date.parse("2024-03-05T05:06:07Z"),
+          targetUrl: "https://example.com/three",
+          trigger: "manual-page",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        },
+        {
+          id: "hist_2",
+          startedAt: Date.parse("2024-02-04T05:06:07Z"),
+          targetUrl: "https://example.com/two",
+          trigger: "manual-page",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        },
+        {
+          id: "hist_1",
+          startedAt: Date.parse("2024-01-02T03:04:05Z"),
+          targetUrl: "https://example.com/one",
+          trigger: "provider-direct",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        }
+      ]
+    });
+
+    render(<HistoryApp />);
+
+    await userEvent.click(await screen.findByRole("checkbox", { name: "Select history entry for https://example.com/three" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Select history entry for https://example.com/one" }));
+    await userEvent.click(screen.getByRole("button", { name: "Delete selected" }));
+
+    expect(confirmSpy).toHaveBeenCalledWith("Delete 2 selected history entries?");
+    await waitFor(() =>
+      expect(browser.storage.local.set).toHaveBeenCalledWith({
+        "pastPage.history": [
+          expect.objectContaining({ id: "hist_2" })
+        ]
+      })
+    );
+    expect(screen.queryByText("/three")).not.toBeInTheDocument();
+    expect(screen.queryByText("/one")).not.toBeInTheDocument();
+    expect(screen.getByText("/two")).toBeInTheDocument();
+  });
+
   it("formats history timestamps with the selected app language", async () => {
     const now = Date.parse("2024-02-04T05:07:07Z");
     vi.spyOn(Date, "now").mockReturnValue(now);

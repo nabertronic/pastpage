@@ -23,7 +23,13 @@ import { PROVIDERS } from "../core/providers";
 import type { ProviderId } from "../core/providers/types";
 import type { HistoryEntry, HistoryOutcome, HistoryTrigger } from "../core/history";
 import { DEFAULT_SETTINGS, type Settings } from "../core/settings";
-import { clearHistory, getHistory, getSettings } from "../platform/storage";
+import {
+  clearHistory,
+  deleteHistoryEntries,
+  deleteHistoryEntry,
+  getHistory,
+  getSettings
+} from "../platform/storage";
 import { resolverUrl } from "../platform/urls";
 import { useAppliedTheme } from "./useAppliedTheme";
 
@@ -67,6 +73,7 @@ function HistoryContent({
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const stats = useMemo(
     () => ({
@@ -126,6 +133,14 @@ function HistoryContent({
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const visibleHistory = filteredHistory.slice(pageStart, pageStart + PAGE_SIZE);
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const selectedVisibleCount = visibleHistory.filter((entry) => selectedIdSet.has(entry.id)).length;
+  const allVisibleSelected = visibleHistory.length > 0 && selectedVisibleCount === visibleHistory.length;
+  const selectedCount = selectedIds.length;
+
+  useEffect(() => {
+    setSelectedIds((current) => current.filter((id) => history.some((entry) => entry.id === id)));
+  }, [history]);
 
   function clearFilters() {
     setQuery("");
@@ -140,6 +155,42 @@ function HistoryContent({
     if (!window.confirm(t("options.history.clearConfirm"))) return;
     await clearHistory();
     setHistory([]);
+    setSelectedIds([]);
+  }
+
+  function toggleEntrySelection(entryId: string, checked: boolean) {
+    setSelectedIds((current) => {
+      if (checked) {
+        return current.includes(entryId) ? current : [...current, entryId];
+      }
+      return current.filter((id) => id !== entryId);
+    });
+  }
+
+  function toggleVisibleSelection(checked: boolean) {
+    const visibleIds = visibleHistory.map((entry) => entry.id);
+    const visibleIdSet = new Set(visibleIds);
+    setSelectedIds((current) => {
+      if (checked) {
+        return Array.from(new Set([...current, ...visibleIds]));
+      }
+      return current.filter((id) => !visibleIdSet.has(id));
+    });
+  }
+
+  async function handleDeleteEntry(entryId: string) {
+    if (!window.confirm(t("historyPage.delete.singleConfirm"))) return;
+    const nextHistory = await deleteHistoryEntry(entryId);
+    setHistory(nextHistory);
+    setSelectedIds((current) => current.filter((id) => id !== entryId));
+  }
+
+  async function handleDeleteSelected() {
+    if (selectedIds.length === 0) return;
+    if (!window.confirm(t("historyPage.delete.bulkConfirm", { count: String(selectedIds.length) }))) return;
+    const nextHistory = await deleteHistoryEntries(selectedIds);
+    setHistory(nextHistory);
+    setSelectedIds([]);
   }
 
   const hasActiveFilters = activeFilterCount > 0 || !!query;
@@ -320,9 +371,44 @@ function HistoryContent({
             <EmptyState message={t("options.history.noMatches")} />
           ) : (
             <>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--wf-border)] px-5 py-3 dark:border-stone-900">
+                <label className="inline-flex items-center gap-2 text-sm text-stone-600 dark:text-stone-300">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={(e) => toggleVisibleSelection(e.target.checked)}
+                    aria-label={t("historyPage.selection.selectVisible")}
+                    className="h-4 w-4 rounded border-[var(--wf-border-strong)] text-yellow-500 focus:ring-yellow-400 dark:border-stone-700 dark:bg-stone-950"
+                  />
+                  <span>{t("historyPage.selection.selectVisible")}</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-500 dark:text-stone-400">
+                    {selectedCount > 0
+                      ? t("historyPage.selection.selectedCount", { count: String(selectedCount) })
+                      : t("historyPage.selection.none")}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => void handleDeleteSelected()}
+                    disabled={selectedCount === 0}
+                  >
+                    <Trash2 aria-hidden="true" size={13} />
+                    {t("historyPage.delete.bulkAction")}
+                  </Button>
+                </div>
+              </div>
               <ul role="list" className="divide-y divide-[var(--wf-border)] dark:divide-stone-900">
                 {visibleHistory.map((entry) => (
-                  <HistoryCard key={entry.id} entry={entry} />
+                  <HistoryCard
+                    key={entry.id}
+                    entry={entry}
+                    selected={selectedIdSet.has(entry.id)}
+                    onSelectedChange={toggleEntrySelection}
+                    onDelete={handleDeleteEntry}
+                  />
                 ))}
               </ul>
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--wf-border)] px-5 py-3 dark:border-stone-900">
@@ -386,7 +472,17 @@ function HistoryContent({
   );
 }
 
-function HistoryCard({ entry }: { entry: HistoryEntry }) {
+function HistoryCard({
+  entry,
+  selected,
+  onSelectedChange,
+  onDelete
+}: {
+  entry: HistoryEntry;
+  selected: boolean;
+  onSelectedChange: (entryId: string, checked: boolean) => void;
+  onDelete: (entryId: string) => Promise<void>;
+}) {
   const [expanded, setExpanded] = useState(false);
   const { locale, t } = useI18n();
 
@@ -405,6 +501,15 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
   return (
     <li className={`border-l-[3px] ${accentClass[entry.outcome]}`}>
       <div className="flex items-start gap-4 px-5 py-4 transition-colors hover:bg-[var(--wf-surface-raised)] dark:hover:bg-stone-900/40">
+        <label className="pt-1">
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={(e) => onSelectedChange(entry.id, e.target.checked)}
+            aria-label={t("historyPage.selection.selectEntry", { url: entry.targetUrl })}
+            className="h-4 w-4 rounded border-[var(--wf-border-strong)] text-yellow-500 focus:ring-yellow-400 dark:border-stone-700 dark:bg-stone-950"
+          />
+        </label>
         <div className="min-w-0 flex-1">
           {/* URL + timestamp */}
           <div className="flex items-start justify-between gap-3">
@@ -494,22 +599,33 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
           </AnimatePresence>
         </div>
 
-        {/* Rerun */}
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className="shrink-0"
-          onClick={() =>
-            void browser.tabs.create({
-              url: resolverUrl(createManualPageLookupRequest(entry.targetUrl)),
-              active: true
-            })
-          }
-        >
-          <RotateCcw aria-hidden="true" size={13} />
-          {t("historyPage.table.rerun")}
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="px-2 text-stone-500 hover:text-stone-950 dark:text-stone-400 dark:hover:text-yellow-50"
+            aria-label={t("historyPage.delete.singleAction")}
+            onClick={() => void onDelete(entry.id)}
+          >
+            <Trash2 aria-hidden="true" size={13} />
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
+            onClick={() =>
+              void browser.tabs.create({
+                url: resolverUrl(createManualPageLookupRequest(entry.targetUrl)),
+                active: true
+              })
+            }
+          >
+            <RotateCcw aria-hidden="true" size={13} />
+            {t("historyPage.table.rerun")}
+          </Button>
+        </div>
       </div>
     </li>
   );

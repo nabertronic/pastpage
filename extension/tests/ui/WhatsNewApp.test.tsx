@@ -12,6 +12,7 @@ describe("WhatsNewApp", () => {
     storageGetMock.mockResolvedValue({});
     storageSetMock.mockResolvedValue(undefined);
     vi.mocked(browser.runtime.getManifest).mockReturnValue({ version: "1.0.7" } as never);
+    vi.mocked(browser.runtime.getURL).mockReturnValue("chrome-extension://test/" as never);
   });
 
   it("renders versions in descending order and expands the latest release by default", async () => {
@@ -20,7 +21,7 @@ describe("WhatsNewApp", () => {
     expect(await screen.findByText("What's new")).toBeInTheDocument();
 
     const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings[0]).toHaveTextContent("v1.0.7");
+    expect(headings[0]).toHaveTextContent("v1.0.8");
     expect(headings.at(-1)).toHaveTextContent("v1.0.1");
 
     expect(screen.getByText(/use “Browser default” as the theme/)).toBeInTheDocument();
@@ -39,5 +40,17 @@ describe("WhatsNewApp", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Collapse v1.0.6" }));
     expect(screen.queryByText(/Simplified the onboarding flow around the two primary actions/)).not.toBeInTheDocument();
+  });
+
+  it("shows a store review prompt with browser-specific copy", async () => {
+    vi.mocked(browser.runtime.getURL).mockReturnValue("moz-extension://test/" as never);
+
+    render(<WhatsNewApp />);
+
+    expect(await screen.findByText(/rating the add-on on Firefox Add-ons/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Rate add-on" })).toHaveAttribute(
+      "href",
+      "https://addons.mozilla.org/en-US/firefox/addon/pastpage-query-10-web-archives/"
+    );
   });
 });

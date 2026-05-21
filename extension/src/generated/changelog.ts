@@ -3,6 +3,13 @@ import type { WhatsNewEntry } from "../core/whatsNew";
 // This file is generated from docs/CHANGELOG.md by extension/scripts/generate-changelog.mjs.
 export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
   {
+    "version": "v1.0.8",
+    "changes": [
+      "Added per-entry deletion and multi-select bulk deletion on the local history page, so saved lookup runs can now be removed individually or in batches.",
+      "Updated the history delete-button hover treatment in light and dark mode so it uses the same yellow bordered hover state as the adjacent rerun action."
+    ]
+  },
+  {
     "version": "v1.0.7",
     "changes": [
       "Added a `What's new` page that opens after updates and is also available from Settings.",

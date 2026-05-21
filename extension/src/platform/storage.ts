@@ -190,6 +190,22 @@ export async function clearHistory(): Promise<void> {
   await browser.storage.local.set({ [HISTORY_KEY]: [] });
 }
 
+export async function deleteHistoryEntries(ids: string[]): Promise<HistoryEntry[]> {
+  if (ids.length === 0) {
+    return getHistory();
+  }
+
+  const idSet = new Set(ids);
+  const history = await getHistory();
+  const nextHistory = history.filter((entry) => !idSet.has(entry.id));
+  await saveHistory(nextHistory);
+  return nextHistory;
+}
+
+export async function deleteHistoryEntry(id: string): Promise<HistoryEntry[]> {
+  return deleteHistoryEntries([id]);
+}
+
 export async function consumeFirstArchiveReviewPrompt(): Promise<boolean> {
   const meta = await getLocalMeta();
   if (meta.reviewPromptShownAt || meta.firstArchiveOpenedAt) {
