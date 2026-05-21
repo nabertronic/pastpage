@@ -1,11 +1,86 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HistoryApp } from "@/components/HistoryApp";
 import { DEFAULT_SETTINGS } from "@/core/settings";
 
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
 const storageSetMock = browser.storage.local.set as unknown as ReturnType<typeof vi.fn>;
+
+function parseCsvRow(row: string): string[] {
+  const cells: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < row.length; index += 1) {
+    const char = row[index];
+    if (char === '"') {
+      const next = row[index + 1];
+      if (inQuotes && next === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (char === "," && !inQuotes) {
+      cells.push(current);
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+
+  cells.push(current);
+  return cells;
+}
+
+function parseCsv(text: string): string[][] {
+  return text.split("\n").map(parseCsvRow);
+}
+
+function setupCsvExportCapture() {
+  class MockBlob {
+    parts: string[];
+    type: string;
+
+    constructor(parts: unknown[], options?: { type?: string }) {
+      this.parts = parts.map((part) => String(part));
+      this.type = options?.type ?? "";
+    }
+  }
+
+  vi.stubGlobal("Blob", MockBlob);
+
+  let exportedBlob: MockBlob | null = null;
+  let downloadLink: HTMLAnchorElement | null = null;
+  const originalCreateElement = document.createElement.bind(document);
+
+  vi.spyOn(document, "createElement").mockImplementation((tagName) => {
+    const element = originalCreateElement(tagName);
+    if (tagName.toLowerCase() === "a") {
+      downloadLink = element as HTMLAnchorElement;
+      vi.spyOn(element as HTMLAnchorElement, "click").mockImplementation(() => {});
+    }
+    return element;
+  });
+
+  (URL.createObjectURL as unknown as ReturnType<typeof vi.fn>).mockImplementation((blob: MockBlob) => {
+    exportedBlob = blob;
+    return "blob:history-export";
+  });
+
+  return {
+    getCsv() {
+      expect(exportedBlob).not.toBeNull();
+      return exportedBlob!.parts.join("");
+    },
+    getDownloadLink() {
+      return downloadLink;
+    }
+  };
+}
 
 describe("HistoryApp", () => {
   beforeEach(() => {
@@ -26,6 +101,11 @@ describe("HistoryApp", () => {
     (browser.runtime.getURL as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (path: string) => `moz-extension://test/${path.replace(/^\//, "")}`
     );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("renders the history table stats and filters", async () => {
@@ -83,35 +163,7 @@ describe("HistoryApp", () => {
   });
 
   it("exports the filtered history as csv", async () => {
-    const OriginalBlob = Blob;
-    class MockBlob {
-      parts: string[];
-      type: string;
-
-      constructor(parts: unknown[], options?: { type?: string }) {
-        this.parts = parts.map((part) => String(part));
-        this.type = options?.type ?? "";
-      }
-    }
-
-    vi.stubGlobal("Blob", MockBlob);
-
-    let exportedBlob: MockBlob | null = null;
-    const originalCreateElement = document.createElement.bind(document);
-    let downloadLink: HTMLAnchorElement | null = null;
-    vi.spyOn(document, "createElement").mockImplementation((tagName) => {
-      const element = originalCreateElement(tagName);
-      if (tagName.toLowerCase() === "a") {
-        downloadLink = element as HTMLAnchorElement;
-        vi.spyOn(element as HTMLAnchorElement, "click").mockImplementation(() => {});
-      }
-      return element;
-    });
-
-    (URL.createObjectURL as unknown as ReturnType<typeof vi.fn>).mockImplementation((blob: MockBlob) => {
-      exportedBlob = blob;
-      return "blob:history-export";
-    });
+    const exportCapture = setupCsvExportCapture();
 
     storageGetMock.mockResolvedValue({
       "pastPage.settings": DEFAULT_SETTINGS,
@@ -145,6 +197,131 @@ describe("HistoryApp", () => {
           requestTrigger: "manual-page",
           scopedProviderId: "ghostarchive",
           outcome: "unknown",
+          resultSnapshots: [
+            {
+              originalUrl: "https://example.com/direct",
+              matchedUrl: "https://example.com/direct",
+              archiveUrl: "https://archive.example/direct-raw",
+              openUrl: "https://archive.example/direct-open",
+              timestamp: "2024-01-02T03:04:05Z",
+              statusCode: "200",
+              mimeType: "text/html",
+              strategy: "exact",
+              providerId: "ghostarchive"
+            },
+            {
+              originalUrl: "https://example.com/direct",
+              matchedUrl: "https://example.com/direct",
+              archiveUrl: "https://archive.example/direct-fallback",
+              timestamp: "2024-01-03T03:04:05Z",
+              statusCode: "200",
+              mimeType: "text/html",
+              strategy: "cleaned",
+              providerId: "wayback"
+            }
+          ]
+        }
+      ]
+    });
+
+    render(<HistoryApp />);
+
+    expect(screen.queryByRole("button", { name: "Export filtered CSV" })).not.toBeInTheDocument();
+    await userEvent.type(await screen.findByLabelText("Search history"), "direct");
+    expect(screen.getByRole("button", { name: "Export filtered CSV" })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Export filtered CSV" }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:history-export");
+    const downloadLink = exportCapture.getDownloadLink();
+    expect(downloadLink).not.toBeNull();
+    expect(downloadLink!.download).toMatch(/^pastpage-history-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(downloadLink!.href).toBe("blob:history-export");
+
+    const rows = parseCsv(exportCapture.getCsv());
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual([
+      "id",
+      "startedAt",
+      "resolvedAt",
+      "targetUrl",
+      "trigger",
+      "requestTrigger",
+      "scopedProviderId",
+      "outcome",
+      "snapshotCount",
+      "Wayback Machine Timestamp",
+      "Wayback Machine URL",
+      "Ghostarchive Timestamp",
+      "Ghostarchive URL",
+      "failedProviders",
+      "checkedAttempts"
+    ]);
+    expect(rows[1]).toEqual([
+      "hist_1",
+      "2024-01-02T03:04:05.000Z",
+      "",
+      "https://example.com/direct",
+      "provider-direct",
+      "manual-page",
+      "ghostarchive",
+      "unknown",
+      "2",
+      "2024-01-03T03:04:05Z",
+      "https://archive.example/direct-fallback",
+      "2024-01-02T03:04:05Z",
+      "https://archive.example/direct-open",
+      "",
+      ""
+    ]);
+  });
+
+  it("exports the full history as csv even when filters are active", async () => {
+    const exportCapture = setupCsvExportCapture();
+
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": [
+        {
+          id: "hist_2",
+          startedAt: Date.parse("2024-02-04T05:06:07Z"),
+          resolvedAt: Date.parse("2024-02-04T05:07:07Z"),
+          targetUrl: "https://example.com/missing",
+          trigger: "broken-page",
+          requestTrigger: "broken-page",
+          outcome: "hit",
+          resultSnapshots: [
+            {
+              originalUrl: "https://example.com/missing",
+              matchedUrl: "https://example.com/missing",
+              archiveUrl: "https://web.archive.org/web/20240204050607/https://example.com/missing",
+              timestamp: "2024-02-04T05:06:07Z",
+              statusCode: "200",
+              mimeType: "text/html",
+              strategy: "exact",
+              providerId: "wayback"
+            },
+            {
+              originalUrl: "https://example.com/missing",
+              matchedUrl: "https://example.com/missing",
+              archiveUrl: "https://archive.example/missing-fallback",
+              openUrl: "https://archive.example/missing-open",
+              timestamp: "2024-02-05T05:06:07Z",
+              statusCode: "200",
+              mimeType: "text/html",
+              strategy: "exact",
+              providerId: "webcite"
+            }
+          ]
+        },
+        {
+          id: "hist_1",
+          startedAt: Date.parse("2024-01-02T03:04:05Z"),
+          targetUrl: "https://example.com/direct",
+          trigger: "provider-direct",
+          requestTrigger: "manual-page",
+          scopedProviderId: "ghostarchive",
+          outcome: "unknown",
           resultSnapshots: []
         }
       ]
@@ -153,23 +330,151 @@ describe("HistoryApp", () => {
     render(<HistoryApp />);
 
     await userEvent.type(await screen.findByLabelText("Search history"), "direct");
-    await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
+    await userEvent.click(screen.getByRole("button", { name: "Export full CSV" }));
 
     expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:history-export");
-    expect(downloadLink).not.toBeNull();
-    expect(downloadLink!.download).toMatch(/^pastpage-history-\d{4}-\d{2}-\d{2}\.csv$/);
-    expect(downloadLink!.href).toBe("blob:history-export");
+    const rows = parseCsv(exportCapture.getCsv());
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toEqual([
+      "id",
+      "startedAt",
+      "resolvedAt",
+      "targetUrl",
+      "trigger",
+      "requestTrigger",
+      "scopedProviderId",
+      "outcome",
+      "snapshotCount",
+      "Wayback Machine Timestamp",
+      "Wayback Machine URL",
+      "WebCite Timestamp",
+      "WebCite URL",
+      "failedProviders",
+      "checkedAttempts"
+    ]);
+    expect(rows[1]).toEqual([
+      "hist_2",
+      "2024-02-04T05:06:07.000Z",
+      "2024-02-04T05:07:07.000Z",
+      "https://example.com/missing",
+      "broken-page",
+      "broken-page",
+      "",
+      "hit",
+      "2",
+      "2024-02-04T05:06:07Z",
+      "https://web.archive.org/web/20240204050607/https://example.com/missing",
+      "2024-02-05T05:06:07Z",
+      "https://archive.example/missing-open",
+      "",
+      ""
+    ]);
+    expect(rows[2]).toEqual([
+      "hist_1",
+      "2024-01-02T03:04:05.000Z",
+      "",
+      "https://example.com/direct",
+      "provider-direct",
+      "manual-page",
+      "ghostarchive",
+      "unknown",
+      "0",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]);
+  });
 
-    expect(exportedBlob).not.toBeNull();
-    const csv = exportedBlob!.parts.join("");
-    expect(csv).toContain('"id","startedAt","resolvedAt","targetUrl"');
-    expect(csv).toContain('"hist_1"');
-    expect(csv).toContain('"https://example.com/direct"');
-    expect(csv).not.toContain('"hist_2"');
-    expect(csv).not.toContain('"https://example.com/missing"');
+  it("omits snapshot columns when the exported data has no snapshots", async () => {
+    const exportCapture = setupCsvExportCapture();
 
-    vi.stubGlobal("Blob", OriginalBlob);
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": [
+        {
+          id: "hist_1",
+          startedAt: Date.parse("2024-01-02T03:04:05Z"),
+          targetUrl: "https://example.com/direct",
+          trigger: "provider-direct",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        }
+      ]
+    });
+
+    render(<HistoryApp />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Export full CSV" }));
+
+    const rows = parseCsv(exportCapture.getCsv());
+    expect(rows[0]).toEqual([
+      "id",
+      "startedAt",
+      "resolvedAt",
+      "targetUrl",
+      "trigger",
+      "requestTrigger",
+      "scopedProviderId",
+      "outcome",
+      "snapshotCount",
+      "failedProviders",
+      "checkedAttempts"
+    ]);
+    expect(rows[1]).toEqual([
+      "hist_1",
+      "2024-01-02T03:04:05.000Z",
+      "",
+      "https://example.com/direct",
+      "provider-direct",
+      "manual-page",
+      "",
+      "unknown",
+      "0",
+      "",
+      ""
+    ]);
+  });
+
+  it("disables full and filtered csv exports based on available rows", async () => {
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": [
+        {
+          id: "hist_1",
+          startedAt: Date.parse("2024-01-02T03:04:05Z"),
+          targetUrl: "https://example.com/direct",
+          trigger: "provider-direct",
+          requestTrigger: "manual-page",
+          outcome: "unknown",
+          resultSnapshots: []
+        }
+      ]
+    });
+
+    const view = render(<HistoryApp />);
+
+    expect(await screen.findByRole("button", { name: "Export full CSV" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Export filtered CSV" })).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText("Search history"), "no-match");
+
+    expect(screen.getByRole("button", { name: "Export full CSV" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Export filtered CSV" })).toBeDisabled();
+
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": DEFAULT_SETTINGS,
+      "pastPage.history": []
+    });
+
+    view.unmount();
+    render(<HistoryApp />);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Export full CSV" })).toBeDisabled());
+    expect(screen.queryByRole("button", { name: "Export filtered CSV" })).not.toBeInTheDocument();
   });
 
   it("reruns the resolver for the original target url", async () => {

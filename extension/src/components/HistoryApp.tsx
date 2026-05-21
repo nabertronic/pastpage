@@ -452,18 +452,31 @@ function HistoryContent({
           )}
         </section>
 
-        <div className="flex justify-end">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="text-stone-500 hover:text-stone-950 dark:text-stone-400 dark:hover:text-yellow-50"
-            onClick={() => downloadHistoryCsv(filteredHistory)}
-            disabled={filteredHistory.length === 0}
+            onClick={() => downloadHistoryCsv(history, settings.archiveDisplayOrder)}
+            disabled={history.length === 0}
           >
             <Download aria-hidden="true" size={13} />
-            {t("historyPage.exportCsv")}
+            {t("historyPage.exportFullCsv")}
           </Button>
+          {hasActiveFilters && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-stone-500 hover:text-stone-950 dark:text-stone-400 dark:hover:text-yellow-50"
+              onClick={() => downloadHistoryCsv(filteredHistory, settings.archiveDisplayOrder)}
+              disabled={filteredHistory.length === 0}
+            >
+              <Download aria-hidden="true" size={13} />
+              {t("historyPage.exportFilteredCsv")}
+            </Button>
+          )}
         </div>
 
         <ResearcherFooter />
@@ -722,8 +735,8 @@ function formatRelativeTime(timestamp: number, locale: string) {
   return rtf.format(-diffSec, "second");
 }
 
-function downloadHistoryCsv(history: HistoryEntry[]) {
-  const csv = buildHistoryCsv(history);
+function downloadHistoryCsv(history: HistoryEntry[], providerOrder: ProviderId[] = DEFAULT_SETTINGS.archiveDisplayOrder) {
+  const csv = buildHistoryCsv(history, providerOrder);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const objectUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -733,7 +746,17 @@ function downloadHistoryCsv(history: HistoryEntry[]) {
   URL.revokeObjectURL(objectUrl);
 }
 
-function buildHistoryCsv(history: HistoryEntry[]): string {
+function buildHistoryCsv(
+  history: HistoryEntry[],
+  providerOrder: ProviderId[] = DEFAULT_SETTINGS.archiveDisplayOrder
+): string {
+  const providerIdsInExport = new Set<ProviderId>();
+  for (const entry of history) {
+    for (const snapshot of entry.resultSnapshots) {
+      providerIdsInExport.add(snapshot.providerId);
+    }
+  }
+
   const header = [
     "id",
     "startedAt",
@@ -744,12 +767,20 @@ function buildHistoryCsv(history: HistoryEntry[]): string {
     "scopedProviderId",
     "outcome",
     "snapshotCount",
-    "snapshotProviders",
-    "snapshotTimestamps",
-    "snapshotUrls",
     "failedProviders",
     "checkedAttempts"
   ];
+
+  const orderedProviderColumns = providerOrder.filter((providerId) => providerIdsInExport.has(providerId));
+  const missingProviderColumns = Array.from(providerIdsInExport).filter(
+    (providerId) => !orderedProviderColumns.includes(providerId)
+  );
+  const providerColumns = [...orderedProviderColumns, ...missingProviderColumns];
+
+  const snapshotHeaders = providerColumns.flatMap((providerId) => {
+    const providerName = PROVIDERS[providerId].displayName;
+    return [`${providerName} Timestamp`, `${providerName} URL`];
+  });
 
   const rows = history.map((entry) => [
     entry.id,
@@ -761,16 +792,17 @@ function buildHistoryCsv(history: HistoryEntry[]): string {
     entry.scopedProviderId ?? "",
     entry.outcome,
     String(entry.resultSnapshots.length),
-    entry.resultSnapshots.map((snapshot) => snapshot.providerId).join(" | "),
-    entry.resultSnapshots.map((snapshot) => snapshot.timestamp).join(" | "),
-    entry.resultSnapshots.map((snapshot) => snapshot.openUrl ?? snapshot.archiveUrl).join(" | "),
+    ...providerColumns.flatMap((providerId) => {
+      const snapshot = entry.resultSnapshots.find((candidate) => candidate.providerId === providerId);
+      return snapshot ? [snapshot.timestamp, snapshot.openUrl ?? snapshot.archiveUrl] : ["", ""];
+    }),
     entry.failedProviders?.map((provider) => provider.providerId).join(" | ") ?? "",
     entry.checkedAttempts
       ?.map((attempt) => `${attempt.providerId}:${attempt.strategy}:${attempt.outcome}:${attempt.url}`)
       .join(" | ") ?? ""
   ]);
 
-  return [header, ...rows]
+  return [[...header.slice(0, 9), ...snapshotHeaders, ...header.slice(9)], ...rows]
     .map((row) => row.map((cell) => escapeCsvCell(cell)).join(","))
     .join("\n");
 }
