@@ -6,7 +6,6 @@ export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
     "version": "v1.0.8",
     "changes": [
       "Added per-entry deletion and multi-select bulk deletion on the local history page, so saved lookup runs can now be removed individually or in batches.",
-      "Updated the history delete-button hover treatment in light and dark mode so it uses the same yellow bordered hover state as the adjacent rerun action.",
       "Split the history CSV export into a full-history download and a filtered-results download, with the filtered export action shown only while filters are active.",
       "Reworked history CSV snapshot columns to group results by archive provider, so each provider now gets its own timestamp and URL columns instead of packing multiple snapshots into shared fields.",
       "Expanded the history page into a more capable work view with saved filter presets, sortable results, compact and detailed entry modes, plus new bulk actions for exporting or rerunning selected entries.",
