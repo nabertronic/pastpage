@@ -133,6 +133,39 @@ describe("settings", () => {
     });
   });
 
+  it("accepts stored history filter presets", () => {
+    expect(
+      parseSettings({
+        historyFilterPresets: [
+          {
+            id: "preset_1",
+            name: "Hits",
+            query: "example",
+            outcomeFilter: "hit",
+            triggerFilter: "all",
+            providerFilter: "wayback",
+            dateFrom: "2026-01-01",
+            dateTo: "2026-01-31"
+          }
+        ]
+      })
+    ).toEqual({
+      ...DEFAULT_SETTINGS,
+      historyFilterPresets: [
+        {
+          id: "preset_1",
+          name: "Hits",
+          query: "example",
+          outcomeFilter: "hit",
+          triggerFilter: "all",
+          providerFilter: "wayback",
+          dateFrom: "2026-01-01",
+          dateTo: "2026-01-31"
+        }
+      ]
+    });
+  });
+
   it("accepts the configured showSearchEngineIcons setting", () => {
     expect(parseSettings({ showSearchEngineIcons: false })).toEqual({
       ...DEFAULT_SETTINGS,

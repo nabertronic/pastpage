@@ -6,6 +6,9 @@
 - Updated the history delete-button hover treatment in light and dark mode so it uses the same yellow bordered hover state as the adjacent rerun action.
 - Split the history CSV export into a full-history download and a filtered-results download, with the filtered export action shown only while filters are active.
 - Reworked history CSV snapshot columns to group results by archive provider, so each provider now gets its own timestamp and URL columns instead of packing multiple snapshots into shared fields.
+- Expanded the history page into a more capable work view with saved filter presets, sortable results, compact and detailed entry modes, plus new bulk actions for exporting or rerunning selected entries.
+- Upgraded history CSV exports with UTF-8 BOM, export metadata, repeated provider snapshot columns, and structured per-provider failure and checked-attempt fields for easier spreadsheet analysis.
+- Changed history reruns to create fresh history entries before reopening the resolver, so repeated checks are now tracked as separate lookup runs instead of disappearing from the saved history.
 
 ## v1.0.7
 

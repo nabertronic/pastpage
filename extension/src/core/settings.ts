@@ -43,6 +43,42 @@ export const ResolverSuccessBehaviorSchema = z.enum([
 ]);
 export type ResolverSuccessBehavior = z.infer<typeof ResolverSuccessBehaviorSchema>;
 
+export const HistoryFilterOutcomeSchema = z.union([z.literal("all"), z.enum(["hit", "miss", "unknown"])]);
+export type HistoryFilterOutcome = z.infer<typeof HistoryFilterOutcomeSchema>;
+
+export const HistoryFilterTriggerSchema = z.union([
+  z.literal("all"),
+  z.enum(["broken-page", "manual-page", "context-menu", "provider-direct", "all-archives"])
+]);
+export type HistoryFilterTrigger = z.infer<typeof HistoryFilterTriggerSchema>;
+
+export const HistoryFilterProviderSchema = z.union([z.literal("all"), ProviderIdSchema]);
+export type HistoryFilterProvider = z.infer<typeof HistoryFilterProviderSchema>;
+
+export const HistoryFilterPresetSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  query: z.string(),
+  outcomeFilter: HistoryFilterOutcomeSchema,
+  triggerFilter: HistoryFilterTriggerSchema,
+  providerFilter: HistoryFilterProviderSchema,
+  dateFrom: z.string(),
+  dateTo: z.string()
+});
+export type HistoryFilterPreset = z.infer<typeof HistoryFilterPresetSchema>;
+
+export const HistorySortModeSchema = z.enum([
+  "startedAtDesc",
+  "startedAtAsc",
+  "outcome",
+  "provider",
+  "snapshotCount"
+]);
+export type HistorySortMode = z.infer<typeof HistorySortModeSchema>;
+
+export const HistoryViewModeSchema = z.enum(["compact", "detailed"]);
+export type HistoryViewMode = z.infer<typeof HistoryViewModeSchema>;
+
 export const DEFAULT_PROVIDER_TIMEOUT_SECONDS = 30;
 
 export const SettingsSchema = z.object({
@@ -67,7 +103,8 @@ export const SettingsSchema = z.object({
   bannerColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   actionColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   resolverSuccessBehavior: ResolverSuccessBehaviorSchema,
-  domainExceptions: z.array(z.string())
+  domainExceptions: z.array(z.string()),
+  historyFilterPresets: z.array(HistoryFilterPresetSchema)
 });
 
 export type Settings = z.infer<typeof SettingsSchema>;
@@ -107,7 +144,8 @@ export const DEFAULT_SETTINGS: Settings = {
   bannerColor: "#11100c",
   actionColor: "#ffd400",
   resolverSuccessBehavior: "manual-open-only",
-  domainExceptions: []
+  domainExceptions: [],
+  historyFilterPresets: []
 };
 
 export function parseSettings(value: unknown): Settings {

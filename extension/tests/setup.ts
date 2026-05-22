@@ -28,7 +28,11 @@ Object.defineProperty(globalThis, "browser", {
     storage: {
       local: {
         get: vi.fn().mockResolvedValue({}),
-        set: vi.fn().mockResolvedValue(undefined)
+        set: vi.fn().mockResolvedValue(undefined),
+        onChanged: {
+          addListener: vi.fn(),
+          removeListener: vi.fn()
+        }
       }
     },
     runtime: {

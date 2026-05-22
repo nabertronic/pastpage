@@ -1,12 +1,13 @@
 import { Fragment, useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronUp, Sparkles, Star } from "lucide-react";
 import { WHATS_NEW_ENTRIES } from "../generated/changelog";
 import type { WhatsNewEntry } from "../core/whatsNew";
 import { DEFAULT_SETTINGS, type Settings } from "../core/settings";
 import { I18nProvider, resolveLocaleFromLanguageMode, useI18n } from "../i18n";
 import type { SupportedLocale } from "../i18n/messages";
 import { getSettings, markWhatsNewVersionSeen } from "../platform/storage";
-import { getExtensionVersion } from "../platform/runtimeInfo";
+import { getExtensionBrowser, getExtensionStoreUrl, getExtensionVersion, hasExtensionStoreListing } from "../platform/runtimeInfo";
+import { LinkButton } from "./Button";
 import { PageShell } from "./PageShell";
 import { ResearcherFooter } from "./AppLinks";
 import { useAppliedTheme } from "./useAppliedTheme";
@@ -34,7 +35,9 @@ export function WhatsNewApp() {
 
 function WhatsNewContent({ entries }: { entries: WhatsNewEntry[] }) {
   const { locale, t } = useI18n();
+  const browserName = getExtensionBrowser();
   const currentVersion = getExtensionVersion();
+  const storeUrl = getExtensionStoreUrl(browserName);
   const currentVersionTag = `v${currentVersion}`;
   const defaultOpenVersion =
     entries.find((entry) => entry.version === currentVersionTag)?.version ?? entries[0]?.version ?? null;
@@ -60,6 +63,20 @@ function WhatsNewContent({ entries }: { entries: WhatsNewEntry[] }) {
             </p>
           </div>
         </section>
+
+        {hasExtensionStoreListing(browserName) && storeUrl ? (
+          <section className="rounded-md border border-yellow-300/60 bg-yellow-100/75 px-4 py-2.5 shadow-[0_1px_0_rgba(17,17,17,0.04),0_8px_24px_rgba(255,212,0,0.12)] backdrop-blur dark:border-yellow-300/30 dark:bg-yellow-300/10">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm leading-6 text-stone-800 dark:text-yellow-50">
+                {browserName === "firefox" ? t("whatsNew.promoteFirefox") : t("whatsNew.promoteChrome")}
+              </p>
+              <LinkButton href={storeUrl} target="_blank" rel="noreferrer" size="sm" className="shrink-0">
+                <Star aria-hidden="true" size={14} />
+                {browserName === "firefox" ? t("whatsNew.promoteCtaFirefox") : t("whatsNew.promoteCtaChrome")}
+              </LinkButton>
+            </div>
+          </section>
+        ) : null}
 
         {entries.length ? (
           <div className="space-y-3">
