@@ -5,7 +5,9 @@ export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
   {
     "version": "v1.0.9",
     "changes": [
-      "Improved localization across the resolver, onboarding, and footer copy by translating the `Check other archive sources` action where it was still missing and rewriting the PastPage product description in every supported language to describe searching archived versions of web pages more clearly."
+      "Improved localization across the resolver, onboarding, and footer copy by translating the `Check other archive sources` action where it was still missing and rewriting the PastPage product description in every supported language to describe searching archived versions of web pages more clearly.",
+      "Fixed the history page storage listener to use the correct WebExtension `storage.onChanged` event, so saved history and settings updates now refresh reliably instead of depending on an invalid `storage.local.onChanged` hook.",
+      "Updated the history page test mocks to match the real storage event API and made the `What's new` UI test read versions from the generated changelog data instead of hardcoding a specific latest release."
     ]
   },
   {

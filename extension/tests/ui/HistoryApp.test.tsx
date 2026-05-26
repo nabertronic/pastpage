@@ -133,8 +133,8 @@ describe("HistoryApp", () => {
 
     const listeners: Array<(changes: Record<string, unknown>, areaName: string) => void> = [];
     const storageGet = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
-    const onChangedAdd = browser.storage.local.onChanged.addListener as unknown as ReturnType<typeof vi.fn>;
-    const onChangedRemove = browser.storage.local.onChanged.removeListener as unknown as ReturnType<typeof vi.fn>;
+    const onChangedAdd = browser.storage.onChanged.addListener as unknown as ReturnType<typeof vi.fn>;
+    const onChangedRemove = browser.storage.onChanged.removeListener as unknown as ReturnType<typeof vi.fn>;
 
     storageGet.mockImplementation(async (key?: string | string[] | null) => {
       if (key === "pastPage.settings") {

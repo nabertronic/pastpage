@@ -62,9 +62,9 @@ export function HistoryApp() {
       setHistory(nextHistory);
     });
 
-    const handleStorageChanged = (
-      changes: Record<string, browser.storage.StorageChange>,
-      areaName: string
+    const handleStorageChanged: Parameters<typeof browser.storage.onChanged.addListener>[0] = (
+      changes,
+      areaName
     ) => {
       if (areaName !== "local") return;
 
@@ -81,10 +81,10 @@ export function HistoryApp() {
       }
     };
 
-    browser.storage.local.onChanged.addListener(handleStorageChanged);
+    browser.storage.onChanged.addListener(handleStorageChanged);
 
     return () => {
-      browser.storage.local.onChanged.removeListener(handleStorageChanged);
+      browser.storage.onChanged.removeListener(handleStorageChanged);
     };
   }, []);
 

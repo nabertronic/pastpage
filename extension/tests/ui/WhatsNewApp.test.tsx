@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WhatsNewApp } from "@/components/WhatsNewApp";
+import { WHATS_NEW_ENTRIES } from "@/generated/changelog";
 
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
 const storageSetMock = browser.storage.local.set as unknown as ReturnType<typeof vi.fn>;
@@ -21,8 +22,8 @@ describe("WhatsNewApp", () => {
     expect(await screen.findByText("What's new")).toBeInTheDocument();
 
     const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings[0]).toHaveTextContent("v1.0.8");
-    expect(headings.at(-1)).toHaveTextContent("v1.0.1");
+    expect(headings[0]).toHaveTextContent(WHATS_NEW_ENTRIES[0]?.version ?? "");
+    expect(headings.at(-1)).toHaveTextContent(WHATS_NEW_ENTRIES.at(-1)?.version ?? "");
 
     expect(screen.getByText(/use “Browser default” as the theme/)).toBeInTheDocument();
     expect(screen.getByText(/including “Not Found”, “Timeout”, “Service Error”, and “Too Many Requests”/)).toBeInTheDocument();

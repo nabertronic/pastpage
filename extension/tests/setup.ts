@@ -26,13 +26,13 @@ Object.defineProperty(navigator, "clipboard", {
 Object.defineProperty(globalThis, "browser", {
   value: {
     storage: {
+      onChanged: {
+        addListener: vi.fn(),
+        removeListener: vi.fn()
+      },
       local: {
         get: vi.fn().mockResolvedValue({}),
-        set: vi.fn().mockResolvedValue(undefined),
-        onChanged: {
-          addListener: vi.fn(),
-          removeListener: vi.fn()
-        }
+        set: vi.fn().mockResolvedValue(undefined)
       }
     },
     runtime: {
