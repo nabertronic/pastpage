@@ -92,7 +92,7 @@ describe("OnboardingApp", () => {
     render(<OnboardingApp />);
 
     expect(screen.getByText("Willkommen bei PastPage")).toBeInTheDocument();
-    expect(screen.getByText("Finde eine frühere Version, wenn eine Seite weg ist oder verändert wurde.")).toBeInTheDocument();
+    expect(screen.getByText("Finde archivierte Versionen von geänderten oder verschwundenen Webseiten.")).toBeInTheDocument();
     expect(screen.getByText("Rettungsleiste")).toBeInTheDocument();
     expect(screen.getByText("Aktuelle Seite nachschlagen")).toBeInTheDocument();
     expect(screen.queryByText("Ein Schritt Setup")).not.toBeInTheDocument();

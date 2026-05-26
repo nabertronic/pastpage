@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.9
+
+- Improved localization across the resolver, onboarding, and footer copy by translating the `Check other archive sources` action where it was still missing and rewriting the PastPage product description in every supported language to describe searching archived versions of web pages more clearly.
+
 ## v1.0.8
 
 - Added per-entry deletion and multi-select bulk deletion on the local history page, so saved lookup runs can now be removed individually or in batches.

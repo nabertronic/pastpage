@@ -103,16 +103,16 @@ export const de: MessageCatalog = {
   "options.providerContextMenu.newWindow": "Neues Fenster",
   "options.afterSnapshot.label": "Nachdem ein Snapshot gefunden wurde",
   "options.afterSnapshot.description":
-    "Legen Sie fest, ob PastPage gefundene Snapshots nur auf der Suchseite anzeigt, sie automatisch in einem neuen Tab öffnet und die Suchseite offen hält oder den Such-Tab direkt durch das Archiv ersetzt.",
-  "options.afterSnapshot.keepResolver": "Automatisch öffnen und Suchseite offen halten",
+    "Legen Sie fest, ob PastPage Treffer nur im Such-Tab anzeigt, automatisch in einem neuen Tab öffnet oder direkt im Such-Tab öffnet.",
+  "options.afterSnapshot.keepResolver": "Automatisch in neuem Tab öffnen",
   "options.afterSnapshot.replaceResolver": "Automatisch im Such-Tab öffnen",
-  "options.afterSnapshot.manualOpenOnly": "Nur auf der Suchseite anzeigen",
+  "options.afterSnapshot.manualOpenOnly": "Nur im Such-Tab anzeigen",
   "options.urlMatching.label": "URL-Abgleich",
   "options.urlMatching.description":
     "Wählen Sie, ob PastPage nur die ursprüngliche URL prüft oder zusätzlich parallel eine bereinigte Fallback-URL versucht.",
   "options.providerTimeout.label": "Provider-Timeout",
   "options.providerTimeout.description":
-    "Legen Sie fest, wie viele Sekunden jeder Archiv-Anbieter maximal Zeit hat, bevor PastPage zum nächsten Schritt übergeht.",
+    "Legen Sie fest, wie viele Sekunden jeder Archiv-Anbieter maximal Zeit hat, bevor PastPage die Abfrage abbricht.",
   "options.urlMatching.exactThenCleaned": "Ursprüngliche URL + bereinigter Fallback",
   "options.urlMatching.exactOnly": "Nur exakt",
   "options.urlMatching.cleanedFirst": "Zuerst bereinigt",
@@ -176,7 +176,7 @@ export const de: MessageCatalog = {
     "Senden Sie das GitHub-Repository an Kolleg:innen, die datenschutzfreundliche Wiederherstellung defekter Seiten benötigen.",
   "options.review.title": "Erweiterung bewerten",
   "options.review.description":
-    "Bewertungen helfen anderen Forschenden dabei, datenschutzfreundliche Wiederherstellungswerkzeuge zu finden.",
+    "Bewertungen helfen anderen dabei, PastPage zu finden.",
   "options.version.title": "Version und Updates",
   "options.version.current": "Installierte Version: {{version}}",
   "options.whatsNew.description": "Sehen Sie, was sich in den letzten PastPage-Versionen geändert hat.",
@@ -216,7 +216,7 @@ export const de: MessageCatalog = {
   "whatsNew.collapse": "{{version}} einklappen",
   "whatsNew.empty": "Es sind noch keine Changelog-Einträge verfügbar.",
   "footer.description":
-    "PastPage ist ein Open-Source-Werkzeug für Journalist:innen und Forschende, um archivierte Versionen verschwundener Seiten aufzufinden.",
+    "PastPage ist ein Open-Source-Werkzeug für Journalist:innen und Forschende, mit dem man archivierte Versionen von Webseiten suchen kann.",
   "thanks.firstTitle": "PastPage hat zum ersten Mal geholfen",
   "thanks.firstSubtitle": "PastPage hat dir gerade bei deiner ersten Archivsuche geholfen.",
   "thanks.firstHeading": "PastPage hat dir gerade zum ersten Mal geholfen.",
@@ -248,7 +248,7 @@ export const de: MessageCatalog = {
   "resolver.found.checkingMore": "Weitere Archivdienste werden noch geprüft.",
   "resolver.found.cleanedHint": "Gefunden über die bereinigte URL.",
   "resolver.found.additionalMatches": "Weitere gefundene archivierte Versionen",
-  "resolver.found.additionalSources": "Check Other archive sources",
+  "resolver.found.additionalSources": "Andere Archivquellen prüfen",
   "resolver.found.openArchivedVersion": "Archivierte Version öffnen",
   "resolver.found.copyArchiveLink": "Archivlink kopieren",
   "resolver.found.archiveLinkCopied": "Archivlink kopiert",
@@ -394,7 +394,7 @@ export const de: MessageCatalog = {
   "lookupTarget.missingUrl": "Für diesen Tab ist keine Seiten-URL zum Prüfen verfügbar.",
   "lookupTarget.checkingTab": "Aktueller Tab wird geprüft…",
   "options.onboarding.title": "Erste Schritte",
-  "options.onboarding.description": "Einführung erneut öffnen, um Anpinnen, Funktionen und Einstellungen nachzuschlagen.",
+  "options.onboarding.description": "Einführung erneut öffnen, um Anpinnen und Funktionen nachzuschlagen.",
   "options.onboarding.openGuide": "Einführung öffnen",
   "options.brokenPageAssist.label": "Automatische Hilfe bei defekten Seiten",
   "options.brokenPageAssist.description":

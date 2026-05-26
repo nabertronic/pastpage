@@ -3,6 +3,12 @@ import type { WhatsNewEntry } from "../core/whatsNew";
 // This file is generated from docs/CHANGELOG.md by extension/scripts/generate-changelog.mjs.
 export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
   {
+    "version": "v1.0.9",
+    "changes": [
+      "Improved localization across the resolver, onboarding, and footer copy by translating the `Check other archive sources` action where it was still missing and rewriting the PastPage product description in every supported language to describe searching archived versions of web pages more clearly."
+    ]
+  },
+  {
     "version": "v1.0.8",
     "changes": [
       "Added per-entry deletion and multi-select bulk deletion on the local history page, so saved lookup runs can now be removed individually or in batches.",
