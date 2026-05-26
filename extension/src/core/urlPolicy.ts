@@ -36,6 +36,34 @@ const TRACKING_PARAMS = new Set([
   "cmpid"
 ]);
 
+const SENSITIVE_PARAMS = new Set([
+  "access_token",
+  "auth",
+  "auth_token",
+  "authorization",
+  "code",
+  "id_token",
+  "key",
+  "nonce",
+  "otp",
+  "password",
+  "refresh_token",
+  "secret",
+  "session",
+  "session_id",
+  "sessionid",
+  "sig",
+  "signature",
+  "state",
+  "ticket",
+  "token"
+]);
+
+function shouldRemoveFromCleanedUrl(key: string): boolean {
+  const normalizedKey = key.toLowerCase();
+  return TRACKING_PARAMS.has(normalizedKey) || SENSITIVE_PARAMS.has(normalizedKey);
+}
+
 function isPrivateHostname(hostname: string): boolean {
   const normalized = hostname.toLowerCase();
   const normalizedIpv6 = normalized.replace(/^\[|\]$/g, "");
@@ -105,7 +133,7 @@ export function cleanUrl(rawUrl: string): string {
   const parsed = new URL(rawUrl);
 
   for (const key of Array.from(parsed.searchParams.keys())) {
-    if (TRACKING_PARAMS.has(key.toLowerCase())) {
+    if (shouldRemoveFromCleanedUrl(key)) {
       parsed.searchParams.delete(key);
     }
   }

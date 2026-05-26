@@ -22,6 +22,24 @@ describe("urlPolicy", () => {
     expect(cleaned).not.toContain("#section");
   });
 
+  it("removes common sensitive parameters only from the cleaned variant", () => {
+    const rawUrl =
+      "https://example.com/reset?id=12&token=abc123&code=oauth-code&state=xyz&q=test";
+    const cleaned = cleanUrl(rawUrl);
+    const candidates = buildSearchCandidates(rawUrl, "exact-then-cleaned");
+
+    expect(cleaned).toContain("id=12");
+    expect(cleaned).toContain("q=test");
+    expect(cleaned).not.toContain("token=");
+    expect(cleaned).not.toContain("code=");
+    expect(cleaned).not.toContain("state=");
+
+    expect(candidates).toEqual([
+      { strategy: "exact", url: rawUrl },
+      { strategy: "cleaned", url: "https://example.com/reset?id=12&q=test" }
+    ]);
+  });
+
   it("builds exact-then-cleaned candidates by default", () => {
     expect(
       buildSearchCandidates("https://example.com/a?id=1&utm_campaign=x", "exact-then-cleaned").map(

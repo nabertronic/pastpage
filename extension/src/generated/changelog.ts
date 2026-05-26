@@ -6,7 +6,8 @@ export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
     "version": "v1.0.9",
     "changes": [
       "Improved localization across the resolver, onboarding, and footer copy by translating the `Check other archive sources` action where it was still missing and rewriting the PastPage product description in every supported language to describe searching archived versions of web pages more clearly.",
-      "Fixed a bug that could stop the History page from updating properly after changes to your saved history or settings."
+      "Fixed a bug that could stop the History page from updating properly after changes to your saved history or settings.",
+      "Cleaned-URL fallback checks now remove more tracking and sensitive link parameters, while exact URL searches still stay unchanged for cases where archived captures depend on the full original link."
     ]
   },
   {
