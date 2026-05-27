@@ -9,7 +9,12 @@ export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
       "Fixed a bug that could stop the History page from updating properly after changes to your saved history or settings.",
       "Cleaned-URL fallback checks now remove more tracking and sensitive link parameters, while exact URL searches still stay unchanged for cases where archived captures depend on the full original link.",
       "New installations now open the `What's new` page as well, so first-time users immediately see the current release notes alongside the onboarding flow.",
-      "Replaced the Firefox onboarding toolbar step with Mozilla's real Firefox extensions icon, so the pinning guidance now matches the browser UI instead of showing a generic placeholder.",
+      "Replaced the Firefox onboarding toolbar step with Mozilla's real Firefox extensions icon, so the pinning guidance now matches the browser UI instead of showing a generic placeholder."
+    ]
+  },
+  {
+    "version": "v1.0.8",
+    "changes": [
       "Added per-entry deletion and multi-select bulk deletion on the local history page, so saved lookup runs can now be removed individually or in batches.",
       "Split the history CSV export into a full-history download and a filtered-results download, with the filtered export action shown only while filters are active.",
       "Reworked history CSV snapshot columns to group results by archive provider, so each provider now gets its own timestamp and URL columns instead of packing multiple snapshots into shared fields.",
