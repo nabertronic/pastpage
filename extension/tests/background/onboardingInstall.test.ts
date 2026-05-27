@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("background onboarding install flow", () => {
   const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
+  const storageSetMock = browser.storage.local.set as unknown as ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.resetModules();
@@ -20,9 +21,17 @@ describe("background onboarding install flow", () => {
     expect(onInstalled).toBeTypeOf("function");
 
     onInstalled?.({ reason: "install" });
-    expect(browser.tabs.create).toHaveBeenCalledWith({
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(browser.tabs.create).toHaveBeenNthCalledWith(1, {
       url: "moz-extension://test//onboarding.html",
       active: true
+    });
+    expect(browser.tabs.create).toHaveBeenNthCalledWith(2, {
+      url: "moz-extension://test//whats-new.html",
+      active: false
+    });
+    expect(storageSetMock).toHaveBeenCalledWith({
+      "pastPage.meta": { lastSeenWhatsNewVersion: "1.0.3" }
     });
 
     vi.mocked(browser.tabs.create).mockClear();

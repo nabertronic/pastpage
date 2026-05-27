@@ -4,20 +4,20 @@ type BrowserPuzzleIconProps = {
   className?: string;
 };
 
+const FIREFOX_EXTENSION_ICON_PATH = "/browser-icons/firefox-extension.svg";
+
 export function BrowserPuzzleIcon({ browser, size = 16, className }: BrowserPuzzleIconProps) {
   if (browser === "firefox") {
     return (
-      <svg
+      <img
         aria-hidden="true"
-        data-browser-icon="firefox-puzzle"
-        viewBox="0 0 16 16"
+        data-browser-icon="firefox-extension"
+        src={globalThis.browser.runtime.getURL(FIREFOX_EXTENSION_ICON_PATH)}
+        alt=""
         width={size}
         height={size}
-        className={className}
-        fill="currentColor"
-      >
-        <path d="m13 3 0-1a1 1 0 0 0-1-1l-2 0a1 1 0 0 0-1 1l0 1-2 0 0-1a1 1 0 0 0-1-1L4 1a1 1 0 0 0-1 1l0 1a2 2 0 0 0-2 2l0 7a2 2 0 0 0 2 2l10 0a2 2 0 0 0 2-2l0-7a2 2 0 0 0-2-2zm.75 9.15-.6.6-10.3 0-.6-.6 0-7.3.6-.6 10.3 0 .6.6 0 7.3z" />
-      </svg>
+        className={[className, "dark:invert"].filter(Boolean).join(" ")}
+      />
     );
   }
 

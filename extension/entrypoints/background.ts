@@ -700,10 +700,19 @@ export default defineBackground(() => {
     void ensureContextMenu();
 
     if (details.reason === "install") {
-      void browser.tabs.create({
-        url: onboardingPageUrl(),
-        active: true
-      });
+      void (async () => {
+        const currentVersion = browser.runtime.getManifest().version;
+
+        await browser.tabs.create({
+          url: onboardingPageUrl(),
+          active: true
+        });
+        await browser.tabs.create({
+          url: whatsNewPageUrl(),
+          active: false
+        });
+        await markWhatsNewVersionSeen(currentVersion);
+      })();
       return;
     }
 

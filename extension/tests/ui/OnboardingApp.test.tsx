@@ -24,7 +24,9 @@ describe("OnboardingApp", () => {
     expect(screen.getByText("Open the puzzle menu")).toBeInTheDocument();
     expect(screen.getByText("Open PastPage gear menu")).toBeInTheDocument();
     expect(screen.getByText("Pin to Toolbar")).toBeInTheDocument();
-    expect(document.querySelector('[data-browser-icon="firefox-puzzle"]')).not.toBeNull();
+    const firefoxIcon = document.querySelector('[data-browser-icon="firefox-extension"]');
+    expect(firefoxIcon).not.toBeNull();
+    expect(firefoxIcon).toHaveAttribute("src", "moz-extension://test//browser-icons/firefox-extension.svg");
     expect(document.querySelector('[data-browser-icon="chrome-puzzle"]')).toBeNull();
     expect(screen.queryByText("PASTPAGE")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Rate on Firefox" })).toHaveAttribute(
@@ -42,7 +44,7 @@ describe("OnboardingApp", () => {
 
     expect(screen.getByText("Open puzzle by bar")).toBeInTheDocument();
     expect(document.querySelector('[data-browser-icon="chrome-puzzle"]')).not.toBeNull();
-    expect(document.querySelector('[data-browser-icon="firefox-puzzle"]')).toBeNull();
+    expect(document.querySelector('[data-browser-icon="firefox-extension"]')).toBeNull();
   });
 
   it("opens the settings page in a tab from the customize action", async () => {
