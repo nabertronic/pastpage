@@ -16,6 +16,9 @@
   --wf-accent-soft: #fef4c0;
   --wf-accent-ink: #111111;
   --wf-danger: #dc2626;
+  --wf-pill-bg: #ebe7df;
+  --wf-pill-border: #d2c5b4;
+  --wf-pill-text: #2c2820;
   --wf-focus: #f5c800;
   --wf-ring: 0 0 0 3px rgba(245, 200, 0, 0.3);
 }
@@ -35,6 +38,9 @@
   --wf-accent-soft: #3a3108;
   --wf-accent-ink: #17130a;
   --wf-danger: #fca5a5;
+  --wf-pill-bg: #2a271f;
+  --wf-pill-border: #403a2c;
+  --wf-pill-text: #fff5ca;
   --wf-focus: #ffd400;
   --wf-ring: 0 0 0 3px rgba(255, 212, 0, 0.5);
 }

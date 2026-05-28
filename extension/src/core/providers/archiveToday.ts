@@ -10,10 +10,10 @@ import {
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 import {
   formatRetryAfterDetail,
-  hasHumanChallenge,
   parseRetryAfterMs,
   timestampFromDate
 } from "./common";
+import { detectProviderChallenge } from "./challengeDetection";
 
 function resolveArchiveTodayHost(hostSettings?: ProviderHostSettings): ArchiveTodayHost {
   return hostSettings?.archiveTodayHost ?? "archive.ph";
@@ -79,7 +79,7 @@ async function lookup(
   }
 
   const body = await response.text();
-  if (hasHumanChallenge(body)) {
+  if (detectProviderChallenge("archive-today", body, "query").challenged) {
     throw new ProviderLookupError(
       "Archive.today requires a manual challenge step",
       "challenge-required",

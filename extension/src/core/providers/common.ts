@@ -68,14 +68,3 @@ export function formatRetryAfterDetail(retryAfterMs?: number): string | undefine
   const seconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
   return `429 with Retry-After ${seconds}s`;
 }
-
-export function hasHumanChallenge(html: string): boolean {
-  return (
-    /captcha/i.test(html) ||
-    /recaptcha/i.test(html) ||
-    /verify you are human/i.test(html) ||
-    /security check/i.test(html) ||
-    /challenge-platform/i.test(html) ||
-    /please wait while we verify that you are not a robot/i.test(html)
-  );
-}

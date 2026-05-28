@@ -405,6 +405,8 @@ describe("ResolverApp", () => {
     render(<ResolverApp />);
 
     await waitFor(() => expect(screen.getByText(/Archived version found on Wayback Machine/i)).toBeInTheDocument());
+    expect(screen.queryByText(/Archived versions found on multiple archives/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Other archived versions found/i)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument());
     expect(screen.queryByText(/Check on Archive\.today/i)).not.toBeInTheDocument();
 
@@ -903,7 +905,10 @@ describe("ResolverApp", () => {
         ]
       ])
     });
-    await waitFor(() => expect(screen.getByText(/Other archived versions found/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/Other archived versions found/i)).not.toBeInTheDocument();
     expect(screen.getAllByText(/Open archived version/i).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
   });
@@ -1201,8 +1206,11 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() => expect(screen.getByText(/Archived version found/i)).toBeInTheDocument());
-    expect(screen.getByText(/Other archived versions found/i)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument()
+    );
+    expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Other archived versions found/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Open this provider-reported snapshot manually/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
   });
@@ -1289,7 +1297,7 @@ describe("ResolverApp", () => {
     render(<ResolverApp />);
 
     await waitFor(() =>
-      expect(screen.getByText(/Archived version found on Archive\.today/i)).toBeInTheDocument()
+      expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument()
     );
     expect(screen.getAllByText(/Ghostarchive/i).length).toBeGreaterThan(0);
     await waitFor(() =>

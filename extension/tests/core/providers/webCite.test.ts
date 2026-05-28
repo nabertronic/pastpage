@@ -21,7 +21,10 @@ const SAMPLE_TOPFRAME_HTML = `
 const SAMPLE_QUERY_FRAMESET_HTML = `
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
   <html>
-    <head><title>WebCite query result</title></head>
+    <head>
+      <title>WebCite query result</title>
+      <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    </head>
     <frameset rows="60,*" frameborder="0">
       <frame src="./topframe.php" name="nav" />
       <frame src="./mainframe.php" name="main" />
@@ -74,7 +77,12 @@ describe("webCiteProvider", () => {
         return {
           ok: true,
           status: 200,
-          text: vi.fn().mockResolvedValue(SAMPLE_TOPFRAME_HTML)
+          text: vi.fn().mockResolvedValue(`
+            <html>
+              <head><script src="https://www.google.com/recaptcha/api.js" async defer></script></head>
+              <body>${SAMPLE_TOPFRAME_HTML}</body>
+            </html>
+          `)
         };
       }
 
@@ -143,7 +151,12 @@ describe("webCiteProvider", () => {
         return {
           ok: true,
           status: 200,
-          text: vi.fn().mockResolvedValue(SAMPLE_TOPFRAME_HTML)
+          text: vi.fn().mockResolvedValue(`
+            <html>
+              <head><script src="https://www.google.com/recaptcha/api.js" async defer></script></head>
+              <body>${SAMPLE_TOPFRAME_HTML}</body>
+            </html>
+          `)
         };
       }
 
@@ -152,7 +165,10 @@ describe("webCiteProvider", () => {
         status: 200,
         text: vi.fn().mockResolvedValue(`
           <html>
-            <head><title>Error</title></head>
+            <head>
+              <title>Error</title>
+              <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+            </head>
             <body>
               <p>We do not have any snapshots of the given URL https://example.com in our database.</p>
             </body>

@@ -2,7 +2,8 @@ import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshotCandidate } from "../tabState";
 import { ProviderLookupError } from "./types";
 import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
-import { formatRetryAfterDetail, hasHumanChallenge, parseRetryAfterMs, replayFetch } from "./common";
+import { formatRetryAfterDetail, parseRetryAfterMs, replayFetch } from "./common";
+import { detectProviderChallenge } from "./challengeDetection";
 import { isLikelyWorkingSnapshotHtml } from "./snapshotValidation";
 
 type WebCiteCapture = {
@@ -145,7 +146,7 @@ async function lookup(
   }
 
   const queryHtml = await queryResponse.text();
-  if (hasHumanChallenge(queryHtml)) {
+  if (detectProviderChallenge("webcite", queryHtml, "query").challenged) {
     throw new ProviderLookupError(
       "WebCite requires a manual challenge step",
       "challenge-required",
@@ -166,7 +167,7 @@ async function lookup(
   }
 
   const topframeHtml = await topframeResponse.text();
-  if (hasHumanChallenge(topframeHtml)) {
+  if (detectProviderChallenge("webcite", topframeHtml, "query").challenged) {
     throw new ProviderLookupError(
       "WebCite requires a manual challenge step",
       "challenge-required",
@@ -205,7 +206,7 @@ async function lookup(
 
     fallbackSnapshot ??= snapshot;
 
-    if (html && isLikelyWorkingSnapshotHtml(html)) {
+    if (html && isLikelyWorkingSnapshotHtml(html, "webcite")) {
       return {
         status: "confirmed",
         snapshot: {

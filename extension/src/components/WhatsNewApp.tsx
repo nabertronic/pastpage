@@ -34,7 +34,7 @@ export function WhatsNewApp() {
 }
 
 function WhatsNewContent({ entries }: { entries: WhatsNewEntry[] }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const browserName = getExtensionBrowser();
   const currentVersion = getExtensionVersion();
   const storeUrl = getExtensionStoreUrl(browserName);
@@ -123,7 +123,7 @@ function WhatsNewContent({ entries }: { entries: WhatsNewEntry[] }) {
                         {entry.changes.map((change) => (
                           <li key={change} className="flex gap-3">
                             <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-500 dark:bg-yellow-300" />
-                            <span>{renderChangeText(change, locale)}</span>
+                            <span>{renderChangeText(change)}</span>
                           </li>
                         ))}
                       </ul>
@@ -145,43 +145,23 @@ function WhatsNewContent({ entries }: { entries: WhatsNewEntry[] }) {
   );
 }
 
-function renderChangeText(change: string, locale: SupportedLocale) {
+function renderChangeText(change: string) {
   const segments = change.split("`");
 
   if (segments.length < 3) {
     return change;
   }
 
-  const quotes = getInlineQuoteMarks(locale);
-
   return segments.map((segment, index) =>
     index % 2 === 1 ? (
-      <Fragment key={`${change}-${index}`}>
-        {quotes.open}
+      <span
+        key={`${change}-${index}`}
+        className="mx-[0.12rem] inline-block rounded-[0.7rem] border border-[color:color-mix(in_srgb,var(--wf-pill-bg)_72%,var(--wf-pill-border)_28%)] bg-[var(--wf-pill-bg)] px-2 py-0.5 align-baseline font-mono text-[0.95em] leading-[1.45] text-[var(--wf-pill-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+      >
         {segment}
-        {quotes.close}
-      </Fragment>
+      </span>
     ) : (
       <Fragment key={`${change}-${index}`}>{segment}</Fragment>
     )
   );
-}
-
-function getInlineQuoteMarks(locale: SupportedLocale) {
-  switch (locale) {
-    case "de":
-    case "pl":
-      return { open: "„", close: "“" };
-    case "fr":
-      return { open: "«\u00a0", close: "\u00a0»" };
-    case "es":
-    case "it":
-    case "pt":
-      return { open: "«", close: "»" };
-    case "uk":
-      return { open: "«", close: "»" };
-    case "en":
-    default:
-      return { open: "“", close: "”" };
-  }
 }

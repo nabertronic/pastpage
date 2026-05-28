@@ -206,6 +206,7 @@ export const it: MessageCatalog = {
   "resolver.strategy.exact": "originale URL",
   "resolver.strategy.cleaned": "pulito URL",
   "resolver.found.title": "Versione archiviata trovata su {{provider}}",
+  "resolver.found.titleMultiple": "Versioni archiviate trovate in più archivi",
   "resolver.found.checkingMore": "Continuando a controllare altri fornitori di archivi.",
   "resolver.found.cleanedHint": "Trovato tramite URL pulito.",
   "resolver.found.additionalMatches": "Trovate altre versioni archiviate",
@@ -216,6 +217,7 @@ export const it: MessageCatalog = {
   "resolver.found.copyCacheLink": "Copia il link della cache",
   "resolver.found.cacheLinkCopied": "Link della cache copiato",
   "resolver.unverified.title": "{{provider}} ha segnalato uno snapshot archiviato",
+  "resolver.unverified.titleMultiple": "Più archivi hanno segnalato snapshot archiviati",
   "resolver.unverified.description":
     "PastPage ha trovato uno snapshot di archivio concreto, ma non è riuscito a verificarlo o aprirlo automaticamente.",
   "resolver.unverified.cardNote": "Apri manualmente questo snapshot segnalato dal provider.",

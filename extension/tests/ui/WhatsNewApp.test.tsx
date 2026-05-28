@@ -7,6 +7,23 @@ import { WHATS_NEW_ENTRIES } from "@/generated/changelog";
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
 const storageSetMock = browser.storage.local.set as unknown as ReturnType<typeof vi.fn>;
 
+function hasNormalizedText(expected: string) {
+  return (_content: string, element: Element | null) => {
+    if (!element) {
+      return false;
+    }
+
+    const normalize = (value: string | null | undefined) => value?.replace(/\s+/g, " ").trim() ?? "";
+    const ownText = normalize(element.textContent);
+
+    if (!ownText.includes(expected)) {
+      return false;
+    }
+
+    return Array.from(element.children).every((child) => !normalize(child.textContent).includes(expected));
+  };
+}
+
 describe("WhatsNewApp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,21 +36,24 @@ describe("WhatsNewApp", () => {
   it("renders versions in descending order and expands the latest release by default", async () => {
     render(<WhatsNewApp />);
 
-    expect(await screen.findByText("What's new")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "What's new" })).toBeInTheDocument();
 
     const headings = screen.getAllByRole("heading", { level: 2 });
     expect(headings[0]).toHaveTextContent(WHATS_NEW_ENTRIES[0]?.version ?? "");
     expect(headings.at(-1)).toHaveTextContent(WHATS_NEW_ENTRIES.at(-1)?.version ?? "");
 
-    expect(screen.getByText(/use “Browser default” as the theme/)).toBeInTheDocument();
-    expect(screen.getByText(/including “Not Found”, “Timeout”, “Service Error”, and “Too Many Requests”/)).toBeInTheDocument();
+    expect(screen.getByText(hasNormalizedText("use Browser default as the theme"))).toBeInTheDocument();
+    expect(
+      screen.getByText(hasNormalizedText("including Not Found, Timeout, Service Error, and Too Many Requests"))
+    ).toBeInTheDocument();
+    expect(screen.getByText("Browser default")).toHaveClass("font-mono");
     expect(screen.queryByText(/Simplified the onboarding flow around the two primary actions/)).not.toBeInTheDocument();
   });
 
   it("toggles older versions open and closed", async () => {
     render(<WhatsNewApp />);
 
-    await screen.findByText("What's new");
+    await screen.findByRole("heading", { level: 1, name: "What's new" });
 
     const previousReleaseButton = screen.getByRole("button", { name: "Expand v1.0.6" });
     await userEvent.click(previousReleaseButton);

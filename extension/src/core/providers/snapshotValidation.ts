@@ -2,29 +2,22 @@ import type { ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
 import type { ArchiveProviderLookupResult } from "./types";
 import { replayFetch } from "./common";
 import type { ProviderId } from "./types";
+import { detectProviderChallenge } from "./challengeDetection";
 
 const INVALID_TITLE_PATTERNS = [
-  /^one more step$/i,
   /^404 not found$/i,
-  /^page not found$/i,
-  /^archive\.(?:ph|md|is|today|vn|fo|li)$/i
+  /^page not found$/i
 ];
 
 const INVALID_BODY_PATTERNS = [
   /wayback machine doesn't have that page archived/i,
   /got an http \d{3} response at crawl time/i,
-  /please complete the security check to access/i,
-  /this page requires a captcha/i,
   /<h2>\s*no archives\s*<\/h2>/i,
-  /verify you are human/i,
-  /please wait while we verify that you are not a robot/i,
-  /challenge-platform/i,
-  /why do i have to complete a captcha/i,
   /too many requests/i,
   /rate limited/i
 ];
 
-export function isLikelyWorkingSnapshotHtml(html: string): boolean {
+export function isLikelyWorkingSnapshotHtml(html: string, providerId?: ProviderId): boolean {
   if (/<meta[^>]+http-equiv=["']refresh["'][^>]+url=/i.test(html)) {
     return false;
   }
@@ -32,6 +25,10 @@ export function isLikelyWorkingSnapshotHtml(html: string): boolean {
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const title = titleMatch?.[1]?.replace(/\s+/g, " ").trim() ?? "";
   if (INVALID_TITLE_PATTERNS.some((pattern) => pattern.test(title))) {
+    return false;
+  }
+
+  if (detectProviderChallenge(providerId, html, "replay").challenged) {
     return false;
   }
 
@@ -161,13 +158,13 @@ async function isWorkingSnapshot(
     }
 
     const html = await response.text();
-    if (isLikelyWorkingSnapshotHtml(html)) {
+    if (isLikelyWorkingSnapshotHtml(html, snapshot.providerId)) {
       return { status: "confirmed" };
     }
 
     return {
       status: "failed",
-      issue: replayIssueFromHtml(html)
+      issue: replayIssueFromHtml(snapshot.providerId, html)
     };
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -211,7 +208,7 @@ function replayIssueFromStatus(status: number, mode: ReplayValidationMode): Repl
   };
 }
 
-function replayIssueFromHtml(html: string): ReplayIssue {
+function replayIssueFromHtml(providerId: ProviderId, html: string): ReplayIssue {
   if (/too many requests|rate limited/i.test(html)) {
     return {
       verificationNote: "Replay validation reached a rate-limit page instead of the archived content.",
@@ -219,10 +216,11 @@ function replayIssueFromHtml(html: string): ReplayIssue {
     };
   }
 
-  if (/captcha|recaptcha|verify you are human|security check|challenge-platform/i.test(html)) {
+  const challenge = detectProviderChallenge(providerId, html, "replay");
+  if (challenge.challenged) {
     return {
       verificationNote: "Replay validation reached a challenge page instead of the archived content.",
-      technicalDetail: "challenge page during replay"
+      technicalDetail: challenge.technicalDetail ?? "challenge page during replay"
     };
   }
 

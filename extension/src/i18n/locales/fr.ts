@@ -244,6 +244,7 @@ export const fr = {
   "resolver.strategy.exact": "URL d'origine",
   "resolver.strategy.cleaned": "URL nettoyée",
   "resolver.found.title": "Version archivée trouvée sur {{provider}}",
+  "resolver.found.titleMultiple": "Versions archivées trouvées sur plusieurs archives",
   "resolver.found.checkingMore": "Vérification des autres fournisseurs d'archives en cours.",
   "resolver.found.cleanedHint": "Trouvé via l'URL nettoyée.",
   "resolver.found.additionalMatches": "Autres versions archivées trouvées",
@@ -254,6 +255,7 @@ export const fr = {
   "resolver.found.copyCacheLink": "Copier le lien du cache",
   "resolver.found.cacheLinkCopied": "Lien du cache copié",
   "resolver.unverified.title": "{{provider}} a signalé un snapshot archivé",
+  "resolver.unverified.titleMultiple": "Plusieurs archives ont signalé des snapshots archivés",
   "resolver.unverified.description":
     "PastPage a trouvé un snapshot d'archive précis, mais n'a pas pu le vérifier ni l'ouvrir automatiquement.",
   "resolver.unverified.cardNote": "Ouvrez manuellement ce snapshot signalé par le fournisseur.",

@@ -37,6 +37,15 @@ describe("snapshotValidation", () => {
     ).toBe(false);
   });
 
+  it("does not reject normal archived pages just because their content mentions captchas", () => {
+    expect(
+      isLikelyWorkingSnapshotHtml(
+        "<html><head><title>Saved page</title></head><body><!-- toggle off captchas --><p>ok</p></body></html>",
+        "webcite"
+      )
+    ).toBe(true);
+  });
+
   it("rejects meta refresh redirect pages", () => {
     expect(
       isLikelyWorkingSnapshotHtml(

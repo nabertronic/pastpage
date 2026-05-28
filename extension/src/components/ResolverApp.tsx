@@ -43,8 +43,17 @@ function snapshotTargetUrl(snapshot: ArchiveSnapshot) {
 }
 
 function snapshotCardDescription(t: ReturnType<typeof useI18n>["t"], snapshot: ArchiveSnapshot) {
-  if (snapshot.verification !== "unverified") return undefined;
-  return [t("resolver.unverified.cardNote"), snapshot.verificationNote].filter(Boolean).join(" ");
+  const parts: string[] = [];
+
+  if (snapshot.strategy === "cleaned") {
+    parts.push(t("resolver.found.cleanedHint"));
+  }
+
+  if (snapshot.verification === "unverified") {
+    parts.push([t("resolver.unverified.cardNote"), snapshot.verificationNote].filter(Boolean).join(" "));
+  }
+
+  return parts.length > 0 ? parts.join(" ") : undefined;
 }
 
 type ManualSourceMeta = {
@@ -659,6 +668,11 @@ function ResolverContent({
           provider: getProvider(activeStep.providerId).displayName
         })
     : t("resolver.startingLookup");
+  const foundSnapshots =
+    status.kind === "found" || status.kind === "unverified"
+      ? [status.snapshot, ...status.additionalSnapshots]
+      : [];
+  const hasMultipleFoundSnapshots = foundSnapshots.length > 1;
 
   return (
     <PageShell
@@ -704,15 +718,12 @@ function ResolverContent({
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-base font-semibold">
-                    {t("resolver.found.title", {
-                      provider: getProvider(status.snapshot.providerId).displayName
-                    })}
+                    {hasMultipleFoundSnapshots
+                      ? t("resolver.found.titleMultiple")
+                      : t("resolver.found.title", {
+                          provider: getProvider(status.snapshot.providerId).displayName
+                        })}
                   </h2>
-                  {status.snapshot.strategy === "cleaned" ? (
-                    <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
-                      {t("resolver.found.cleanedHint")}
-                    </p>
-                  ) : null}
                   {status.isCheckingMore ? (
                     <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
                       <Spinner
@@ -720,19 +731,8 @@ function ResolverContent({
                       />
                     </div>
                   ) : null}
-                  <ArchiveSnapshotCard
-                    snapshot={status.snapshot}
-                    description={snapshotCardDescription(t, status.snapshot)}
-                  />
-                </div>
-              </div>
-              {status.additionalSnapshots.length > 0 ? (
-                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
-                  <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
-                    {t("resolver.found.additionalMatches")}
-                  </h3>
                   <div className="space-y-2">
-                    {status.additionalSnapshots.map((snapshot) => (
+                    {foundSnapshots.map((snapshot) => (
                       <ArchiveSnapshotCard
                         key={snapshotTargetUrl(snapshot)}
                         snapshot={snapshot}
@@ -741,7 +741,7 @@ function ResolverContent({
                     ))}
                   </div>
                 </div>
-              ) : null}
+              </div>
               {status.manualSources.length > 0 ? (
                 <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
@@ -761,18 +761,15 @@ function ResolverContent({
                 <XCircle aria-hidden="true" className="mt-0.5 text-yellow-700 dark:text-yellow-300" size={20} />
                 <div className="min-w-0">
                   <h2 className="text-base font-semibold">
-                    {t("resolver.unverified.title", {
-                      provider: getProvider(status.snapshot.providerId).displayName
-                    })}
+                    {hasMultipleFoundSnapshots
+                      ? t("resolver.unverified.titleMultiple")
+                      : t("resolver.unverified.title", {
+                          provider: getProvider(status.snapshot.providerId).displayName
+                        })}
                   </h2>
                   <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
                     {t("resolver.unverified.description")}
                   </p>
-                  {status.snapshot.strategy === "cleaned" ? (
-                    <p className="mt-1 text-sm text-stone-600 dark:text-stone-300">
-                      {t("resolver.found.cleanedHint")}
-                    </p>
-                  ) : null}
                   {status.isCheckingMore ? (
                     <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
                       <Spinner
@@ -780,19 +777,8 @@ function ResolverContent({
                       />
                     </div>
                   ) : null}
-                  <ArchiveSnapshotCard
-                    snapshot={status.snapshot}
-                    description={snapshotCardDescription(t, status.snapshot)}
-                  />
-                </div>
-              </div>
-              {status.additionalSnapshots.length > 0 ? (
-                <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
-                  <h3 className="text-sm font-semibold text-stone-900 dark:text-yellow-50">
-                    {t("resolver.unverified.additionalMatches")}
-                  </h3>
                   <div className="space-y-2">
-                    {status.additionalSnapshots.map((snapshot) => (
+                    {foundSnapshots.map((snapshot) => (
                       <ArchiveSnapshotCard
                         key={snapshotTargetUrl(snapshot)}
                         snapshot={snapshot}
@@ -801,7 +787,7 @@ function ResolverContent({
                     ))}
                   </div>
                 </div>
-              ) : null}
+              </div>
               {status.manualSources.length > 0 ? (
                 <div className="space-y-2 border-t border-[var(--wf-border)] pt-3 dark:border-stone-800">
                   <p className="text-sm text-stone-600 dark:text-stone-300">

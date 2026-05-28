@@ -241,6 +241,7 @@ export const es = {
   "resolver.strategy.exact": "URL original",
   "resolver.strategy.cleaned": "URL depurada",
   "resolver.found.title": "Versión archivada encontrada en {{provider}}",
+  "resolver.found.titleMultiple": "Versiones archivadas encontradas en varios archivos",
   "resolver.found.checkingMore": "Se siguen comprobando otros proveedores de archivo.",
   "resolver.found.cleanedHint": "Encontrado mediante URL depurada.",
   "resolver.found.additionalMatches": "Otras versiones archivadas encontradas",
@@ -251,6 +252,7 @@ export const es = {
   "resolver.found.copyCacheLink": "Copiar enlace de caché",
   "resolver.found.cacheLinkCopied": "Enlace de caché copiado",
   "resolver.unverified.title": "{{provider}} informó una captura archivada",
+  "resolver.unverified.titleMultiple": "Varios archivos informaron capturas archivadas",
   "resolver.unverified.description":
     "PastPage encontró una captura archivada concreta, pero no pudo verificarla ni abrirla automáticamente.",
   "resolver.unverified.cardNote": "Abre manualmente esta captura informada por el proveedor.",

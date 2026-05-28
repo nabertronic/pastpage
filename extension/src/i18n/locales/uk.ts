@@ -204,6 +204,7 @@ export const uk: MessageCatalog = {
   "resolver.strategy.exact": "оригінальний URL",
   "resolver.strategy.cleaned": "очищено URL",
   "resolver.found.title": "Архівну версію знайдено {{provider}}",
+  "resolver.found.titleMultiple": "Архівовані версії знайдено в кількох архівах",
   "resolver.found.checkingMore": "Продовжуємо перевірку інших постачальників архівів.",
   "resolver.found.cleanedHint": "Знайдено через очищений URL.",
   "resolver.found.additionalMatches": "Знайдено інші архівні версії",
@@ -214,6 +215,7 @@ export const uk: MessageCatalog = {
   "resolver.found.copyCacheLink": "Копіювати посилання на кеш",
   "resolver.found.cacheLinkCopied": "Посилання на кеш скопійовано",
   "resolver.unverified.title": "{{provider}} повідомив про архівний знімок",
+  "resolver.unverified.titleMultiple": "Кілька архівів повідомили про архівні знімки",
   "resolver.unverified.description":
     "PastPage знайшов конкретний архівний знімок, але не зміг автоматично перевірити або відкрити його.",
   "resolver.unverified.cardNote": "Відкрийте вручну цей знімок, повідомлений провайдером.",

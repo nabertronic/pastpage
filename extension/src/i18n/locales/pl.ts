@@ -204,6 +204,7 @@ export const pl: MessageCatalog = {
   "resolver.strategy.exact": "oryginał URL",
   "resolver.strategy.cleaned": "oczyszczone URL",
   "resolver.found.title": "Wersja archiwalna znaleziona na {{provider}}",
+  "resolver.found.titleMultiple": "Wersje archiwalne znaleziono w wielu archiwach",
   "resolver.found.checkingMore": "Kontynuujemy sprawdzanie innych dostawców archiwów.",
   "resolver.found.cleanedHint": "Znaleziono przez oczyszczone URL.",
   "resolver.found.additionalMatches": "Znaleziono inne wersje archiwalne",
@@ -214,6 +215,7 @@ export const pl: MessageCatalog = {
   "resolver.found.copyCacheLink": "Skopiuj link do pamięci podręcznej",
   "resolver.found.cacheLinkCopied": "Link do pamięci podręcznej skopiowany",
   "resolver.unverified.title": "{{provider}} zgłosił zarchiwizowaną migawkę",
+  "resolver.unverified.titleMultiple": "Wiele archiwów zgłosiło zarchiwizowane migawki",
   "resolver.unverified.description":
     "PastPage znalazł konkretną migawkę archiwalną, ale nie mógł jej automatycznie zweryfikować ani otworzyć.",
   "resolver.unverified.cardNote": "Otwórz ręcznie tę migawkę zgłoszoną przez dostawcę.",

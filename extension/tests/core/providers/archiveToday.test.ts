@@ -168,6 +168,29 @@ describe("archiveTodayProvider", () => {
     );
   });
 
+  it("does not treat a valid timemap as a challenge page just because it mentions archive hosts", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue(SAMPLE_TIMEMAP)
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        redirected: false,
+        headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+        text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
+      });
+
+    const result = await archiveTodayProvider.lookup(
+      { strategy: "exact", url: "https://example.com" },
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("confirmed");
+  });
+
   it("throws a server-error on 503 responses", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 503 });
     const { ProviderLookupError } = await import("@/core/providers/types");
