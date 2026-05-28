@@ -5,11 +5,9 @@
 - Archive lookups are now more reliable on difficult services such as `Archive.today`, `Perma.cc`, and `WebCite`: PastPage checks original and cleaned URLs more carefully per provider, with separate time limits for querying and replay validation, which reduces rate-limit issues, session mix-ups, and missed fallback checks.
 - Snapshot confirmation is now more accurate across automatic archives, so confirmed results are less likely to be challenge pages or broken replays. This also fixes `Archive.today` choosing impossible future-dated captures and accepts equivalent archive redirects such as `http` to `https` on the same snapshot.
 - When an archive rate-limits, times out, or shows a challenge page, PastPage now stops retrying that provider sooner, falls back to manual follow-up faster, and explains the issue more clearly in resolver badges and unverified result cards with details such as `Retry-After`, `challenge page`, `query timeout`, or `replay timeout`.
-
 - Lookup runs are now more stable overall: PastPage waits for your saved settings before starting, so a lookup no longer launches a duplicate second round of archive checks when your configuration differs from the defaults.
 - Local history is now more reliable during simultaneous lookups. Opening several archives at once no longer overwrites, truncates, or quietly drops saved entries, and the History page refreshes more consistently after history or settings changes.
 - Resolver results are easier to scan when several archives respond, with a more consistent multi-archive result layout instead of splitting one top result away from the rest.
-
 - Cleaned fallback URL checks now remove more tracking and sensitive parameters without changing exact URL searches, and domains such as `fda.gov`, `fcc.gov`, or `fdic.gov` are no longer misread as private network addresses.
 - Updated localization and release copy across the resolver, onboarding, footer, and `What's new` page. New installations now also open `What's new`, and Firefox pinning guidance uses Mozilla's actual extensions icon.
 
