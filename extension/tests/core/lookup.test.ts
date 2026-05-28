@@ -1175,4 +1175,26 @@ describe("lookupArchives", () => {
     expect(secondResult.status).toBe("not-found");
     expect(waybackRetried).toBe(true);
   });
+
+  it("returns not-found without querying when the allowed provider scope is empty", async () => {
+    const fetchImpl = vi.fn();
+
+    const result = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch,
+      undefined,
+      undefined,
+      undefined,
+      []
+    );
+
+    expect(result.status).toBe("not-found");
+    expect(fetchImpl).not.toHaveBeenCalled();
+    if (result.status === "not-found") {
+      expect(result.checked).toEqual([]);
+      expect(result.failedProviders).toEqual([]);
+      expect(result.manualSources).toEqual([]);
+    }
+  });
 });

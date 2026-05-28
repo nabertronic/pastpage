@@ -606,6 +606,36 @@ describe("ResolverApp", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows a scoped not-found state without querying when the scoped provider is disabled", async () => {
+    const fetchMock = notFoundFetch();
+    storageGetMock.mockResolvedValue({
+      "pastPage.settings": {
+        ...DEFAULT_SETTINGS,
+        enabledProviders: DEFAULT_SETTINGS.enabledProviders.filter((providerId) => providerId !== "perma-cc")
+      }
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=manual-page&url=https%3A%2F%2Fexample.com%2Fstory&providerId=perma-cc"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/No archived HTML snapshot could be confirmed automatically/i)).toBeInTheDocument()
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.getByText(/PastPage checks archived captures on Perma\.cc\./i)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        (text) => text.includes("Perma.cc") && text.includes("could not confirm a working archived HTML snapshot automatically")
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Check on Perma\.cc/i)).not.toBeInTheDocument();
+  });
+
   it("opens the thanks page again on the 100th search", async () => {
     storageGetMock.mockResolvedValue({
       "pastPage.settings": DEFAULT_SETTINGS,
