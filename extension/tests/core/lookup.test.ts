@@ -182,7 +182,7 @@ describe("lookupArchives", () => {
                   `<https://archive.ph/20240202000000/https://example.com>; rel="memento"; datetime="Fri, 02 Feb 2024 00:00:00 GMT"`
                 )
             }
-          : archiveHtmlResponse("Archive.today"),
+          : archiveHtmlResponse("Archive.today snapshot"),
       "ghostarchive.org": () => emptyGhostarchiveResponse(),
       "api.perma.cc": () => emptyPermaCcResponse(),
       "arquivo.pt": () => emptyArquivoPtResponse(),
@@ -458,7 +458,7 @@ describe("lookupArchives", () => {
                   `<https://archive.ph/20240202000000/https://example.com>; rel="memento"; datetime="Fri, 02 Feb 2024 00:00:00 GMT"`
                 )
             }
-          : archiveHtmlResponse("Archive.today"),
+          : archiveHtmlResponse("Archive.today snapshot"),
       "ghostarchive.org": (url: string) =>
         url.includes("/search?")
           ? {
@@ -511,7 +511,7 @@ describe("lookupArchives", () => {
                   `<https://archive.ph/20240202000000/https://example.com>; rel="memento"; datetime="Fri, 02 Feb 2024 00:00:00 GMT"`
                 )
             }
-          : archiveHtmlResponse("Archive.today"),
+          : archiveHtmlResponse("Archive.today snapshot"),
       "ghostarchive.org": (url: string) =>
         url.includes("/search?")
           ? {
@@ -568,7 +568,7 @@ describe("lookupArchives", () => {
                   `<https://archive.ph/20240202000000/https://example.com>; rel="memento"; datetime="Fri, 02 Feb 2024 00:00:00 GMT"`
                 )
             }
-          : archiveHtmlResponse("Archive.today"),
+          : archiveHtmlResponse("Archive.today snapshot"),
       "ghostarchive.org": () => emptyGhostarchiveResponse(),
       "api.perma.cc": () => emptyPermaCcResponse(),
       "arquivo.pt": () => emptyArquivoPtResponse(),
@@ -899,11 +899,11 @@ describe("lookupArchives", () => {
     }
   });
 
-  it("starts exact and cleaned candidates in parallel for the same provider", async () => {
+  it("finishes exact before starting cleaned for the same provider", async () => {
     const waybackRequests: string[] = [];
-    let resolveCleanedLookup: (value: unknown) => void = () => {};
-    const cleanedLookup = new Promise((resolve) => {
-      resolveCleanedLookup = resolve;
+    let resolveExactLookup: (value: unknown) => void = () => {};
+    const exactLookup = new Promise((resolve) => {
+      resolveExactLookup = resolve;
     });
 
     const fetchImpl = vi.fn(async (url: string) => {
@@ -912,16 +912,80 @@ describe("lookupArchives", () => {
       if (host.includes("web.archive.org")) {
         waybackRequests.push(url);
         if (url.includes("utm_source=test")) {
+          return exactLookup;
+        }
+
+        return {
+          ok: true,
+          status: 200,
+          json: vi
+            .fn()
+            .mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+        };
+      }
+
+      if (host.includes("archive.ph") || host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+        return {
+          ok: true,
+          status: 200,
+          text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+        };
+      }
+
+      if (host.includes("api.perma.cc")) {
+        return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+      }
+
+      if (host.includes("arquivo.pt")) {
+        return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+      }
+
+      if (host.includes("webcitation.org")) {
+        return emptyWebCiteResponse(url);
+      }
+
+      throw new Error(`unhandled host ${host}`);
+    });
+
+    const lookupPromise = lookupArchives(
+      "https://example.com/missing?utm_source=test",
+      "exact-then-cleaned",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    await vi.waitFor(() => expect(waybackRequests).toHaveLength(1));
+    expect(decodeURIComponent(waybackRequests[0])).toContain("utm_source=test");
+
+    resolveExactLookup({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+    });
+
+    await vi.waitFor(() => expect(waybackRequests).toHaveLength(2));
+    expect(decodeURIComponent(waybackRequests[1])).toContain("https://example.com/missing");
+
+    await lookupPromise;
+  });
+
+  it("marks a provider as failed when one candidate errors and another only misses", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      const host = new URL(url).hostname;
+
+      if (host.includes("web.archive.org")) {
+        if (decodeURIComponent(url).includes("utm_source=test")) {
           return {
-            ok: true,
-            status: 200,
-            json: vi
-              .fn()
-              .mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+            ok: false,
+            status: 429,
+            json: vi.fn().mockResolvedValue([])
           };
         }
 
-        return cleanedLookup;
+        return {
+          ok: true,
+          status: 200,
+          json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+        };
       }
 
       if (host.includes("archive.ph") || host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
@@ -949,20 +1013,23 @@ describe("lookupArchives", () => {
       fetchImpl as unknown as typeof fetch
     );
 
-    await vi.waitFor(() => expect(waybackRequests).toHaveLength(2));
-    expect(waybackRequests.some((url) => decodeURIComponent(url).includes("utm_source=test"))).toBe(true);
-    expect(waybackRequests.some((url) => decodeURIComponent(url).includes("https://example.com/missing"))).toBe(true);
-
-    resolveCleanedLookup({
-      ok: true,
-      status: 200,
-      json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
-    });
-
-    await lookupPromise;
+    const result = await lookupPromise;
+    expect(result.status).toBe("not-found");
+    if (result.status === "not-found") {
+      expect(result.failedProviders).toContainEqual(
+        expect.objectContaining({
+          providerId: "wayback",
+          reason: "rate-limited",
+          technicalDetail: "429 during query"
+        })
+      );
+      expect(result.checked.filter((attempt) => attempt.providerId === "wayback")).toEqual([
+        expect.objectContaining({ strategy: "exact", outcome: "error" })
+      ]);
+    }
   });
 
-  it("applies the central timeout to provider requests", async () => {
+  it("applies the configured timeout to each archive call", async () => {
     vi.useFakeTimers();
 
     const fetchImpl = vi.fn((_: RequestInfo | URL, init?: RequestInit) => {
@@ -992,9 +1059,120 @@ describe("lookupArchives", () => {
 
     expect(result.status).toBe("not-found");
     if (result.status === "not-found") {
-      expect(result.failedProviders.map((provider) => provider.providerId)).toEqual(["wayback"]);
+      expect(result.failedProviders).toEqual([
+        expect.objectContaining({
+          providerId: "wayback",
+          reason: "timeout",
+          technicalDetail: "query timeout"
+        })
+      ]);
     }
 
     vi.useRealTimers();
+  });
+
+  it("retries cleaned after an exact timeout with a fresh timeout budget", async () => {
+    vi.useFakeTimers();
+
+    const fetchImpl = vi.fn((url: RequestInfo | URL, init?: RequestInit) => {
+      const requestUrl = String(url);
+
+      if (requestUrl.includes("/cdx?")) {
+        if (decodeURIComponent(requestUrl).includes("utm_source=test")) {
+          return new Promise((_, reject) => {
+            init?.signal?.addEventListener(
+              "abort",
+              () => reject(new Error("aborted")),
+              { once: true }
+            );
+          });
+        }
+
+        return Promise.resolve(waybackHit());
+      }
+
+      if (requestUrl.includes("/web/")) {
+        return Promise.resolve(archiveHtmlResponse("Wayback"));
+      }
+
+      throw new Error(`unhandled url ${requestUrl}`);
+    });
+
+    const lookupPromise = lookupArchives(
+      "https://example.com/missing?utm_source=test",
+      "exact-then-cleaned",
+      fetchImpl as unknown as typeof fetch,
+      undefined,
+      undefined,
+      undefined,
+      ["wayback"],
+      undefined,
+      50
+    );
+
+    await vi.advanceTimersByTimeAsync(50);
+    const result = await lookupPromise;
+
+    expect(result.status).toBe("found");
+    if (result.status === "found") {
+      expect(result.snapshot.providerId).toBe("wayback");
+      expect(result.snapshot.strategy).toBe("cleaned");
+      expect(result.checked).toEqual([
+        expect.objectContaining({ providerId: "wayback", strategy: "exact", outcome: "error" }),
+        expect.objectContaining({ providerId: "wayback", strategy: "cleaned", outcome: "hit" })
+      ]);
+    }
+
+    vi.useRealTimers();
+  });
+
+  it("retries the same provider on the next lookup after a rate-limit failure", async () => {
+    const rateLimitedFetch = dispatchByHost({
+      "web.archive.org": () => ({
+        ok: false,
+        status: 429,
+        headers: { get: vi.fn().mockReturnValue("120") },
+        json: vi.fn().mockResolvedValue([])
+      }),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const firstResult = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      rateLimitedFetch as unknown as typeof fetch
+    );
+    expect(firstResult.status).toBe("not-found");
+
+    let waybackRetried = false;
+    const secondFetch = dispatchByHost({
+      "web.archive.org": () => {
+        waybackRetried = true;
+        return {
+          ok: true,
+          status: 200,
+          json: vi
+            .fn()
+            .mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
+        };
+      },
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const secondResult = await lookupArchives(
+      "https://example.com",
+      "exact-only",
+      secondFetch as unknown as typeof fetch
+    );
+    expect(secondResult.status).toBe("not-found");
+    expect(waybackRetried).toBe(true);
   });
 });

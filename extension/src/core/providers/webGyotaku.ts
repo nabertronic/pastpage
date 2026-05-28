@@ -2,7 +2,7 @@ import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshot, ArchiveSnapshotCandidate } from "../tabState";
 import { ProviderLookupError } from "./types";
 import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
-import { absoluteUrl } from "./common";
+import { absoluteUrl, formatRetryAfterDetail, parseRetryAfterMs } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
 type WebGyotakuResult = {
@@ -47,7 +47,15 @@ async function lookup(
 
   if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
-    if (response.status === 429) throw new ProviderLookupError("Megalodon/Web Gyotaku rate-limited this request", "rate-limited");
+    if (response.status === 429) {
+      const retryAfterMs = parseRetryAfterMs(response.headers?.get?.("retry-after"));
+      throw new ProviderLookupError(
+        "Megalodon/Web Gyotaku rate-limited this request",
+        "rate-limited",
+        retryAfterMs,
+        formatRetryAfterDetail(retryAfterMs) ?? "429 during query"
+      );
+    }
     if (response.status >= 500) throw new ProviderLookupError(`Megalodon/Web Gyotaku returned ${response.status}`, "server-error");
     throw new ProviderLookupError(`Megalodon/Web Gyotaku returned ${response.status}`);
   }

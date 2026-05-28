@@ -9,6 +9,36 @@ import {
 const SETTINGS_KEY = "pastPage.settings";
 const META_KEY = "pastPage.meta";
 const HISTORY_KEY = "pastPage.history";
+const HISTORY_LOCK_NAME = "pastPage.history.lock";
+
+type LockManagerLike = {
+  request: <T>(name: string, callback: () => Promise<T> | T) => Promise<T>;
+};
+
+// History lives in a single storage key that several contexts (the background
+// worker plus every resolver/popup/history tab) read-modify-write. Without a
+// shared critical section, concurrent writers clobber each other's whole array
+// (e.g. "open all archives" spawning N resolver tabs). The Web Locks API is
+// shared across all same-origin extension contexts; fall back to a per-context
+// promise chain where it is unavailable.
+let historyWriteChain: Promise<unknown> = Promise.resolve();
+
+function withHistoryLock<T>(operation: () => Promise<T>): Promise<T> {
+  const locks = (globalThis.navigator as Navigator | undefined)?.locks as
+    | LockManagerLike
+    | undefined;
+
+  if (locks?.request) {
+    return locks.request(HISTORY_LOCK_NAME, operation);
+  }
+
+  const run = historyWriteChain.then(operation, operation);
+  historyWriteChain = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
 
 export type LocalMeta = {
   firstArchiveOpenedAt?: number;
@@ -108,46 +138,50 @@ async function isHistoryEnabled(): Promise<boolean> {
 export async function createHistoryEntry(input: CreateHistoryEntryInput): Promise<HistoryEntry | null> {
   if (!(await isHistoryEnabled())) return null;
 
-  const history = await getHistory();
-  const entry: HistoryEntry = {
-    id: createHistoryId(),
-    startedAt: Date.now(),
-    targetUrl: input.targetUrl,
-    trigger: input.trigger,
-    requestTrigger: input.requestTrigger,
-    scopedProviderId: input.scopedProviderId,
-    outcome: "unknown",
-    resultSnapshots: []
-  };
+  return withHistoryLock(async () => {
+    const history = await getHistory();
+    const entry: HistoryEntry = {
+      id: createHistoryId(),
+      startedAt: Date.now(),
+      targetUrl: input.targetUrl,
+      trigger: input.trigger,
+      requestTrigger: input.requestTrigger,
+      scopedProviderId: input.scopedProviderId,
+      outcome: "unknown",
+      resultSnapshots: []
+    };
 
-  await saveHistory([entry, ...history]);
-  return entry;
+    await saveHistory([entry, ...history]);
+    return entry;
+  });
 }
 
 export async function completeHistoryEntry(
   id: string,
   input: CompleteHistoryEntryInput
 ): Promise<HistoryEntry | null> {
-  const history = await getHistory();
-  let updatedEntry: HistoryEntry | null = null;
+  return withHistoryLock(async () => {
+    const history = await getHistory();
+    let updatedEntry: HistoryEntry | null = null;
 
-  const nextHistory = history.map((entry) => {
-    if (entry.id !== id) return entry;
+    const nextHistory = history.map((entry) => {
+      if (entry.id !== id) return entry;
 
-    updatedEntry = {
-      ...entry,
-      outcome: input.outcome,
-      resolvedAt: input.resolvedAt ?? Date.now(),
-      resultSnapshots: input.resultSnapshots ?? entry.resultSnapshots,
-      failedProviders: input.failedProviders ?? entry.failedProviders,
-      checkedAttempts: input.checkedAttempts ?? entry.checkedAttempts
-    };
+      updatedEntry = {
+        ...entry,
+        outcome: input.outcome,
+        resolvedAt: input.resolvedAt ?? Date.now(),
+        resultSnapshots: input.resultSnapshots ?? entry.resultSnapshots,
+        failedProviders: input.failedProviders ?? entry.failedProviders,
+        checkedAttempts: input.checkedAttempts ?? entry.checkedAttempts
+      };
+      return updatedEntry;
+    });
+
+    if (!updatedEntry) return null;
+    await saveHistory(nextHistory);
     return updatedEntry;
   });
-
-  if (!updatedEntry) return null;
-  await saveHistory(nextHistory);
-  return updatedEntry;
 }
 
 export async function appendHistorySnapshots(
@@ -159,35 +193,39 @@ export async function appendHistorySnapshots(
     return history.find((entry) => entry.id === id) ?? null;
   }
 
-  const history = await getHistory();
-  let updatedEntry: HistoryEntry | null = null;
+  return withHistoryLock(async () => {
+    const history = await getHistory();
+    let updatedEntry: HistoryEntry | null = null;
 
-  const nextHistory = history.map((entry) => {
-    if (entry.id !== id) return entry;
+    const nextHistory = history.map((entry) => {
+      if (entry.id !== id) return entry;
 
-    const seen = new Set(entry.resultSnapshots.map((snapshot) => snapshot.openUrl ?? snapshot.archiveUrl));
-    const nextSnapshots = [...entry.resultSnapshots];
-    for (const snapshot of snapshots) {
-      const key = snapshot.openUrl ?? snapshot.archiveUrl;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      nextSnapshots.push(snapshot);
-    }
+      const seen = new Set(entry.resultSnapshots.map((snapshot) => snapshot.openUrl ?? snapshot.archiveUrl));
+      const nextSnapshots = [...entry.resultSnapshots];
+      for (const snapshot of snapshots) {
+        const key = snapshot.openUrl ?? snapshot.archiveUrl;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        nextSnapshots.push(snapshot);
+      }
 
-    updatedEntry = {
-      ...entry,
-      resultSnapshots: nextSnapshots
-    };
+      updatedEntry = {
+        ...entry,
+        resultSnapshots: nextSnapshots
+      };
+      return updatedEntry;
+    });
+
+    if (!updatedEntry) return null;
+    await saveHistory(nextHistory);
     return updatedEntry;
   });
-
-  if (!updatedEntry) return null;
-  await saveHistory(nextHistory);
-  return updatedEntry;
 }
 
 export async function clearHistory(): Promise<void> {
-  await browser.storage.local.set({ [HISTORY_KEY]: [] });
+  await withHistoryLock(async () => {
+    await browser.storage.local.set({ [HISTORY_KEY]: [] });
+  });
 }
 
 export async function deleteHistoryEntries(ids: string[]): Promise<HistoryEntry[]> {
@@ -195,11 +233,13 @@ export async function deleteHistoryEntries(ids: string[]): Promise<HistoryEntry[
     return getHistory();
   }
 
-  const idSet = new Set(ids);
-  const history = await getHistory();
-  const nextHistory = history.filter((entry) => !idSet.has(entry.id));
-  await saveHistory(nextHistory);
-  return nextHistory;
+  return withHistoryLock(async () => {
+    const idSet = new Set(ids);
+    const history = await getHistory();
+    const nextHistory = history.filter((entry) => !idSet.has(entry.id));
+    await saveHistory(nextHistory);
+    return nextHistory;
+  });
 }
 
 export async function deleteHistoryEntry(id: string): Promise<HistoryEntry[]> {

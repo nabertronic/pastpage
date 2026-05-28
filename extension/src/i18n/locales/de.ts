@@ -112,7 +112,7 @@ export const de: MessageCatalog = {
     "Wählen Sie, ob PastPage nur die ursprüngliche URL prüft oder zusätzlich parallel eine bereinigte Fallback-URL versucht.",
   "options.providerTimeout.label": "Provider-Timeout",
   "options.providerTimeout.description":
-    "Legen Sie fest, wie viele Sekunden jeder Archiv-Anbieter maximal Zeit hat, bevor PastPage die Abfrage abbricht.",
+    "Legen Sie fest, wie viele Sekunden jede einzelne Archiv-Prüfung maximal Zeit hat, bevor PastPage sie abbricht. Exakte und bereinigte Fallback-Prüfungen erhalten jeweils ihr eigenes volles Timeout.",
   "options.urlMatching.exactThenCleaned": "Ursprüngliche URL + bereinigter Fallback",
   "options.urlMatching.exactOnly": "Nur exakt",
   "options.urlMatching.cleanedFirst": "Zuerst bereinigt",
@@ -273,6 +273,8 @@ export const de: MessageCatalog = {
     "Wayback Machine hat diese Anfrage gedrosselt. Das passiert häufiger mit VPNs oder geteilten IP-Adressen. Versuche es später erneut oder öffne Wayback manuell.",
   "resolver.manual.yandexManualHelp":
     "Yandex Cache muss immer manuell geprüft werden: Öffne den Link, und wenn es ein Ergebnis gibt, nutze das Drei-Punkte-Menü daneben und öffne dort die Cache-Version.",
+  "resolver.manual.challenge":
+    "{{provider}} verlangt einen manuellen Challenge-Schritt, daher konnte PastPage dort nicht automatisch prüfen.",
   "resolver.manual.notFound":
     "{{provider}} hat diese URL nicht archiviert. Du kannst trotzdem manuell prüfen. Die Seite wurde möglicherweise inzwischen archiviert.",
   "resolver.manual.serviceError":

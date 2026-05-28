@@ -10,14 +10,26 @@ const SAMPLE_TIMEMAP = `<https://archive.ph/timemap/https://example.com>; rel="s
 <https://archive.ph/20240615120000/https://example.com>; rel="memento"; datetime="Sat, 15 Jun 2024 12:00:00 GMT",
 <https://archive.ph/20240101000000/https://example.com>; rel="last memento"; datetime="Mon, 01 Jan 2024 00:00:00 GMT"`;
 
+const FUTURE_TIMEMAP = `<https://archive.ph/timemap/https://example.com>; rel="self"; type="application/link-format",
+<https://archive.ph/https://example.com>; rel="timegate",
+<https://archive.ph/20351231145959/https://example.com>; rel="last memento"; datetime="Mon, 31 Dec 2035 14:59:59 GMT"`;
+
+const MIXED_TIMEMAP = `${SAMPLE_TIMEMAP},
+<https://archive.ph/20351231145959/https://example.com>; rel="memento"; datetime="Mon, 31 Dec 2035 14:59:59 GMT"`;
+
 describe("archiveTodayProvider", () => {
-  it("parses the link-format timemap and returns mementos sorted newest-first", () => {
-    const mementos = parseArchiveTodayTimemap(SAMPLE_TIMEMAP);
+  it("parses the link-format timemap, filters future mementos, and returns mementos sorted newest-first", () => {
+    const mementos = parseArchiveTodayTimemap(MIXED_TIMEMAP, new Date("2026-05-27T00:00:00Z"));
     expect(mementos.map((m) => m.url)).toEqual([
       "https://archive.ph/20240615120000/https://example.com",
       "https://archive.ph/20240101000000/https://example.com",
       "https://archive.ph/20200101000000/https://example.com"
     ]);
+  });
+
+  it("drops all-future mementos", () => {
+    const mementos = parseArchiveTodayTimemap(FUTURE_TIMEMAP, new Date("2026-05-27T00:00:00Z"));
+    expect(mementos).toEqual([]);
   });
 
   it("returns the latest memento as a snapshot", async () => {
@@ -57,6 +69,21 @@ describe("archiveTodayProvider", () => {
     expect(result).toEqual({ status: "miss" });
   });
 
+  it("returns a miss when the timemap only contains future mementos", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: vi.fn().mockResolvedValue(FUTURE_TIMEMAP)
+    });
+
+    const result = await archiveTodayProvider.lookup(
+      { strategy: "exact", url: "https://example.com" },
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result).toEqual({ status: "miss" });
+  });
+
   it("returns an unverified snapshot when the provider reports a memento but replay validation is blocked", async () => {
     const fetchImpl = vi
       .fn()
@@ -85,6 +112,31 @@ describe("archiveTodayProvider", () => {
     }
   });
 
+  it("accepts an equivalent http-to-https replay redirect for the same archive snapshot", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: vi.fn().mockResolvedValue(SAMPLE_TIMEMAP)
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        redirected: true,
+        url: "https://archive.ph/20240615120000/https://example.com",
+        headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+        text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
+      });
+
+    const result = await archiveTodayProvider.lookup(
+      { strategy: "exact", url: "https://example.com" },
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("confirmed");
+  });
+
   it("throws a manual-challenge error on 429 responses", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429 });
     await expect(
@@ -93,6 +145,27 @@ describe("archiveTodayProvider", () => {
         fetchImpl as unknown as typeof fetch
       )
     ).rejects.toThrow(/manual challenge step/i);
+  });
+
+  it("throws a manual-challenge error when a timemap response contains a challenge page", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: vi
+        .fn()
+        .mockResolvedValue("<html><head><title>archive.md</title></head><body>Please wait while we verify that you are not a robot.</body></html>")
+    });
+
+    const { ProviderLookupError } = await import("@/core/providers/types");
+    await expect(
+      archiveTodayProvider.lookup(
+        { strategy: "exact", url: "https://example.com" },
+        fetchImpl as unknown as typeof fetch
+      )
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof ProviderLookupError && error.reason === "challenge-required"
+    );
   });
 
   it("throws a server-error on 503 responses", async () => {

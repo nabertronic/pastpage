@@ -8,7 +8,12 @@ import {
   type AutomaticArchiveProvider
 } from "./types";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
-import { timestampFromDate } from "./common";
+import {
+  formatRetryAfterDetail,
+  hasHumanChallenge,
+  parseRetryAfterMs,
+  timestampFromDate
+} from "./common";
 
 function resolveArchiveTodayHost(hostSettings?: ProviderHostSettings): ArchiveTodayHost {
   return hostSettings?.archiveTodayHost ?? "archive.ph";
@@ -19,9 +24,12 @@ type ParsedMemento = {
   datetime: Date;
 };
 
-export function parseArchiveTodayTimemap(linkFormat: string): ParsedMemento[] {
+const MAX_FUTURE_SKEW_MS = 5 * 60 * 1000;
+
+export function parseArchiveTodayTimemap(linkFormat: string, now = new Date()): ParsedMemento[] {
   const entries = linkFormat.split(/,\s*(?=<)/g);
   const mementos: ParsedMemento[] = [];
+  const maxAllowedTime = now.getTime() + MAX_FUTURE_SKEW_MS;
 
   for (const entry of entries) {
     const urlMatch = entry.match(/<([^>]+)>/);
@@ -32,6 +40,7 @@ export function parseArchiveTodayTimemap(linkFormat: string): ParsedMemento[] {
     if (!dtMatch) continue;
     const date = new Date(dtMatch[1]);
     if (Number.isNaN(date.getTime())) continue;
+    if (date.getTime() > maxAllowedTime) continue;
 
     mementos.push({ url: urlMatch[1], datetime: date });
   }
@@ -55,7 +64,13 @@ async function lookup(
   if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
     if (response.status === 429) {
-      throw new ProviderLookupError("Archive.today requires a manual challenge step", "challenge-required");
+      const retryAfterMs = parseRetryAfterMs(response.headers?.get?.("retry-after"));
+      throw new ProviderLookupError(
+        "Archive.today requires a manual challenge step",
+        "challenge-required",
+        retryAfterMs,
+        formatRetryAfterDetail(retryAfterMs) ?? "429 challenge page"
+      );
     }
     if (response.status >= 500) {
       throw new ProviderLookupError(`Archive.today timemap returned ${response.status}`, "server-error");
@@ -64,7 +79,18 @@ async function lookup(
   }
 
   const body = await response.text();
+  if (hasHumanChallenge(body)) {
+    throw new ProviderLookupError(
+      "Archive.today requires a manual challenge step",
+      "challenge-required",
+      undefined,
+      "challenge page"
+    );
+  }
   const mementos = parseArchiveTodayTimemap(body);
+  if (mementos.length === 0) {
+    return { status: "miss" };
+  }
   const snapshots: ArchiveSnapshotCandidate[] = mementos.map((memento) => ({
       originalUrl: candidate.url,
       matchedUrl: candidate.url,

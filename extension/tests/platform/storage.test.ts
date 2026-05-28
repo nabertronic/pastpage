@@ -92,6 +92,24 @@ describe("storage meta helpers", () => {
     expect(history[0]?.resultSnapshots).toHaveLength(1);
   });
 
+  it("does not lose entries when writers run concurrently", async () => {
+    const entries = await Promise.all(
+      Array.from({ length: 8 }, (_unused, index) =>
+        createHistoryEntry({
+          targetUrl: `https://example.com/story-${index}`,
+          trigger: "manual-page",
+          requestTrigger: "manual-page"
+        })
+      )
+    );
+
+    expect(entries.every((entry) => entry !== null)).toBe(true);
+
+    const history = await getHistory();
+    expect(history).toHaveLength(8);
+    expect(new Set(history.map((entry) => entry.id)).size).toBe(8);
+  });
+
   it("does not create history entries when history is disabled", async () => {
     store["pastPage.settings"] = {
       ...DEFAULT_SETTINGS,

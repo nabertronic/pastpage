@@ -155,7 +155,7 @@ function PinStepIcon({
 }) {
   switch (name) {
     case "puzzle":
-      return <BrowserPuzzleIcon browser={browser} size={16} />;
+      return <BrowserPuzzleIcon browserKind={browser} size={16} />;
     case "click":
       return <MousePointerClick aria-hidden="true" size={16} />;
     case "pin":

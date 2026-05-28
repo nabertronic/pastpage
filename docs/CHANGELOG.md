@@ -2,9 +2,21 @@
 
 ## v1.0.9
 
+- Resolver lookups now run `exact` and cleaned URL candidates sequentially per provider instead of in parallel, which reduces provider-side rate limits, session mix-ups, and other anti-bot failures on fragile archives such as `Archive.today`, `Perma.cc`, and `WebCite`.
+- Provider timeouts now apply per provider lookup, with separate query and replay-validation deadlines for every `exact` or cleaned URL attempt, so a slow original-URL check no longer steals the full provider budget from the cleaned fallback and replay checks no longer run unchecked.
+- Provider failures are now reported more honestly when one candidate errors and another only misses, so the resolver no longer hides real provider problems behind a clean `not found` result.
+- When a provider returns `Retry-After`, a rate limit, or a manual challenge, the resolver now stops trying further URL variants for that provider in the current lookup instead of immediately hammering it again. The next lookup still retries normally, so a changed network state such as disabling a VPN is not blocked by a stale cooldown.
+- Hardened challenge detection for `Archive.today` and `WebCite`, including challenge pages returned with `200 OK`, and surfaced these cases in the resolver as explicit manual-verification follow-ups instead of ambiguous misses.
+- Replay verification is now provider-specific across all automatic archives. `Wayback`, `Archive.today`, `Ghostarchive`, and `WebCite` still use HTML inspection, while providers such as `LOC`, `UK Government Web Archive`, `Perma.cc`, `Arquivo.pt`, `Megalodon/Web Gyotaku`, and `Software Heritage` now use lighter provider-appropriate replay checks instead of forcing the same HTML heuristics everywhere.
+- Hard challenge and rate-limit providers now switch to manual follow-up faster by aborting the remaining automatic URL variants for that provider as soon as the resolver sees a challenge page, `429`, or equivalent hard-stop response.
+- Resolver badges and unverified snapshot cards now expose the concrete technical state behind failures and replay uncertainty, including details such as `429 with Retry-After`, `challenge page`, `query timeout`, and `replay timeout`.
+- Fixed a false positive where websites whose domain begins with `fc` or `fd`, such as `fda.gov`, `fcc.gov`, or `fdic.gov`, were mistaken for private network addresses and refused, so these pages can now be checked for archived versions again.
+- Made local history more reliable: simultaneous lookups, such as opening every archive in its own tab, no longer overwrite each other or drop and truncate saved entries, and the History page now updates properly after changes to your saved history or settings.
+- The resolver now waits for your saved settings before querying archives, so each lookup runs only once instead of firing a duplicate round of provider requests whenever your configuration differed from the defaults.
 - Improved localization across the resolver, onboarding, and footer copy by translating the `Check other archive sources` action where it was still missing and rewriting the PastPage product description in every supported language to describe searching archived versions of web pages more clearly.
-- Fixed a bug that could stop the History page from updating properly after changes to your saved history or settings.
 - Cleaned-URL fallback checks now remove more tracking and sensitive link parameters, while exact URL searches still stay unchanged for cases where archived captures depend on the full original link.
+- Archive.today lookups now ignore bogus future-dated timemap entries, so the resolver no longer prefers impossible 2030/2035 snapshots when current captures exist.
+- Replay validation now accepts equivalent archive canonicalization redirects such as `http` to `https` on the same archive snapshot, while still rejecting challenge and captcha pages as unverified.
 - New installations now open the `What's new` page as well, so first-time users immediately see the current release notes alongside the onboarding flow.
 - Replaced the Firefox onboarding toolbar step with Mozilla's real Firefox extensions icon, so the pinning guidance now matches the browser UI instead of showing a generic placeholder.
 

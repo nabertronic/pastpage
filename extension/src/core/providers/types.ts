@@ -7,11 +7,20 @@ export type ProviderFailureReason = "challenge-required" | "rate-limited" | "ser
 
 export class ProviderLookupError extends Error {
   readonly reason?: ProviderFailureReason;
+  readonly retryAfterMs?: number;
+  readonly technicalDetail?: string;
 
-  constructor(message: string, reason?: ProviderFailureReason) {
+  constructor(
+    message: string,
+    reason?: ProviderFailureReason,
+    retryAfterMs?: number,
+    technicalDetail?: string
+  ) {
     super(message);
     this.name = "ProviderLookupError";
     this.reason = reason;
+    this.retryAfterMs = retryAfterMs;
+    this.technicalDetail = technicalDetail;
   }
 }
 

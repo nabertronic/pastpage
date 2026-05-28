@@ -207,4 +207,30 @@ describe("webCiteProvider", () => {
       expect(result.snapshot.verification).toBe("unverified");
     }
   });
+
+  it("throws a manual-challenge error when the query page contains a captcha", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: vi.fn().mockResolvedValue(`
+        <html>
+          <head><title>WebCite query result</title></head>
+          <body>
+            <div class="g-recaptcha">captcha</div>
+          </body>
+        </html>
+      `)
+    });
+
+    const { ProviderLookupError } = await import("@/core/providers/types");
+    await expect(
+      webCiteProvider.lookup(
+        { strategy: "exact", url: "https://example.com" },
+        fetchImpl as unknown as typeof fetch
+      )
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof ProviderLookupError && error.reason === "challenge-required"
+    );
+  });
 });

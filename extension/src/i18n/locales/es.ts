@@ -108,7 +108,7 @@ export const es = {
     "Decide con qué precisión debe seguir la búsqueda de archivo la URL original.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
-    "Define cuántos segundos puede tardar como máximo cada proveedor de archivo antes de que PastPage cancele la consulta.",
+    "Define cuántos segundos puede tardar como máximo cada comprobación de archivo antes de que PastPage la cancele. Las comprobaciones exactas y las de URL depurada reciben cada una su propio tiempo completo.",
   "options.urlMatching.exactThenCleaned": "Exacta primero, luego limpia",
   "options.urlMatching.exactOnly": "Solo exacta",
   "options.urlMatching.cleanedFirst": "Limpia primero",
@@ -269,6 +269,8 @@ export const es = {
     "Wayback Machine limitó esta solicitud. Esto ocurre con más frecuencia en VPN o IP compartidas. Inténtalo más tarde o abre Wayback manualmente.",
   "resolver.manual.yandexManualHelp":
     "Yandex Cache siempre debe comprobarse manualmente: abre el enlace y, si hay un resultado, usa el menú de tres puntos junto a él para abrir la versión en caché.",
+  "resolver.manual.challenge":
+    "{{provider}} pidió un paso manual de verificación, así que PastPage no pudo comprobarlo automáticamente.",
   "resolver.manual.notFound":
     "{{provider}} no tenía esta URL archivada. Aún puedes comprobar manualmente. La página puede haber sido archivada desde entonces.",
   "resolver.manual.serviceError":

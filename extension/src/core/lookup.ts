@@ -10,6 +10,7 @@ import { ProviderLookupError, type ProviderFailureReason, type ProviderId } from
 import type { UrlMatchingMode } from "./settings";
 import type { ArchiveSnapshot, FailedProvider, ManualArchiveSource } from "./tabState";
 import { buildSearchCandidates, getUrlEligibility, type SearchCandidate } from "./urlPolicy";
+import type { PhaseAwareFetch } from "./providers/common";
 
 export type ProviderAttempt = {
   providerId: ProviderId;
@@ -35,6 +36,13 @@ export type LookupLiveUpdate = {
   failedProviders: FailedProvider[];
   manualSources: ManualArchiveSource[];
 };
+
+const DEFAULT_QUERY_TIMEOUT_RATIO = 0.4;
+const MIN_QUERY_TIMEOUT_MS = 5_000;
+
+export function resetProviderCooldownsForTests() {
+  // Kept for test compatibility; provider short-circuiting is now per lookup only.
+}
 
 export type MultiArchiveLookupResult =
   | {
@@ -95,7 +103,6 @@ export async function lookupArchives(
   }
 
   const effectiveFetchImpl = fetchImpl ?? fetch;
-  const timedFetchImpl = createTimedFetch(effectiveFetchImpl, providerTimeoutMs);
   const allowedProviderIds = providerScope ? new Set(providerScope) : null;
   const order = buildAutomaticProviderOrder(rawUrl).filter(
     (providerId) => !allowedProviderIds || allowedProviderIds.has(providerId)
@@ -109,6 +116,7 @@ export async function lookupArchives(
   const checked: ProviderAttempt[] = [];
   const failedProviderIds = new Set<ProviderId>();
   const failedProviderReasons = new Map<ProviderId, ProviderFailureReason>();
+  const failedProviderDetails = new Map<ProviderId, string>();
   const foundSnapshots: ArchiveSnapshot[] = [];
   const foundSnapshotUrls = new Set<string>();
   const unverifiedSnapshots: ArchiveSnapshot[] = [];
@@ -163,7 +171,8 @@ export async function lookupArchives(
     Array.from(providerIds).map((providerId) => ({
       providerId,
       directLink: getProvider(providerId).buildDirectLinkUrl(rawUrl, hostSettings) ?? undefined,
-      reason: failedProviderReasons.get(providerId)
+      reason: failedProviderReasons.get(providerId),
+      technicalDetail: failedProviderDetails.get(providerId)
     }));
 
   const emitLiveUpdate = () => {
@@ -205,103 +214,113 @@ export async function lookupArchives(
     order.map(async (providerId) => {
       const provider = getAutomaticProvider(providerId);
       let providerHadError = false;
-      let providerHadResult = false;
+      let providerHadSuccess = false;
 
-      await Promise.all(
-        candidates.map(async (candidate) => {
-          const stepKey = getStepKey(providerId, candidate);
-          const step = {
-            providerId,
-            phase: "querying",
-            strategy: candidate.strategy,
-            url: candidate.url
-          } as const;
-          currentLookupSteps.set(stepKey, step);
-          emitVisibleSteps(step);
+      for (const candidate of candidates) {
+        const providerFetchImpl = createAttemptFetch(effectiveFetchImpl, providerTimeoutMs);
+        const stepKey = getStepKey(providerId, candidate);
+        const step = {
+          providerId,
+          phase: "querying",
+          strategy: candidate.strategy,
+          url: candidate.url
+        } as const;
+        currentLookupSteps.set(stepKey, step);
+        emitVisibleSteps(step);
 
-          try {
-            const providerResult = await provider.lookup(
-              candidate,
-              timedFetchImpl,
-              hostSettings,
-              (phase) => {
-                const progressStep = {
-                  providerId,
-                  phase,
-                  strategy: candidate.strategy,
-                  url: candidate.url
-                } as const;
-                currentLookupSteps.set(stepKey, progressStep);
-                emitVisibleSteps(progressStep);
-              },
-              (snapshot) => {
-                const normalizedSnapshot: ArchiveSnapshot = {
-                  ...snapshot,
-                  originalUrl: rawUrl,
-                  matchedUrl: candidate.url,
-                  strategy: candidate.strategy,
-                  providerId
-                };
-
-                if (snapshot.verification === "unverified") {
-                  recordUnverifiedSnapshot(normalizedSnapshot);
-                }
-              }
-            );
-
-            providerHadResult = true;
-
-            if (providerResult.status === "confirmed" || providerResult.status === "unverified") {
+        try {
+          const providerResult = await provider.lookup(
+            candidate,
+            providerFetchImpl,
+            hostSettings,
+            (phase) => {
+              const progressStep = {
+                providerId,
+                phase,
+                strategy: candidate.strategy,
+                url: candidate.url
+              } as const;
+              currentLookupSteps.set(stepKey, progressStep);
+              emitVisibleSteps(progressStep);
+            },
+            (snapshot) => {
               const normalizedSnapshot: ArchiveSnapshot = {
-                ...providerResult.snapshot,
+                ...snapshot,
                 originalUrl: rawUrl,
                 matchedUrl: candidate.url,
                 strategy: candidate.strategy,
                 providerId
               };
-              checked.push({
-                providerId,
-                strategy: candidate.strategy,
-                url: candidate.url,
-                outcome: "hit"
-              });
-              if (providerResult.status === "confirmed") {
-                recordSnapshot(normalizedSnapshot);
-                tryEmitPreferredSnapshot(normalizedSnapshot);
-              } else {
+
+              if (snapshot.verification === "unverified") {
                 recordUnverifiedSnapshot(normalizedSnapshot);
               }
-              return;
             }
+          );
 
+          if (providerResult.status === "confirmed" || providerResult.status === "unverified") {
+            providerHadSuccess = true;
+            const normalizedSnapshot: ArchiveSnapshot = {
+              ...providerResult.snapshot,
+              originalUrl: rawUrl,
+              matchedUrl: candidate.url,
+              strategy: candidate.strategy,
+              providerId
+            };
             checked.push({
               providerId,
               strategy: candidate.strategy,
               url: candidate.url,
-              outcome: "miss"
+              outcome: "hit"
             });
-          } catch (error) {
-            providerHadError = true;
-            if (error instanceof ProviderLookupError && error.reason) {
-              failedProviderReasons.set(providerId, error.reason);
-            } else if (error instanceof DOMException && error.name === "AbortError") {
-              failedProviderReasons.set(providerId, "timeout");
+            if (providerResult.status === "confirmed") {
+              recordSnapshot(normalizedSnapshot);
+              tryEmitPreferredSnapshot(normalizedSnapshot);
+            } else {
+              recordUnverifiedSnapshot(normalizedSnapshot);
             }
-            checked.push({
-              providerId,
-              strategy: candidate.strategy,
-              url: candidate.url,
-              outcome: "error"
-            });
-          } finally {
-            const lastKnownStep = currentLookupSteps.get(stepKey) ?? step;
-            currentLookupSteps.delete(stepKey);
-            emitVisibleSteps(lastKnownStep);
+            break;
           }
-        })
-      );
 
-      if (providerHadError && !providerHadResult) {
+          checked.push({
+            providerId,
+            strategy: candidate.strategy,
+            url: candidate.url,
+            outcome: "miss"
+          });
+        } catch (error) {
+          providerHadError = true;
+          if (error instanceof ProviderLookupError && error.reason) {
+            failedProviderReasons.set(providerId, error.reason);
+            if (error.technicalDetail) {
+              failedProviderDetails.set(providerId, error.technicalDetail);
+            }
+          } else if (error instanceof DOMException && error.name === "AbortError") {
+            failedProviderReasons.set(providerId, "timeout");
+            failedProviderDetails.set(providerId, "query timeout");
+          }
+          checked.push({
+            providerId,
+            strategy: candidate.strategy,
+            url: candidate.url,
+            outcome: "error"
+          });
+
+          if (
+            error instanceof ProviderLookupError &&
+            (error.reason === "rate-limited" || error.reason === "challenge-required")
+          ) {
+            break;
+          }
+
+        } finally {
+          const lastKnownStep = currentLookupSteps.get(stepKey) ?? step;
+          currentLookupSteps.delete(stepKey);
+          emitVisibleSteps(lastKnownStep);
+        }
+      }
+
+      if (providerHadError && !providerHadSuccess) {
         failedProviderIds.add(providerId);
       }
       completedProviderIds.add(providerId);
@@ -371,14 +390,15 @@ export async function lookupArchives(
   return { status: "not-found", checked, failedProviders, manualSources };
 }
 
-function createTimedFetch(fetchImpl: typeof fetch, timeoutMs?: number): typeof fetch {
-  if (!timeoutMs || !Number.isFinite(timeoutMs) || timeoutMs <= 0) {
-    return fetchImpl;
-  }
-
+function createTimedFetchWithDeadline(fetchImpl: typeof fetch, deadline: number): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) {
+      throw new DOMException("The operation was aborted due to timeout", "AbortError");
+    }
+
     const controller = new AbortController();
-    const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = globalThis.setTimeout(() => controller.abort(), remainingMs);
     const upstreamSignal = init?.signal;
 
     const abortFromUpstream = () => controller.abort();
@@ -395,11 +415,34 @@ function createTimedFetch(fetchImpl: typeof fetch, timeoutMs?: number): typeof f
         ...init,
         signal: controller.signal
       });
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new DOMException("The operation was aborted due to timeout", "AbortError");
+      }
+      throw error;
     } finally {
       globalThis.clearTimeout(timeoutId);
       upstreamSignal?.removeEventListener("abort", abortFromUpstream);
     }
   }) as typeof fetch;
+}
+
+function createAttemptFetch(fetchImpl: typeof fetch, timeoutMs?: number): typeof fetch {
+  if (!timeoutMs || !Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    return fetchImpl;
+  }
+
+  const startedAt = Date.now();
+  const providerDeadline = startedAt + timeoutMs;
+  const queryBudgetMs = Math.max(
+    MIN_QUERY_TIMEOUT_MS,
+    Math.min(timeoutMs, Math.floor(timeoutMs * DEFAULT_QUERY_TIMEOUT_RATIO))
+  );
+  const replayDeadline = providerDeadline;
+  const queryDeadline = Math.min(providerDeadline, startedAt + queryBudgetMs);
+  const queryFetch = createTimedFetchWithDeadline(fetchImpl, queryDeadline) as PhaseAwareFetch;
+  queryFetch.replay = createTimedFetchWithDeadline(fetchImpl, replayDeadline);
+  return queryFetch as typeof fetch;
 }
 
 function buildManualSources(

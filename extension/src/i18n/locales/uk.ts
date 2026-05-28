@@ -96,7 +96,7 @@ export const uk: MessageCatalog = {
   "options.urlMatching.description": "Вирішіть, наскільки точно пошук в архіві має відповідати оригінальному URL.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
-    "Укажіть, скільки секунд максимум може тривати запит до кожного архівного провайдера, перш ніж PastPage скасує запит.",
+    "Укажіть максимальну кількість секунд для кожної окремої перевірки архіву, після якої PastPage її скасує. Точна і очищена резервна перевірки отримують окремі повні тайм-аути.",
   "options.urlMatching.exactThenCleaned": "Спочатку точне, потім чисте",
   "options.urlMatching.exactOnly": "Тільки точні",
   "options.urlMatching.cleanedFirst": "Почистили спочатку",
@@ -232,6 +232,8 @@ export const uk: MessageCatalog = {
     "Wayback Machine обмежив цей запит. Це частіше трапляється з VPN або спільними IP-адресами. Спробуйте пізніше або відкрийте Wayback вручну.",
   "resolver.manual.yandexManualHelp":
     "Yandex Cache завжди потрібно перевіряти вручну: відкрийте посилання, і якщо з'явиться результат, скористайтеся меню з трьома крапками поруч, щоб відкрити кешовану версію.",
+  "resolver.manual.challenge":
+    "{{provider}} запросив ручний крок перевірки, тому PastPage не зміг перевірити його автоматично.",
   "resolver.manual.notFound":
     "{{provider}} не мав цю URL-адресу в архіві. Ви все ще можете перевірити вручну. Сторінка могла бути заархівована з того часу.",
   "resolver.manual.serviceError":

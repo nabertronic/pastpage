@@ -14,13 +14,15 @@ const ArchiveSnapshotSchema = z.object({
   mimeType: z.string(),
   strategy: z.enum(["exact", "cleaned"]),
   providerId: ProviderIdSchema,
-  verification: z.enum(["confirmed", "unverified"]).optional()
+  verification: z.enum(["confirmed", "unverified"]).optional(),
+  verificationNote: z.string().optional()
 });
 
 const FailedProviderSchema = z.object({
   providerId: ProviderIdSchema,
   directLink: z.string(),
-  reason: z.enum(["challenge-required", "rate-limited"]).optional()
+  reason: z.enum(["challenge-required", "rate-limited", "server-error", "timeout"]).optional(),
+  technicalDetail: z.string().optional()
 });
 
 const LookupStatusSchema = z.union([

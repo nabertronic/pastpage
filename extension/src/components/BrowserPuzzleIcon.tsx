@@ -1,23 +1,23 @@
 type BrowserPuzzleIconProps = {
-  browser: "chrome" | "firefox";
+  browserKind: "chrome" | "firefox";
   size?: number;
   className?: string;
 };
 
 const FIREFOX_EXTENSION_ICON_PATH = "/browser-icons/firefox-extension.svg";
 
-export function BrowserPuzzleIcon({ browser, size = 16, className }: BrowserPuzzleIconProps) {
-  if (browser === "firefox") {
+export function BrowserPuzzleIcon({ browserKind, size = 16, className }: BrowserPuzzleIconProps) {
+  if (browserKind === "firefox") {
     return (
-      <img
-        aria-hidden="true"
-        data-browser-icon="firefox-extension"
-        src={globalThis.browser.runtime.getURL(FIREFOX_EXTENSION_ICON_PATH)}
-        alt=""
-        width={size}
-        height={size}
-        className={[className, "dark:invert"].filter(Boolean).join(" ")}
-      />
+        <img
+          aria-hidden="true"
+          data-browser-icon="firefox-extension"
+          src={browser.runtime.getURL(FIREFOX_EXTENSION_ICON_PATH as Parameters<typeof browser.runtime.getURL>[0])}
+          alt=""
+          width={size}
+          height={size}
+          className={[className, "dark:invert"].filter(Boolean).join(" ")}
+        />
     );
   }
 

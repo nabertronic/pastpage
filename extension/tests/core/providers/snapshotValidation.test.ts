@@ -30,6 +30,11 @@ describe("snapshotValidation", () => {
         "<html><head><title>One more step</title></head><body>Please complete the security check to access archive.ph</body></html>"
       )
     ).toBe(false);
+    expect(
+      isLikelyWorkingSnapshotHtml(
+        "<html><head><title>archive.md</title></head><body>Please wait while we verify that you are not a robot.</body></html>"
+      )
+    ).toBe(false);
   });
 
   it("rejects meta refresh redirect pages", () => {
@@ -70,6 +75,43 @@ describe("snapshotValidation", () => {
     if (result.status === "unverified") {
       expect(result.snapshot.verification).toBe("unverified");
     }
+  });
+
+  it("accepts an equivalent http-to-https redirect for the same archive resource", async () => {
+    const result = await selectLatestWorkingSnapshot(
+      [
+        {
+          ...candidate,
+          archiveUrl: "http://archive.md/20240615120000/https://example.com"
+        }
+      ],
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        redirected: true,
+        url: "https://archive.md/20240615120000/https://example.com",
+        headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+        text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
+      }) as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("confirmed");
+  });
+
+  it("rejects redirects to a different archive resource", async () => {
+    const result = await selectLatestWorkingSnapshot(
+      [candidate],
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        redirected: true,
+        url: "https://archive.example/other-snapshot",
+        headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+        text: vi.fn().mockResolvedValue("<html><body>ok</body></html>")
+      }) as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("unverified");
   });
 
   it("surfaces the newest candidate as unverified before replay verification finishes", async () => {

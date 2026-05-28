@@ -107,7 +107,7 @@ export const en = {
     "Choose whether PastPage only checks the original URL or also tries a cleaned fallback in parallel.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
-    "Set the maximum number of seconds each archive provider can take before PastPage cancels the request.",
+    "Set the maximum number of seconds each archive check can take before PastPage cancels it. Exact and cleaned fallback checks each get their own full timeout.",
   "options.urlMatching.exactThenCleaned": "Original URL + cleaned fallback",
   "options.urlMatching.exactOnly": "Exact only",
   "options.urlMatching.cleanedFirst": "Cleaned first",
@@ -267,6 +267,8 @@ export const en = {
     "Wayback Machine rate-limited this request. This happens more often on VPNs or shared IPs. Try again later or open Wayback manually.",
   "resolver.manual.yandexManualHelp":
     "Yandex Cache always has to be checked manually: open the link, and if there is a result, use the three-dot menu next to it to open the cached version.",
+  "resolver.manual.challenge":
+    "{{provider}} asked for a manual challenge step, so PastPage could not check it automatically.",
   "resolver.manual.notFound":
     "{{provider}} did not have this URL archived. You can still check manually. The page may have been archived since.",
   "resolver.manual.serviceError":

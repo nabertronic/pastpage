@@ -21,6 +21,7 @@ export type ArchiveSnapshot = {
   strategy: "exact" | "cleaned";
   providerId: ProviderId;
   verification: "confirmed" | "unverified";
+  verificationNote?: string;
 };
 
 export type ArchiveSnapshotCandidate = Omit<ArchiveSnapshot, "verification">;
@@ -35,6 +36,7 @@ export type FailedProvider = {
   providerId: ProviderId;
   directLink?: string;
   reason?: ProviderFailureReason;
+  technicalDetail?: string;
 };
 
 export type ArchiveCheckStrategy = "exact" | "cleaned";

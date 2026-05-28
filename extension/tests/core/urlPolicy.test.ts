@@ -13,6 +13,14 @@ describe("urlPolicy", () => {
     expect(getUrlEligibility("https://web.archive.org/web/20200101000000/https://example.com").eligible).toBe(false);
   });
 
+  it("does not treat domains starting with fc/fd as private IPv6 ULAs", () => {
+    expect(getUrlEligibility("https://fda.gov/news").eligible).toBe(true);
+    expect(getUrlEligibility("https://fdic.gov/").eligible).toBe(true);
+    expect(getUrlEligibility("https://fcc.gov/").eligible).toBe(true);
+    expect(getUrlEligibility("https://fd.io/").eligible).toBe(true);
+    expect(getUrlEligibility("https://feedly.com/").eligible).toBe(true);
+  });
+
   it("keeps content parameters but removes known tracking parameters", () => {
     const cleaned = cleanUrl("https://example.com/story?id=12&utm_source=x&fbclid=y&q=test#section");
     expect(cleaned).toContain("id=12");

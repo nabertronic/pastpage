@@ -9,6 +9,7 @@ import {
   type ArchiveProviderLookupResult,
   type AutomaticArchiveProvider
 } from "./types";
+import { formatRetryAfterDetail, parseRetryAfterMs } from "./common";
 import { selectLatestWorkingSnapshot } from "./snapshotValidation";
 
 const CdxRowObjectSchema = z.object({
@@ -143,7 +144,13 @@ async function lookup(
 
   if (!response.ok) {
     if (response.status === 429) {
-      throw new ProviderLookupError("Wayback Machine rate-limited this request", "rate-limited");
+      const retryAfterMs = parseRetryAfterMs(response.headers?.get?.("retry-after"));
+      throw new ProviderLookupError(
+        "Wayback Machine rate-limited this request",
+        "rate-limited",
+        retryAfterMs,
+        formatRetryAfterDetail(retryAfterMs) ?? "429 during query"
+      );
     }
     if (response.status >= 500) {
       throw new ProviderLookupError(`Wayback CDX returned ${response.status}`, "server-error");
@@ -179,7 +186,13 @@ export async function lookupCaptureCount(
 
   if (!response.ok) {
     if (response.status === 429) {
-      throw new ProviderLookupError("Wayback Machine rate-limited this request", "rate-limited");
+      const retryAfterMs = parseRetryAfterMs(response.headers?.get?.("retry-after"));
+      throw new ProviderLookupError(
+        "Wayback Machine rate-limited this request",
+        "rate-limited",
+        retryAfterMs,
+        formatRetryAfterDetail(retryAfterMs) ?? "429 during query"
+      );
     }
     if (response.status >= 500) {
       throw new ProviderLookupError(`Wayback CDX returned ${response.status}`, "server-error");

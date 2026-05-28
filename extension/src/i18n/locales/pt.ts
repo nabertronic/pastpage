@@ -98,7 +98,7 @@ export const pt: MessageCatalog = {
   "options.urlMatching.description": "Decida até que ponto a pesquisa de arquivo deve seguir o URL original.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
-    "Defina quantos segundos cada fornecedor de arquivo pode demorar no máximo antes de o PastPage cancelar a consulta.",
+    "Defina o número máximo de segundos que cada verificação de arquivo pode levar antes de o PastPage cancelá-la. As verificações exata e limpa recebem cada uma o seu próprio tempo limite completo.",
   "options.urlMatching.exactThenCleaned": "Exato primeiro e depois limpo",
   "options.urlMatching.exactOnly": "Exato apenas",
   "options.urlMatching.cleanedFirst": "Limpo primeiro",
@@ -234,6 +234,8 @@ export const pt: MessageCatalog = {
     "A Wayback Machine limitou esta solicitação. Isso acontece com mais frequência em VPNs ou IPs compartilhados. Tente novamente mais tarde ou abra a Wayback manualmente.",
   "resolver.manual.yandexManualHelp":
     "O Yandex Cache sempre precisa ser verificado manualmente: abra o link e, se houver um resultado, use o menu de três pontos ao lado dele para abrir a versão em cache.",
+  "resolver.manual.challenge":
+    "{{provider}} pediu uma etapa manual de verificação, então o PastPage não conseguiu verificá-lo automaticamente.",
   "resolver.manual.notFound":
     "{{provider}} não tinha este URL arquivado. Ainda pode verificar manualmente. A página pode ter sido arquivada desde então.",
   "resolver.manual.serviceError":

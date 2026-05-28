@@ -24,7 +24,7 @@ Expected result:
 
 - a resolver page opens
 - archive providers are queried
-- if a provider has a snapshot, the resolver surfaces it and may auto-open the preferred archived version depending on the current settings
+- if a provider has a snapshot, the resolver surfaces it and may auto-open the first confirmed archived version depending on the current settings
 
 ## Broken-Page Recovery Test
 

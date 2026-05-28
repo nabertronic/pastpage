@@ -96,7 +96,7 @@ export const pl: MessageCatalog = {
   "options.urlMatching.description": "Zdecyduj, jak bardzo wyszukiwanie w archiwum powinno być zgodne z oryginalnym URL.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
-    "Ustaw maksymalną liczbę sekund dla każdego dostawcy archiwum, po której PastPage anuluje zapytanie.",
+    "Ustaw maksymalną liczbę sekund dla każdego pojedynczego sprawdzenia archiwum, po której PastPage je przerwie. Sprawdzenie dokładne i oczyszczony fallback dostają osobne pełne limity czasu.",
   "options.urlMatching.exactThenCleaned": "Najpierw dokładne, potem oczyszczone",
   "options.urlMatching.exactOnly": "Tylko dokładne",
   "options.urlMatching.cleanedFirst": "Najpierw oczyszczone",
@@ -232,6 +232,8 @@ export const pl: MessageCatalog = {
     "Wayback Machine ograniczył to żądanie. Zdarza się to częściej przy VPN lub współdzielonym adresie IP. Spróbuj ponownie później albo otwórz Wayback ręcznie.",
   "resolver.manual.yandexManualHelp":
     "Yandex Cache zawsze trzeba sprawdzać ręcznie: otwórz link, a jeśli pojawi się wynik, użyj menu z trzema kropkami obok niego, aby otworzyć wersję z pamięci podręcznej.",
+  "resolver.manual.challenge":
+    "{{provider}} wymaga ręcznego kroku weryfikacji, więc PastPage nie mógł sprawdzić go automatycznie.",
   "resolver.manual.notFound":
     "{{provider}} nie miał tego URL zarchiwizowanego. Możesz nadal sprawdzić ręcznie. Strona mogła zostać zarchiwizowana od tego czasu.",
   "resolver.manual.serviceError":

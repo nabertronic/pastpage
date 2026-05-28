@@ -2,6 +2,7 @@ import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshotCandidate } from "../tabState";
 import { ProviderLookupError } from "./types";
 import type { ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
+import { formatRetryAfterDetail, hasHumanChallenge, parseRetryAfterMs, replayFetch } from "./common";
 import { isLikelyWorkingSnapshotHtml } from "./snapshotValidation";
 
 type WebCiteCapture = {
@@ -74,9 +75,11 @@ function isWebCiteNoSnapshotResponse(html: string): boolean {
 async function fetchWebCiteDocument(
   url: string,
   fetchImpl: typeof fetch,
-  accept = "text/html,application/xhtml+xml"
+  accept = "text/html,application/xhtml+xml",
+  phase: "query" | "replay" = "query"
 ) {
-  return fetchImpl(url, {
+  const effectiveFetch = phase === "replay" ? replayFetch(fetchImpl) : fetchImpl;
+  return effectiveFetch(url, {
     method: "GET",
     credentials: "include",
     headers: { Accept: accept },
@@ -103,7 +106,12 @@ async function verifyWebCiteCapture(
     return { permalinkId: null, html: null };
   }
 
-  const mainframeResponse = await fetchWebCiteDocument(`${WEBCITE_BASE_URL}/mainframe.php`, fetchImpl);
+  const mainframeResponse = await fetchWebCiteDocument(
+    `${WEBCITE_BASE_URL}/mainframe.php`,
+    fetchImpl,
+    "text/html,application/xhtml+xml",
+    "replay"
+  );
   if (!mainframeResponse.ok) {
     return { permalinkId: topframe.permalinkId, html: null };
   }
@@ -125,10 +133,26 @@ async function lookup(
 ): Promise<ArchiveProviderLookupResult> {
   const queryResponse = await fetchWebCiteDocument(buildWebCiteQueryUrl(candidate.url), fetchImpl);
   if (!queryResponse.ok) {
-    throw new ProviderLookupError(`WebCite returned ${queryResponse.status}`, queryResponse.status >= 500 ? "server-error" : queryResponse.status === 429 ? "rate-limited" : undefined);
+    const retryAfterMs = parseRetryAfterMs(queryResponse.headers?.get?.("retry-after"));
+    throw new ProviderLookupError(
+      `WebCite returned ${queryResponse.status}`,
+      queryResponse.status >= 500 ? "server-error" : queryResponse.status === 429 ? "rate-limited" : undefined,
+      retryAfterMs,
+      queryResponse.status === 429
+        ? formatRetryAfterDetail(retryAfterMs) ?? "429 during query"
+        : `${queryResponse.status} during query`
+    );
   }
 
   const queryHtml = await queryResponse.text();
+  if (hasHumanChallenge(queryHtml)) {
+    throw new ProviderLookupError(
+      "WebCite requires a manual challenge step",
+      "challenge-required",
+      undefined,
+      "challenge page"
+    );
+  }
   if (isWebCiteNoSnapshotResponse(queryHtml)) {
     return { status: "miss" };
   }
@@ -141,7 +165,17 @@ async function lookup(
     throw new ProviderLookupError(`WebCite topframe returned ${topframeResponse.status}`, topframeResponse.status >= 500 ? "server-error" : undefined);
   }
 
-  const topframe = parseWebCiteTopFrame(await topframeResponse.text());
+  const topframeHtml = await topframeResponse.text();
+  if (hasHumanChallenge(topframeHtml)) {
+    throw new ProviderLookupError(
+      "WebCite requires a manual challenge step",
+      "challenge-required",
+      undefined,
+      "challenge page"
+    );
+  }
+
+  const topframe = parseWebCiteTopFrame(topframeHtml);
   const captures = topframe.captures
     .filter((capture) => !capture.failed)
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp));

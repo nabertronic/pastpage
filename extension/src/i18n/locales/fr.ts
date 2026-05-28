@@ -109,7 +109,7 @@ export const fr = {
     "Décidez avec quelle précision la recherche d'archive doit suivre l'URL d'origine.",
   "options.providerTimeout.label": "Provider timeout",
   "options.providerTimeout.description":
-    "Définissez le nombre maximal de secondes accordé à chaque fournisseur d'archives avant que PastPage n'annule la requête.",
+    "Définissez le nombre maximal de secondes que chaque vérification d'archive peut prendre avant que PastPage ne l'annule. Les vérifications exactes et nettoyées reçoivent chacune leur propre délai complet.",
   "options.urlMatching.exactThenCleaned": "Exacte d'abord, puis nettoyée",
   "options.urlMatching.exactOnly": "Exacte uniquement",
   "options.urlMatching.cleanedFirst": "Nettoyée d'abord",
@@ -272,6 +272,8 @@ export const fr = {
     "Wayback Machine a limité cette requête. Cela arrive plus souvent avec un VPN ou une IP partagée. Réessayez plus tard ou ouvrez Wayback manuellement.",
   "resolver.manual.yandexManualHelp":
     "Yandex Cache doit toujours être vérifié manuellement : ouvrez le lien et, s'il y a un résultat, utilisez le menu à trois points à côté pour ouvrir la version en cache.",
+  "resolver.manual.challenge":
+    "{{provider}} a demandé une étape de vérification manuelle, donc PastPage n'a pas pu le contrôler automatiquement.",
   "resolver.manual.notFound":
     "{{provider}} n'avait pas cette URL dans ses archives. Vous pouvez toujours vérifier manuellement. La page a peut-être été archivée depuis.",
   "resolver.manual.serviceError":

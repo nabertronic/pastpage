@@ -39,3 +39,43 @@ export function decodeHtmlEntities(value: string): string {
 export function absoluteUrl(baseUrl: string, pathOrUrl: string): string {
   return new URL(pathOrUrl, baseUrl).toString();
 }
+
+export type PhaseAwareFetch = typeof fetch & {
+  replay?: typeof fetch;
+};
+
+export function replayFetch(fetchImpl: typeof fetch): typeof fetch {
+  return (fetchImpl as PhaseAwareFetch).replay ?? fetchImpl;
+}
+
+export function parseRetryAfterMs(headerValue: string | null | undefined, now = Date.now()): number | undefined {
+  if (!headerValue) return undefined;
+
+  const numeric = Number(headerValue);
+  if (Number.isFinite(numeric) && numeric >= 0) {
+    return numeric * 1000;
+  }
+
+  const date = new Date(headerValue);
+  if (Number.isNaN(date.getTime())) return undefined;
+
+  const delta = date.getTime() - now;
+  return delta > 0 ? delta : undefined;
+}
+
+export function formatRetryAfterDetail(retryAfterMs?: number): string | undefined {
+  if (!retryAfterMs || retryAfterMs <= 0) return undefined;
+  const seconds = Math.max(1, Math.ceil(retryAfterMs / 1000));
+  return `429 with Retry-After ${seconds}s`;
+}
+
+export function hasHumanChallenge(html: string): boolean {
+  return (
+    /captcha/i.test(html) ||
+    /recaptcha/i.test(html) ||
+    /verify you are human/i.test(html) ||
+    /security check/i.test(html) ||
+    /challenge-platform/i.test(html) ||
+    /please wait while we verify that you are not a robot/i.test(html)
+  );
+}

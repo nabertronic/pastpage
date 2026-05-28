@@ -66,7 +66,6 @@ function shouldRemoveFromCleanedUrl(key: string): boolean {
 
 function isPrivateHostname(hostname: string): boolean {
   const normalized = hostname.toLowerCase();
-  const normalizedIpv6 = normalized.replace(/^\[|\]$/g, "");
 
   if (
     normalized === "localhost" ||
@@ -92,14 +91,18 @@ function isPrivateHostname(hostname: string): boolean {
     );
   }
 
-  if (
-    normalizedIpv6 === "::1" ||
-    normalizedIpv6.startsWith("fc") ||
-    normalizedIpv6.startsWith("fd") ||
-    normalizedIpv6.startsWith("fe80:") ||
-    normalizedIpv6.startsWith("::ffff:7f")
-  ) {
-    return true;
+  // IPv6 literals only reach here in bracketed form (e.g. "[::1]"); plain
+  // hostnames must never be matched against IPv6 prefixes, otherwise real
+  // domains like "fda.gov" or "fcc.gov" get misread as fc00::/fd00:: ULAs.
+  if (normalized.startsWith("[") && normalized.endsWith("]")) {
+    const ipv6 = normalized.slice(1, -1);
+    return (
+      ipv6 === "::1" ||
+      ipv6.startsWith("fc") ||
+      ipv6.startsWith("fd") ||
+      ipv6.startsWith("fe80:") ||
+      ipv6.startsWith("::ffff:7f")
+    );
   }
 
   return false;

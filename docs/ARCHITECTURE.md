@@ -23,7 +23,7 @@ The product is centered around three ideas:
 - `entrypoints/popup/*`
   Offers manual lookup, status, and quick actions for the current tab.
 - `entrypoints/resolver/*`
-  Runs the archive lookup flow, auto-opens the preferred hit, and shows additional matches and follow-up sources.
+  Runs the archive lookup flow, auto-opens the first confirmed hit, and shows additional matches and follow-up sources.
 - `entrypoints/archive-history/*`
   Shows locally stored lookup history with search and filters.
 - `entrypoints/options/*`
@@ -36,7 +36,7 @@ The product is centered around three ideas:
 ## Core Modules
 
 - `src/core/lookup.ts`
-  Multi-provider lookup orchestration, preferred-hit selection, progress reporting, and manual-source generation.
+  Multi-provider lookup orchestration, first-confirmed-hit selection, progress reporting, and manual-source generation.
 - `src/core/urlPolicy.ts`
   URL eligibility checks, private/archive-loop blocking, URL cleaning, and exact/cleaned candidate generation.
 - `src/core/providers/*`
@@ -59,10 +59,10 @@ The product is centered around three ideas:
    - exact URL
    - cleaned URL with common tracking parameters removed and hash stripped
 5. Automatic providers are queried in parallel.
-6. The resolver prefers Wayback when it returns a valid hit, but it can fall back to the best non-Wayback snapshot if Wayback misses or errors.
-7. Additional snapshots are collected and shown even after the first preferred hit is found.
+6. The resolver uses the first confirmed snapshot returned by any provider, without favoring a specific provider.
+7. Additional snapshots are collected and shown even after the first confirmed hit is found.
 8. Manual follow-up sources are generated for relevant providers that were not already satisfied by an automatic hit.
-9. The first preferred archived URL is auto-opened according to the user’s open behavior and resolver success behavior.
+9. The first confirmed archived URL is auto-opened according to the user’s open behavior and resolver success behavior.
 10. The history entry is completed with outcome, attempts, failed providers, and snapshots.
 
 ## Provider Strategy

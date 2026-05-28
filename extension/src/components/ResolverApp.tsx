@@ -43,7 +43,8 @@ function snapshotTargetUrl(snapshot: ArchiveSnapshot) {
 }
 
 function snapshotCardDescription(t: ReturnType<typeof useI18n>["t"], snapshot: ArchiveSnapshot) {
-  return snapshot.verification === "unverified" ? t("resolver.unverified.cardNote") : undefined;
+  if (snapshot.verification !== "unverified") return undefined;
+  return [t("resolver.unverified.cardNote"), snapshot.verificationNote].filter(Boolean).join(" ");
 }
 
 type ManualSourceMeta = {
@@ -58,12 +59,14 @@ function manualSourceMeta(
   failedProviders: FailedProvider[]
 ): ManualSourceMeta {
   const failedProvider = failedProviders.find((provider) => provider.providerId === source.providerId);
+  const withTechnicalDetail = (badgeTitle: string) =>
+    [badgeTitle, failedProvider?.technicalDetail].filter(Boolean).join(" ");
 
   if (source.providerId === "archive-today" && failedProvider?.reason === "challenge-required") {
     return {
       badgeLabel: t("resolver.manual.badge.captcha"),
       badgeTone: "danger",
-      badgeTitle: t("resolver.manual.archiveTodayChallenge")
+      badgeTitle: withTechnicalDetail(t("resolver.manual.archiveTodayChallenge"))
     };
   }
 
@@ -71,7 +74,7 @@ function manualSourceMeta(
     return {
       badgeLabel: t("resolver.manual.badge.tooManyRequests"),
       badgeTone: "danger",
-      badgeTitle: t("resolver.manual.waybackRateLimited")
+      badgeTitle: withTechnicalDetail(t("resolver.manual.waybackRateLimited"))
     };
   }
 
@@ -79,7 +82,15 @@ function manualSourceMeta(
     return {
       badgeLabel: t("resolver.manual.badge.manual"),
       badgeTone: "warning",
-      badgeTitle: t("resolver.manual.yandexManualHelp")
+      badgeTitle: withTechnicalDetail(t("resolver.manual.yandexManualHelp"))
+    };
+  }
+
+  if (failedProvider?.reason === "challenge-required") {
+    return {
+      badgeLabel: t("resolver.manual.badge.captcha"),
+      badgeTone: "danger",
+      badgeTitle: withTechnicalDetail(t("resolver.manual.challenge", { provider: source.label }))
     };
   }
 
@@ -87,7 +98,7 @@ function manualSourceMeta(
     return {
       badgeLabel: t("resolver.manual.badge.tooManyRequests"),
       badgeTone: "danger",
-      badgeTitle: t("resolver.manual.rateLimited", { provider: source.label })
+      badgeTitle: withTechnicalDetail(t("resolver.manual.rateLimited", { provider: source.label }))
     };
   }
 
@@ -95,7 +106,7 @@ function manualSourceMeta(
     return {
       badgeLabel: t("resolver.manual.badge.timeout"),
       badgeTone: "danger",
-      badgeTitle: t("resolver.manual.timeout", { provider: source.label })
+      badgeTitle: withTechnicalDetail(t("resolver.manual.timeout", { provider: source.label }))
     };
   }
 
@@ -103,7 +114,7 @@ function manualSourceMeta(
     return {
       badgeLabel: t("resolver.manual.badge.serviceError"),
       badgeTone: "danger",
-      badgeTitle: t("resolver.manual.serviceError", { provider: source.label })
+      badgeTitle: withTechnicalDetail(t("resolver.manual.serviceError", { provider: source.label }))
     };
   }
 
@@ -111,14 +122,14 @@ function manualSourceMeta(
     return {
       badgeLabel: t("resolver.manual.badge.serviceError"),
       badgeTone: "danger",
-      badgeTitle: t("resolver.manual.serviceError", { provider: source.label })
+      badgeTitle: withTechnicalDetail(t("resolver.manual.serviceError", { provider: source.label }))
     };
   }
 
   return {
     badgeLabel: t("resolver.manual.badge.notFound"),
     badgeTone: "info",
-    badgeTitle: t("resolver.manual.notFound", { provider: source.label })
+    badgeTitle: withTechnicalDetail(t("resolver.manual.notFound", { provider: source.label }))
   };
 }
 
@@ -257,7 +268,6 @@ export function ResolverApp() {
   const historyId = useMemo(() => params.get("historyId") ?? undefined, [params]);
   const openedArchiveUrl = useRef<string | null>(null);
   const bufferedSnapshots = useRef<ArchiveSnapshot[]>([]);
-  const pendingAutoOpenSnapshot = useRef<ArchiveSnapshot | null>(null);
   const [status, setStatus] = useState<ResolverStatus>({
     kind: "loading",
     pendingSteps: [],
@@ -298,27 +308,15 @@ export function ResolverApp() {
   useEffect(() => {
     let active = true;
 
-    const lookupAffectsResult = (a: Settings, b: Settings) =>
-      a.urlMatchingMode === b.urlMatchingMode &&
-      a.providerTimeoutSeconds === b.providerTimeoutSeconds &&
-      a.waybackHost === b.waybackHost &&
-      a.archiveTodayHost === b.archiveTodayHost &&
-      a.enabledProviders.length === b.enabledProviders.length &&
-      a.enabledProviders.every((providerId, index) => providerId === b.enabledProviders[index]);
-
     const openPreferredSnapshot = (snapshot: ArchiveSnapshot, currentSettings: Settings, allowAutoOpen: boolean) => {
       const targetUrl = snapshotTargetUrl(snapshot);
       const autoOpenKey = `${request.originalUrl}::${targetUrl}`;
       if (openedArchiveUrl.current !== null || autoOpenedSnapshots.has(autoOpenKey)) return;
 
-      if (!allowAutoOpen) {
-        pendingAutoOpenSnapshot.current = snapshot;
-        return;
-      }
+      if (!allowAutoOpen) return;
 
       openedArchiveUrl.current = targetUrl;
       autoOpenedSnapshots.add(autoOpenKey);
-      pendingAutoOpenSnapshot.current = null;
 
       void consumeFirstArchiveReviewPrompt().then((shouldPrompt) => {
         if (shouldPrompt) {
@@ -568,26 +566,20 @@ export function ResolverApp() {
       }
     }
 
-    const optimisticSettings = initialSettings.current;
     void incrementSearchCountAndCheckReviewPrompt().then((shouldPrompt) => {
       if (shouldPrompt) {
         void browser.tabs.create({ url: thanksPageUrl(), active: false });
       }
     });
-    void runLookup(optimisticSettings, false);
+
+    // Load authoritative settings before running the lookup so it fires exactly
+    // once with the user's real configuration instead of an optimistic default
+    // pass followed by a second pass (which doubled provider requests).
     void getSettings().then((loadedSettings) => {
       if (!active) return;
       authoritativeSettingsReady = true;
       resolvedSettings = loadedSettings;
       setSettings(loadedSettings);
-
-      if (lookupAffectsResult(optimisticSettings, loadedSettings)) {
-        if (pendingAutoOpenSnapshot.current) {
-          openPreferredSnapshot(pendingAutoOpenSnapshot.current, loadedSettings, true);
-        }
-        return;
-      }
-
       void runLookup(loadedSettings, true);
     });
 
@@ -728,7 +720,10 @@ function ResolverContent({
                       />
                     </div>
                   ) : null}
-                  <ArchiveSnapshotCard snapshot={status.snapshot} />
+                  <ArchiveSnapshotCard
+                    snapshot={status.snapshot}
+                    description={snapshotCardDescription(t, status.snapshot)}
+                  />
                 </div>
               </div>
               {status.additionalSnapshots.length > 0 ? (
@@ -787,7 +782,7 @@ function ResolverContent({
                   ) : null}
                   <ArchiveSnapshotCard
                     snapshot={status.snapshot}
-                    description={t("resolver.unverified.cardNote")}
+                    description={snapshotCardDescription(t, status.snapshot)}
                   />
                 </div>
               </div>
@@ -801,7 +796,7 @@ function ResolverContent({
                       <ArchiveSnapshotCard
                         key={snapshotTargetUrl(snapshot)}
                         snapshot={snapshot}
-                        description={t("resolver.unverified.cardNote")}
+                        description={snapshotCardDescription(t, snapshot)}
                       />
                     ))}
                   </div>

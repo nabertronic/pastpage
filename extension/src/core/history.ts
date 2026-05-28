@@ -24,7 +24,8 @@ export type HistoryAttempt = z.infer<typeof HistoryAttemptSchema>;
 export const HistoryFailedProviderSchema = z.object({
   providerId: ProviderIdSchema,
   directLink: z.string().optional(),
-  reason: z.enum(["challenge-required", "rate-limited"]).optional()
+  reason: z.enum(["challenge-required", "rate-limited", "server-error", "timeout"]).optional(),
+  technicalDetail: z.string().optional()
 });
 export type HistoryFailedProvider = z.infer<typeof HistoryFailedProviderSchema>;
 
@@ -38,7 +39,8 @@ export const HistorySnapshotSchema = z.object({
   mimeType: z.string(),
   strategy: z.enum(["exact", "cleaned"]),
   providerId: ProviderIdSchema,
-  verification: z.enum(["confirmed", "unverified"]).optional()
+  verification: z.enum(["confirmed", "unverified"]).optional(),
+  verificationNote: z.string().optional()
 });
 export type HistorySnapshot = z.infer<typeof HistorySnapshotSchema>;
 

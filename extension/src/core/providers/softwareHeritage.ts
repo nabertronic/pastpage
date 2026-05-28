@@ -2,7 +2,7 @@ import type { SearchCandidate } from "../urlPolicy";
 import type { ArchiveSnapshot } from "../tabState";
 import { ProviderLookupError } from "./types";
 import type { ArchivePriorityContext, ArchiveProviderLookupResult, AutomaticArchiveProvider } from "./types";
-import { timestampFromIso } from "./common";
+import { formatRetryAfterDetail, parseRetryAfterMs, timestampFromIso } from "./common";
 
 type SoftwareHeritageTarget = {
   originUrl: string;
@@ -155,7 +155,15 @@ async function lookup(
 
   if (response.status === 404) return { status: "miss" };
   if (!response.ok) {
-    if (response.status === 429) throw new ProviderLookupError("Software Heritage rate-limited this request", "rate-limited");
+    if (response.status === 429) {
+      const retryAfterMs = parseRetryAfterMs(response.headers?.get?.("retry-after"));
+      throw new ProviderLookupError(
+        "Software Heritage rate-limited this request",
+        "rate-limited",
+        retryAfterMs,
+        formatRetryAfterDetail(retryAfterMs) ?? "429 during query"
+      );
+    }
     if (response.status >= 500) throw new ProviderLookupError(`Software Heritage returned ${response.status}`, "server-error");
     throw new ProviderLookupError(`Software Heritage returned ${response.status}`);
   }
