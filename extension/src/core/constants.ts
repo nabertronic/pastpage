@@ -13,7 +13,7 @@ export const LICENSE_URL = "https://github.com/nabertronic/pastpage/blob/main/LI
 export const PRIVACY_URL = "https://github.com/nabertronic/pastpage/blob/main/docs/PRIVACY.md";
 
 export const RELEVANT_HTTP_STATUS_CODES = [
-  404, 408, 410, 451, 500, 502, 503, 504, 509, 520, 521, 523, 524, 525, 526
+  403, 404, 408, 410, 451, 500, 502, 503, 504, 509, 520, 521, 523, 524, 525, 526
 ] as const;
 
 export const WAYBACK_CDX_ENDPOINT = "https://web.archive.org/cdx";

@@ -8,6 +8,7 @@ import {
 
 describe("errors", () => {
   it("recognizes relevant HTTP statuses", () => {
+    expect(isRelevantHttpStatus(403)).toBe(true);
     expect(isRelevantHttpStatus(404)).toBe(true);
     expect(isRelevantHttpStatus(451)).toBe(true);
     expect(isRelevantHttpStatus(200)).toBe(false);

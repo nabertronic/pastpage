@@ -182,7 +182,7 @@ async function captureResolver(context, extensionId, baseUrl) {
 
 async function capturePromoTile() {
   const page = await chromium.launch({ headless: true }).then((browser) => browser.newPage());
-  const iconSvg = LOGO_MARK_SVG;
+  const iconSvg = LOGO_MARK_SVG.replace("#FDC700", "#17130a");
   await page.setViewportSize({ width: 440, height: 280 });
   await page.setContent(`<!doctype html>
     <html lang="en">
@@ -196,64 +196,49 @@ async function capturePromoTile() {
             width: 440px;
             height: 280px;
             overflow: hidden;
-            font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-            background:
-              radial-gradient(circle at top right, rgba(255, 212, 0, 0.85), transparent 34%),
-              linear-gradient(135deg, #13100d 0%, #2f2415 55%, #5e4313 100%);
-            color: #fff8dd;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            background: #ffd400;
+            color: #17130a;
           }
           .frame {
             position: relative;
             width: 100%;
             height: 100%;
-            padding: 24px;
-            display: grid;
-            grid-template-columns: 88px 1fr;
-            gap: 18px;
+            padding: 34px 34px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+          .brand {
+            display: flex;
             align-items: center;
+            gap: 14px;
           }
           .badge {
-            width: 88px;
-            height: 88px;
-            border-radius: 22px;
-            background: rgba(255, 212, 0, 0.14);
-            border: 1px solid rgba(255, 248, 221, 0.22);
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: rgba(23, 19, 10, 0.1);
             display: grid;
             place-items: center;
-            box-shadow: 0 24px 40px rgba(0, 0, 0, 0.28);
-            backdrop-filter: blur(10px);
           }
-          .badge svg { width: 54px; height: 54px; }
-          .eyebrow {
-            font: 700 11px/1.2 ui-sans-serif, system-ui, sans-serif;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: #ffe27a;
-            margin-bottom: 10px;
-          }
+          .badge svg { width: 34px; height: 34px; }
+          .name { font: 850 33px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
           h1 {
             margin: 0;
-            font-size: 34px;
-            line-height: 0.97;
-            letter-spacing: -0.03em;
-            max-width: 280px;
-          }
-          p {
-            margin: 12px 0 0;
-            font: 500 15px/1.45 ui-sans-serif, system-ui, sans-serif;
-            color: rgba(255, 248, 221, 0.9);
-            max-width: 290px;
+            font: 850 54px/0.95 ui-sans-serif, system-ui, sans-serif;
+            letter-spacing: -0.04em;
+            max-width: 360px;
           }
         </style>
       </head>
       <body>
         <div class="frame">
-          <div class="badge">${iconSvg}</div>
-          <div>
-            <div class="eyebrow">PastPage</div>
-            <h1>Recover missing pages fast</h1>
-            <p>Search Wayback Machine and other web archives from the page you are already viewing.</p>
+          <div class="brand">
+            <div class="badge">${iconSvg}</div>
+            <div class="name">PastPage</div>
           </div>
+          <h1>Find archived pages</h1>
         </div>
       </body>
     </html>`);
