@@ -9,7 +9,7 @@ export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
       "Automatic broken-page help now also appears on `403 Forbidden` pages, using the same recovery banner flow as other supported HTTP error pages.",
       "Cleaned archive lookups now also try a query-free canonical URL after removing known tracking, referrer, and sensitive parameters, and providers keep checking cleaned variants after an original-URL hit.",
       "Manual follow-up archive source cards now include a `Check cleaned URL` link whenever the original URL had query parameters, so each provider can be checked against the query-free URL too.",
-      "The resolver can now display multiple archived matches from the same archive provider instead of implying that multiple results always come from different archives.",
+      "The resolver can now display multiple archived matches from the same archive provider.",
       "Arquivo.pt is now enabled by default and its direct provider action opens Arquivo.pt's page-versions UI with a cleaned host/path query instead of the older full-URL `page/search` link.",
       "Replaced the Arquivo.pt provider icon with a cleaner symbol-only mark based on Arquivo.pt's official site artwork."
     ]
