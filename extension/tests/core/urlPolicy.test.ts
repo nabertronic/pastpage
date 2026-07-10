@@ -44,7 +44,8 @@ describe("urlPolicy", () => {
 
     expect(candidates).toEqual([
       { strategy: "exact", url: rawUrl },
-      { strategy: "cleaned", url: "https://example.com/reset?id=12&q=test" }
+      { strategy: "cleaned", url: "https://example.com/reset?id=12&q=test" },
+      { strategy: "cleaned", url: "https://example.com/reset" }
     ]);
   });
 
@@ -53,6 +54,42 @@ describe("urlPolicy", () => {
       buildSearchCandidates("https://example.com/a?id=1&utm_campaign=x", "exact-then-cleaned").map(
         (candidate) => candidate.strategy
       )
-    ).toEqual(["exact", "cleaned"]);
+    ).toEqual(["exact", "cleaned", "cleaned"]);
+  });
+
+  it("falls back to a fully query-free cleaned URL when unknown parameters remain", () => {
+    expect(
+      buildSearchCandidates(
+        "https://example.com/story?id=12&custom_ref=chatgpt.com&keep=content",
+        "exact-then-cleaned"
+      )
+    ).toEqual([
+      {
+        strategy: "exact",
+        url: "https://example.com/story?id=12&custom_ref=chatgpt.com&keep=content"
+      },
+      {
+        strategy: "cleaned",
+        url: "https://example.com/story"
+      }
+    ]);
+  });
+
+  it("deduplicates cleaned candidates when known tracking params are the only query", () => {
+    expect(
+      buildSearchCandidates(
+        "https://jungefreiheit.de/politik/2026/prozessstart-saechsische-separatisten-wer-sind-die-terroristen/?utm_source=chatgpt.com",
+        "exact-then-cleaned"
+      )
+    ).toEqual([
+      {
+        strategy: "exact",
+        url: "https://jungefreiheit.de/politik/2026/prozessstart-saechsische-separatisten-wer-sind-die-terroristen/?utm_source=chatgpt.com"
+      },
+      {
+        strategy: "cleaned",
+        url: "https://jungefreiheit.de/politik/2026/prozessstart-saechsische-separatisten-wer-sind-die-terroristen/"
+      }
+    ]);
   });
 });

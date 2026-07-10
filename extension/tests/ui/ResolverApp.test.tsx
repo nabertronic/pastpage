@@ -81,6 +81,27 @@ describe("ResolverApp", () => {
     expect(screen.getAllByRole("link", { name: /Check on /i }).length).toBeGreaterThan(0);
   });
 
+  it("shows cleaned URL archive links when the requested URL has query parameters", async () => {
+    vi.stubGlobal("fetch", notFoundFetch());
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=broken-page&url=https%3A%2F%2Fexample.com%2Fmissing%3Futm_source%3Dchatgpt.com&kind=http&statusCode=404"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument());
+
+    const cleanedLinks = screen.getAllByRole("link", { name: "Check cleaned URL" });
+    expect(cleanedLinks.length).toBeGreaterThan(0);
+    expect(cleanedLinks[0]).toHaveAttribute("href", expect.not.stringContaining("utm_source"));
+    expect(cleanedLinks[0]).toHaveAttribute(
+      "href",
+      expect.stringContaining("https%3A%2F%2Fexample.com%2Fmissing")
+    );
+  });
+
   it("shows a manual Archive.today fallback hint when Archive.today returns 429", async () => {
     vi.stubGlobal(
       "fetch",
@@ -405,7 +426,7 @@ describe("ResolverApp", () => {
     render(<ResolverApp />);
 
     await waitFor(() => expect(screen.getByText(/Archived version found on Wayback Machine/i)).toBeInTheDocument());
-    expect(screen.queryByText(/Archived versions found on multiple archives/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Archived versions found/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/Other archived versions found/i)).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByText(/Check on Ghostarchive/i)).toBeInTheDocument());
     expect(screen.queryByText(/Check on Archive\.today/i)).not.toBeInTheDocument();
@@ -935,9 +956,7 @@ describe("ResolverApp", () => {
         ]
       ])
     });
-    await waitFor(() =>
-      expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByRole("heading", { name: /Archived versions found/i })).toBeInTheDocument());
     expect(screen.queryByText(/Other archived versions found/i)).not.toBeInTheDocument();
     expect(screen.getAllByText(/Open archived version/i).length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
@@ -1236,13 +1255,78 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() =>
-      expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument()
-    );
-    expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("heading", { name: /Archived versions found/i })).toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: /Archived versions found/i })).toBeInTheDocument();
     expect(screen.queryByText(/Other archived versions found/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Open this provider-reported snapshot manually/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Archive\.today/i).length).toBeGreaterThan(0);
+  });
+
+  it("shows multiple matches from the same provider", async () => {
+    const waybackRequests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        const host = new URL(url).hostname;
+
+        if (host.includes("web.archive.org")) {
+          if (url.includes("/web/")) {
+            return archiveHtmlResponse("Wayback");
+          }
+
+          const requestedUrl = new URL(url).searchParams.get("url") ?? "";
+          waybackRequests.push(requestedUrl);
+          const timestamp = requestedUrl.includes("utm_source=test")
+            ? "20240102030405"
+            : "20240203040506";
+
+          return {
+            ok: true,
+            status: 200,
+            json: vi.fn().mockResolvedValue([
+              ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+              [timestamp, requestedUrl, "text/html", "200", timestamp, "120"]
+            ])
+          };
+        }
+
+        if (host.includes("archive.ph") || host.includes("ghostarchive.org") || host.includes("megalodon.jp")) {
+          return {
+            ok: true,
+            status: 200,
+            text: vi.fn().mockResolvedValue("<html><body>none</body></html>")
+          };
+        }
+
+        if (host.includes("api.perma.cc")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ objects: [] }) };
+        }
+
+        if (host.includes("arquivo.pt")) {
+          return { ok: true, status: 200, json: vi.fn().mockResolvedValue({ items: [] }) };
+        }
+
+        throw new Error(`unhandled host ${host}`);
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=manual-page&url=https%3A%2F%2Fexample.com%2Fstory%3Futm_source%3Dtest&providerId=wayback"
+    );
+
+    render(<ResolverApp />);
+
+    await waitFor(() => expect(screen.getByText(/Archived versions found/i)).toBeInTheDocument());
+    expect(waybackRequests).toEqual([
+      "https://example.com/story?utm_source=test",
+      "https://example.com/story"
+    ]);
+    expect(screen.getAllByText("Wayback Machine")).toHaveLength(2);
+    expect(screen.getAllByText(/20240102030405/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/20240203040506/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/web\.archive\.org\/web\/20240102030405/)).toBeInTheDocument();
+    expect(screen.getByText(/web\.archive\.org\/web\/20240203040506/)).toBeInTheDocument();
   });
 
   it("shows fallback matches immediately while Wayback is still pending", async () => {
@@ -1326,9 +1410,7 @@ describe("ResolverApp", () => {
 
     render(<ResolverApp />);
 
-    await waitFor(() =>
-      expect(screen.getByText(/Archived versions found on multiple archives/i)).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByRole("heading", { name: /Archived versions found/i })).toBeInTheDocument());
     expect(screen.getAllByText(/Ghostarchive/i).length).toBeGreaterThan(0);
     await waitFor(() =>
       expect(createSpy).toHaveBeenCalledWith({
@@ -1473,7 +1555,7 @@ describe("ResolverApp", () => {
     render(<ResolverApp />);
 
     await waitFor(() => expect(screen.queryByText(/original URL/i)).not.toBeInTheDocument());
-    await waitFor(() => expect(screen.getByText(/cleaned URL/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Checking Wayback Machine (cleaned URL)")).toBeInTheDocument());
     resolveSecondLookup({
       ok: true,
       status: 200,

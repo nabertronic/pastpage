@@ -279,7 +279,7 @@ export async function lookupArchives(
             } else {
               recordUnverifiedSnapshot(normalizedSnapshot);
             }
-            break;
+            continue;
           }
 
           checked.push({
@@ -453,6 +453,7 @@ function buildManualSources(
 ): ManualArchiveSource[] {
   const seen = new Set<string>();
   const providerIds = buildManualSourceProviderOrder(rawUrl);
+  const queryFreeUrl = buildQueryFreeUrl(rawUrl);
 
   return providerIds
     .filter((providerId) => !allowedProviderIds || allowedProviderIds.has(providerId))
@@ -461,6 +462,9 @@ function buildManualSources(
       const provider = getProvider(providerId);
       const url = provider.buildDirectLinkUrl(rawUrl, hostSettings);
       if (!url) return [];
+      const cleanedUrl = queryFreeUrl
+        ? provider.buildDirectLinkUrl(queryFreeUrl, hostSettings)
+        : null;
 
       const key = `${providerId}:${url}`;
       if (seen.has(key)) return [];
@@ -470,10 +474,20 @@ function buildManualSources(
         {
           providerId,
           label: provider.displayName,
-          url
+          url,
+          ...(cleanedUrl && cleanedUrl !== url ? { cleanedUrl } : {})
         }
       ];
     });
+}
+
+function buildQueryFreeUrl(rawUrl: string): string | null {
+  const parsed = new URL(rawUrl);
+  if (!parsed.search) return null;
+
+  parsed.search = "";
+  parsed.hash = "";
+  return parsed.toString();
 }
 
 function pickPrimarySnapshot(sortedSnapshots: ArchiveSnapshot[]): ArchiveSnapshot {

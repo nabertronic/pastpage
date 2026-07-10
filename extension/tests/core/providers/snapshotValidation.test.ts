@@ -86,6 +86,32 @@ describe("snapshotValidation", () => {
     }
   });
 
+  it("rejects the Archive-It session challenge used by the Canada provider", async () => {
+    const result = await selectLatestWorkingSnapshot(
+      [
+        {
+          ...candidate,
+          providerId: "canada-gov-web-archive" as const
+        }
+      ],
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        redirected: false,
+        headers: { get: vi.fn().mockReturnValue("text/html; charset=utf-8") },
+        text: vi.fn().mockResolvedValue(`
+          <html class="no-js">
+            <title>Session Verification</title>
+            <form action="https://archive-it.org/_challenge"></form>
+            <body>Archive-It uses a bot protection system</body>
+          </html>
+        `)
+      }) as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("unverified");
+  });
+
   it("accepts an equivalent http-to-https redirect for the same archive resource", async () => {
     const result = await selectLatestWorkingSnapshot(
       [

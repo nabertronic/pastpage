@@ -308,6 +308,26 @@ describe("PopupApp", () => {
     expect(window.close).toHaveBeenCalled();
   });
 
+  it("opens the raw NTUWAS timeline endpoint from the popup list", async () => {
+    (browser.runtime.sendMessage as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      state: { status: "idle" }
+    });
+    (browser.tabs.query as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      { id: 1, url: "https://www.president.gov.tw/" }
+    ]);
+
+    render(<PopupApp />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "NTU Web Archiving System / NTUWAS" }));
+
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: "https://webarchive.lib.ntu.edu.tw/archive/wayback/*/https://www.president.gov.tw/",
+      active: true,
+      openerTabId: 1
+    });
+    expect(window.close).toHaveBeenCalled();
+  });
+
   it("opens all archives in separate tabs from the popup", async () => {
     (browser.runtime.sendMessage as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       state: { status: "idle" }

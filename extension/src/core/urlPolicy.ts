@@ -13,6 +13,13 @@ export type UrlEligibility =
     };
 
 const TRACKING_PARAMS = new Set([
+  "__hsfp",
+  "__hssc",
+  "__hstc",
+  "_hsenc",
+  "_hsmi",
+  "ck_subscriber_id",
+  "cmp",
   "utm_source",
   "utm_medium",
   "utm_campaign",
@@ -25,6 +32,10 @@ const TRACKING_PARAMS = new Set([
   "dclid",
   "gbraid",
   "wbraid",
+  "msclkid",
+  "twclid",
+  "li_fat_id",
+  "srsltid",
   "mc_cid",
   "mc_eid",
   "igshid",
@@ -32,8 +43,13 @@ const TRACKING_PARAMS = new Set([
   "feature",
   "ref",
   "ref_src",
+  "referer",
+  "referrer",
+  "source",
   "spm",
-  "cmpid"
+  "cmpid",
+  "ncid",
+  "scid"
 ]);
 
 const SENSITIVE_PARAMS = new Set([
@@ -61,7 +77,14 @@ const SENSITIVE_PARAMS = new Set([
 
 function shouldRemoveFromCleanedUrl(key: string): boolean {
   const normalizedKey = key.toLowerCase();
-  return TRACKING_PARAMS.has(normalizedKey) || SENSITIVE_PARAMS.has(normalizedKey);
+  return (
+    TRACKING_PARAMS.has(normalizedKey) ||
+    SENSITIVE_PARAMS.has(normalizedKey) ||
+    normalizedKey.startsWith("utm_") ||
+    normalizedKey.startsWith("pk_") ||
+    normalizedKey.startsWith("mtm_") ||
+    normalizedKey.endsWith("clid")
+  );
 }
 
 function isPrivateHostname(hostname: string): boolean {
@@ -145,28 +168,33 @@ export function cleanUrl(rawUrl: string): string {
   return parsed.toString();
 }
 
+function stripSearchAndHash(rawUrl: string): string {
+  const parsed = new URL(rawUrl);
+  parsed.search = "";
+  parsed.hash = "";
+  return parsed.toString();
+}
+
 export type SearchCandidate = {
   strategy: "exact" | "cleaned";
   url: string;
 };
 
 export function buildSearchCandidates(rawUrl: string, mode: UrlMatchingMode): SearchCandidate[] {
-  const cleaned = cleanUrl(rawUrl);
-  const hasCleanedVariant = cleaned !== rawUrl;
+  const cleanedCandidates = [cleanUrl(rawUrl), stripSearchAndHash(rawUrl)].filter(
+    (candidate) => candidate !== rawUrl
+  );
+  const uniqueCleanedCandidates = Array.from(new Set(cleanedCandidates));
 
-  if (mode === "exact-only" || !hasCleanedVariant) {
+  if (mode === "exact-only" || uniqueCleanedCandidates.length === 0) {
     return [{ strategy: "exact", url: rawUrl }];
   }
 
+  const cleaned = uniqueCleanedCandidates.map((url) => ({ strategy: "cleaned" as const, url }));
+
   if (mode === "cleaned-first") {
-    return [
-      { strategy: "cleaned", url: cleaned },
-      { strategy: "exact", url: rawUrl }
-    ];
+    return [...cleaned, { strategy: "exact", url: rawUrl }];
   }
 
-  return [
-    { strategy: "exact", url: rawUrl },
-    { strategy: "cleaned", url: cleaned }
-  ];
+  return [{ strategy: "exact", url: rawUrl }, ...cleaned];
 }

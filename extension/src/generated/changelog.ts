@@ -3,6 +3,20 @@ import type { WhatsNewEntry } from "../core/whatsNew";
 // This file is generated from docs/CHANGELOG.md by extension/scripts/generate-changelog.mjs.
 export const WHATS_NEW_ENTRIES: WhatsNewEntry[] = [
   {
+    "version": "v1.0.10",
+    "changes": [
+      "Automatic broken-page help now also appears on `403 Forbidden` pages, using the same recovery banner flow as other supported HTTP error pages.",
+      "Cleaned archive lookups now also try a query-free canonical URL after removing known tracking, referrer, and sensitive parameters, and providers keep checking cleaned variants after an original-URL hit.",
+      "Manual follow-up archive source cards now include a `Check cleaned URL` link whenever the original URL had query parameters, so each provider can be checked against the query-free URL too.",
+      "The resolver can now display multiple archived matches from the same archive provider instead of implying that multiple results always come from different archives.",
+      "Added automatic `Government of Canada Web Archive` support for `gc.ca` and `canada.ca` URLs, including direct links, resolver lookups, and matching provider icons.",
+      "Added automatic support for `Icelandic Web Archive / Vefsafn`, `NTU Web Archiving System / NTUWAS`, and `PADICAT / Web Archive of Catalonia`, including direct links, resolver lookups, and matching provider icons for `.is`, `.tw`, and `.cat` URLs.",
+      "Arquivo.pt is now enabled by default and its direct provider action opens Arquivo.pt's page-versions UI with a cleaned host/path query instead of the older full-URL `page/search` link.",
+      "Replaced the Arquivo.pt provider icon with a cleaner symbol-only mark based on Arquivo.pt's official site artwork.",
+      "Tightened replay verification for the `Government of Canada Web Archive` so Archive-It challenge pages are no longer treated like confirmed archived snapshots."
+    ]
+  },
+  {
     "version": "v1.0.9",
     "changes": [
       "Archive lookups are now more reliable on difficult services such as `Archive.today`, `Perma.cc`, and `WebCite`: PastPage checks original and cleaned URLs more carefully per provider, with separate time limits for querying and replay validation, which reduces rate-limit issues, session mix-ups, and missed fallback checks.",

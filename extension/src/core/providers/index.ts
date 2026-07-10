@@ -1,7 +1,10 @@
 import { arquivoPtProvider } from "./arquivoPt";
 import { archiveTodayProvider } from "./archiveToday";
+import { canadaGovWebArchiveProvider } from "./canadaGovWebArchive";
 import { ghostarchiveProvider } from "./ghostarchive";
 import { locWebArchivesProvider } from "./locWebArchives";
+import { ntuwasProvider } from "./ntuwas";
+import { padicatProvider } from "./padicat";
 import { permaCcProvider } from "./permaCc";
 import {
   buildAutomaticProviderOrder as buildAutomaticProviderOrderFromContext,
@@ -10,6 +13,7 @@ import {
 } from "./priority";
 import { softwareHeritageProvider } from "./softwareHeritage";
 import { ukGovWebArchiveProvider } from "./ukGovWebArchive";
+import { vefsafnProvider } from "./vefsafn";
 import { waybackProvider } from "./wayback";
 import { webCiteProvider } from "./webCite";
 import { webGyotakuProvider } from "./webGyotaku";
@@ -21,10 +25,14 @@ export const PROVIDERS: Record<ProviderId, ArchiveProvider> = {
   "arquivo-pt": arquivoPtProvider,
   "archive-today": archiveTodayProvider,
   ghostarchive: ghostarchiveProvider,
+  "canada-gov-web-archive": canadaGovWebArchiveProvider,
   "loc-web-archives": locWebArchivesProvider,
+  ntuwas: ntuwasProvider,
+  padicat: padicatProvider,
   "perma-cc": permaCcProvider,
   "software-heritage": softwareHeritageProvider,
   "uk-gov-web-archive": ukGovWebArchiveProvider,
+  vefsafn: vefsafnProvider,
   wayback: waybackProvider,
   webcite: webCiteProvider,
   "web-gyotaku": webGyotakuProvider,

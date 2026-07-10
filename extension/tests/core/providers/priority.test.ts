@@ -26,6 +26,30 @@ describe("provider priority", () => {
     ).toContain("software-heritage");
   });
 
+  it("promotes the Government of Canada Web Archive for canada.ca URLs", () => {
+    const order = buildAutomaticProviderOrder(classifyArchivePriority("https://www.canada.ca/en.html"));
+    expect(order).toContain("canada-gov-web-archive");
+    expect(order.indexOf("canada-gov-web-archive")).toBeLessThan(order.indexOf("ghostarchive"));
+  });
+
+  it("promotes Vefsafn for Icelandic domains", () => {
+    const order = buildAutomaticProviderOrder(classifyArchivePriority("https://www.stjornarradid.is/"));
+    expect(order).toContain("vefsafn");
+    expect(order.indexOf("vefsafn")).toBeLessThan(order.indexOf("ghostarchive"));
+  });
+
+  it("promotes NTUWAS for Taiwanese domains", () => {
+    const order = buildAutomaticProviderOrder(classifyArchivePriority("https://www.ntu.edu.tw/"));
+    expect(order).toContain("ntuwas");
+    expect(order.indexOf("ntuwas")).toBeLessThan(order.indexOf("ghostarchive"));
+  });
+
+  it("promotes PADICAT for Catalan domains", () => {
+    const order = buildAutomaticProviderOrder(classifyArchivePriority("https://www.vilaweb.cat/"));
+    expect(order).toContain("padicat");
+    expect(order.indexOf("padicat")).toBeLessThan(order.indexOf("ghostarchive"));
+  });
+
   it("promotes Arquivo.pt for Portuguese domains", () => {
     expect(buildAutomaticProviderOrder(classifyArchivePriority("https://example.pt/story"))).toContain(
       "arquivo-pt"

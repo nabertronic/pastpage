@@ -89,6 +89,34 @@ describe("background context menus", () => {
     expect(browser.contextMenus.removeAll).toHaveBeenCalledTimes(2);
   });
 
+  it("ignores already-created context menu item ids during rebuilds", async () => {
+    vi.mocked(browser.contextMenus.removeAll).mockResolvedValue(undefined);
+    vi.mocked(browser.contextMenus.create).mockImplementation((item, callback) => {
+      if (item.id === "provider:ntuwas:selection") {
+        Object.defineProperty(browser.runtime, "lastError", {
+          configurable: true,
+          value: { message: "Cannot create item with duplicate id provider:ntuwas:selection" }
+        });
+        callback?.();
+        Reflect.deleteProperty(browser.runtime, "lastError");
+        return undefined as never;
+      }
+
+      callback?.();
+      return undefined as never;
+    });
+
+    const background = await import("../../entrypoints/background");
+    (background.default as unknown as () => void)();
+    await flushPromises();
+    await flushPromises();
+
+    expect(browser.contextMenus.create).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "provider:ntuwas:selection" }),
+      expect.any(Function)
+    );
+  });
+
   it("starts the resolver for the active tab when the browser command fires", async () => {
     (browser.tabs.query as unknown as ReturnType<typeof vi.fn>).mockResolvedValue([
       { id: 9, url: "https://example.com/story" }

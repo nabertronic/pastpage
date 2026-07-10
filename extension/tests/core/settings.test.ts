@@ -7,7 +7,7 @@ describe("settings", () => {
     expect(DEFAULT_SETTINGS.providerMenuOpenBehavior).toBe("new-tab-foreground");
     expect(DEFAULT_SETTINGS.brokenPageAssistEnabled).toBe(true);
     expect(DEFAULT_SETTINGS.enabledProviders.length).toBeGreaterThan(0);
-    expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("arquivo-pt");
+    expect(DEFAULT_SETTINGS.enabledProviders).toContain("arquivo-pt");
     expect(DEFAULT_SETTINGS.enabledProviders).not.toContain("perma-cc");
     expect(DEFAULT_SETTINGS.archiveDisplayOrder).toEqual([
       "wayback",
@@ -16,6 +16,10 @@ describe("settings", () => {
       "webcite",
       "uk-gov-web-archive",
       "loc-web-archives",
+      "canada-gov-web-archive",
+      "vefsafn",
+      "ntuwas",
+      "padicat",
       "arquivo-pt",
       "web-gyotaku",
       "yandex-cache",
@@ -106,31 +110,116 @@ describe("settings", () => {
     ).toBe(true);
   });
 
-  it("accepts the configured enabledProviders setting", () => {
-    expect(parseSettings({ enabledProviders: ["wayback", "perma-cc"] })).toEqual({
-      ...DEFAULT_SETTINGS,
-      enabledProviders: ["wayback", "perma-cc"]
-    });
+  it("preserves configured enabled providers", () => {
+    const settings = parseSettings({ enabledProviders: ["wayback", "perma-cc"] });
+
+    expect(settings.enabledProviders).toEqual(["wayback", "perma-cc"]);
+    expect(settings.enabledProviders).not.toContain("arquivo-pt");
   });
 
   it("accepts stored settings that explicitly enable Arquivo.pt", () => {
-    expect(
-      parseSettings({
-        enabledProviders: ["wayback", "arquivo-pt", "perma-cc"],
-        archiveDisplayOrder: ["arquivo-pt", "perma-cc", "wayback"]
-      })
-    ).toEqual({
-      ...DEFAULT_SETTINGS,
+    const settings = parseSettings({
       enabledProviders: ["wayback", "arquivo-pt", "perma-cc"],
       archiveDisplayOrder: ["arquivo-pt", "perma-cc", "wayback"]
     });
+
+    expect(settings.enabledProviders).toEqual(
+      expect.arrayContaining([
+        ...DEFAULT_SETTINGS.enabledProviders,
+        "arquivo-pt",
+        "perma-cc"
+      ])
+    );
+    expect(settings.archiveDisplayOrder).toEqual([
+      "arquivo-pt",
+      "perma-cc",
+      "wayback",
+      "archive-today",
+      "ghostarchive",
+      "webcite",
+      "uk-gov-web-archive",
+      "loc-web-archives",
+      "canada-gov-web-archive",
+      "vefsafn",
+      "ntuwas",
+      "padicat",
+      "web-gyotaku",
+      "yandex-cache",
+      "software-heritage"
+    ]);
   });
 
-  it("accepts the configured archive display order", () => {
+  it("preserves configured archive display order and inserts missing providers", () => {
     expect(parseSettings({ archiveDisplayOrder: ["perma-cc", "wayback"] })).toEqual({
       ...DEFAULT_SETTINGS,
-      archiveDisplayOrder: ["perma-cc", "wayback"]
+      archiveDisplayOrder: [
+        "perma-cc",
+        "wayback",
+        "archive-today",
+        "ghostarchive",
+        "webcite",
+        "uk-gov-web-archive",
+        "loc-web-archives",
+        "canada-gov-web-archive",
+        "vefsafn",
+        "ntuwas",
+        "padicat",
+        "arquivo-pt",
+        "web-gyotaku",
+        "yandex-cache",
+        "software-heritage"
+      ]
     });
+  });
+
+  it("adds newly shipped archive providers to a legacy saved archive list", () => {
+    const settings = parseSettings({
+      enabledProviders: [
+        "wayback",
+        "archive-today",
+        "ghostarchive",
+        "webcite",
+        "uk-gov-web-archive",
+        "loc-web-archives",
+        "web-gyotaku",
+        "yandex-cache",
+        "software-heritage"
+      ],
+      archiveDisplayOrder: [
+        "wayback",
+        "archive-today",
+        "ghostarchive",
+        "webcite",
+        "uk-gov-web-archive",
+        "loc-web-archives",
+        "arquivo-pt",
+        "web-gyotaku",
+        "yandex-cache",
+        "perma-cc",
+        "software-heritage"
+      ]
+    });
+
+    expect(settings.enabledProviders).toEqual(expect.arrayContaining(DEFAULT_SETTINGS.enabledProviders));
+    expect(settings.enabledProviders).toContain("arquivo-pt");
+    expect(settings.enabledProviders).not.toContain("perma-cc");
+    expect(settings.archiveDisplayOrder).toEqual([
+      "wayback",
+      "archive-today",
+      "ghostarchive",
+      "webcite",
+      "uk-gov-web-archive",
+      "loc-web-archives",
+      "canada-gov-web-archive",
+      "vefsafn",
+      "ntuwas",
+      "padicat",
+      "arquivo-pt",
+      "web-gyotaku",
+      "yandex-cache",
+      "perma-cc",
+      "software-heritage"
+    ]);
   });
 
   it("accepts stored history filter presets", () => {

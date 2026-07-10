@@ -76,6 +76,18 @@ function detectArchiveTodayChallenge(html: string): ChallengeDetectionResult {
   return detectGenericChallenge(html);
 }
 
+function detectArchiveItChallenge(html: string): ChallengeDetectionResult {
+  if (
+    /<title[^>]*>\s*Session Verification\s*<\/title>/i.test(html) ||
+    /action=["']https?:\/\/archive-it\.org\/_challenge["']/i.test(html) ||
+    /Archive-It uses a bot protection system/i.test(html)
+  ) {
+    return CHALLENGE_PAGE;
+  }
+
+  return detectGenericChallenge(html);
+}
+
 const PROVIDER_CHALLENGE_DETECTORS: Partial<
   Record<ProviderId, Partial<Record<ChallengePhase, ChallengeDetector>>>
 > = {
@@ -88,6 +100,10 @@ const PROVIDER_CHALLENGE_DETECTORS: Partial<
   },
   wayback: {
     replay: detectGenericChallenge
+  },
+  "canada-gov-web-archive": {
+    query: detectArchiveItChallenge,
+    replay: detectArchiveItChallenge
   },
   webcite: {
     query: detectWebCiteChallenge,

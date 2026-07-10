@@ -233,6 +233,10 @@ function parseScopedProviderId(params: URLSearchParams): ProviderId | undefined 
     case "ghostarchive":
     case "uk-gov-web-archive":
     case "loc-web-archives":
+    case "canada-gov-web-archive":
+    case "vefsafn":
+    case "ntuwas":
+    case "padicat":
     case "perma-cc":
     case "arquivo-pt":
     case "web-gyotaku":
@@ -966,6 +970,12 @@ function ManualArchiveSourceCard({
       <p className="mt-2 break-all px-1 text-xs text-stone-700 dark:text-stone-300">{source.url}</p>
       <div className="mt-2 flex flex-wrap gap-2">
         <ManualArchiveSourceButton source={source} actionLabel={actionLabel} variant={variant} />
+        {source.cleanedUrl ? (
+          <LinkButton href={source.cleanedUrl} target="_blank" rel="noreferrer" size="sm" variant={variant}>
+            <ExternalLink aria-hidden="true" size={14} />
+            {t("resolver.manual.checkCleanedUrl")}
+          </LinkButton>
+        ) : null}
         <CopyButton
           value={source.url}
           label={t(isYandexCache ? "resolver.found.copyCacheLink" : "resolver.found.copyArchiveLink")}

@@ -140,7 +140,7 @@ const PROVIDER_CONTEXT_MENU_ITEMS: Record<
     id: `${PROVIDER_CONTEXT_MENU_PREFIX}arquivo-pt`,
     providerId: "arquivo-pt",
     title: "Arquivo.pt",
-    iconPath: "provider-icons/arquivo-pt.svg"
+    iconPath: "provider-icons/arquivo-pt.png"
   },
   "web-gyotaku": {
     id: `${PROVIDER_CONTEXT_MENU_PREFIX}web-gyotaku`,
@@ -187,6 +187,38 @@ const PROVIDER_CONTEXT_MENU_ITEMS: Record<
       "*://*.congress.gov/*",
       "*://congress.gov/*"
     ]
+  },
+  "canada-gov-web-archive": {
+    id: `${PROVIDER_CONTEXT_MENU_PREFIX}canada-gov-web-archive`,
+    providerId: "canada-gov-web-archive",
+    title: "Government of Canada Web Archive",
+    iconPath: "provider-icons/canada-gov-web-archive.svg",
+    documentUrlPatterns: ["*://*.gc.ca/*", "*://gc.ca/*", "*://*.canada.ca/*", "*://canada.ca/*"],
+    targetUrlPatterns: ["*://*.gc.ca/*", "*://gc.ca/*", "*://*.canada.ca/*", "*://canada.ca/*"]
+  },
+  vefsafn: {
+    id: `${PROVIDER_CONTEXT_MENU_PREFIX}vefsafn`,
+    providerId: "vefsafn",
+    title: "Icelandic Web Archive / Vefsafn",
+    iconPath: "provider-icons/vefsafn.svg",
+    documentUrlPatterns: ["*://*.is/*", "*://is/*"],
+    targetUrlPatterns: ["*://*.is/*", "*://is/*"]
+  },
+  ntuwas: {
+    id: `${PROVIDER_CONTEXT_MENU_PREFIX}ntuwas`,
+    providerId: "ntuwas",
+    title: "NTU Web Archiving System / NTUWAS",
+    iconPath: "provider-icons/ntuwas.svg",
+    documentUrlPatterns: ["*://*.tw/*", "*://tw/*"],
+    targetUrlPatterns: ["*://*.tw/*", "*://tw/*"]
+  },
+  padicat: {
+    id: `${PROVIDER_CONTEXT_MENU_PREFIX}padicat`,
+    providerId: "padicat",
+    title: "PADICAT / Web Archive of Catalonia",
+    iconPath: "provider-icons/padicat.svg",
+    documentUrlPatterns: ["*://*.cat/*", "*://cat/*"],
+    targetUrlPatterns: ["*://*.cat/*", "*://cat/*"]
   },
   "perma-cc": {
     id: `${PROVIDER_CONTEXT_MENU_PREFIX}perma-cc`,
@@ -487,7 +519,12 @@ function createContextMenuItem(
     browser.contextMenus.create(createProperties, () => {
       const error = browser.runtime.lastError;
       if (error) {
-        reject(new Error(error.message));
+        if (/duplicate id/i.test(error.message ?? "")) {
+          resolve();
+          return;
+        }
+
+        reject(new Error(error.message ?? "Context menu item could not be created"));
         return;
       }
 
@@ -634,7 +671,7 @@ async function rebuildContextMenu() {
     }
   }
 
-  for (const providerId of settings.archiveDisplayOrder) {
+  for (const providerId of Array.from(new Set(settings.archiveDisplayOrder))) {
     if (!settings.enabledProviders.includes(providerId)) continue;
 
     const item = PROVIDER_CONTEXT_MENU_ITEMS[providerId];

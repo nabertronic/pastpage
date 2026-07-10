@@ -30,6 +30,7 @@ export type ManualArchiveSource = {
   providerId: ProviderId;
   label: string;
   url: string;
+  cleanedUrl?: string;
 };
 
 export type FailedProvider = {

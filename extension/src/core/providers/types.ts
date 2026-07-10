@@ -31,6 +31,10 @@ export const ProviderIdSchema = z.enum([
   "yandex-cache",
   "uk-gov-web-archive",
   "loc-web-archives",
+  "canada-gov-web-archive",
+  "vefsafn",
+  "ntuwas",
+  "padicat",
   "perma-cc",
   "arquivo-pt",
   "web-gyotaku",
@@ -46,6 +50,10 @@ export type ArchivePriorityContext = {
   hostname: string;
   isUkGov: boolean;
   isUsGov: boolean;
+  isCanadaGov: boolean;
+  isIcelandTld: boolean;
+  isTaiwanTld: boolean;
+  isCataloniaTld: boolean;
   isPortugalTld: boolean;
   isJapanTld: boolean;
   isRepositoryUrl: boolean;

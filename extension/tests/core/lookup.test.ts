@@ -81,6 +81,18 @@ function emptyLocResponse() {
   return { ok: true, status: 200, text: vi.fn().mockResolvedValue("<html><body>No captures</body></html>") };
 }
 
+function emptyCanadaGovResponse() {
+  return { ok: true, status: 200, text: vi.fn().mockResolvedValue("{}") };
+}
+
+function emptyPywbCdxResponse() {
+  return { ok: true, status: 200, text: vi.fn().mockResolvedValue("") };
+}
+
+function emptyNtuwasResponse() {
+  return { ok: true, status: 200, text: vi.fn().mockResolvedValue("") };
+}
+
 function emptyWebCiteResponse(url: string) {
   if (url.includes("/topframe.php")) {
     return {
@@ -210,6 +222,76 @@ describe("lookupArchives", () => {
         "ghostarchive",
         "web-gyotaku",
         "webcite"
+      ]);
+    }
+  });
+
+  it("keeps checking cleaned candidates for the same provider after an exact hit", async () => {
+    const waybackCdxRequests: string[] = [];
+    const preferred: string[] = [];
+    const found: string[] = [];
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": (url: string) => {
+        if (url.includes("/web/")) {
+          return archiveHtmlResponse("Wayback");
+        }
+
+        waybackCdxRequests.push(url);
+        const requestedUrl = new URL(url).searchParams.get("url") ?? "";
+        const timestamp = requestedUrl.includes("utm_source=test")
+          ? "20240101000000"
+          : "20240202000000";
+
+        return {
+          ok: true,
+          status: 200,
+          json: vi.fn().mockResolvedValue([
+            ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+            [timestamp, requestedUrl, "text/html", "200", timestamp, "100"]
+          ])
+        };
+      },
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const result = await lookupArchives(
+      "https://example.com/story?utm_source=test",
+      "exact-then-cleaned",
+      fetchImpl as unknown as typeof fetch,
+      undefined,
+      (snapshot) => found.push(`${snapshot.providerId}:${snapshot.strategy}:${snapshot.timestamp}`),
+      (snapshot) => preferred.push(`${snapshot.providerId}:${snapshot.strategy}:${snapshot.timestamp}`),
+      ["wayback"]
+    );
+
+    expect(waybackCdxRequests.map((url) => new URL(url).searchParams.get("url"))).toEqual([
+      "https://example.com/story?utm_source=test",
+      "https://example.com/story"
+    ]);
+    expect(preferred).toEqual(["wayback:exact:20240101000000"]);
+    expect(found).toEqual([
+      "wayback:exact:20240101000000",
+      "wayback:cleaned:20240202000000"
+    ]);
+    expect(result.status).toBe("found");
+    if (result.status === "found") {
+      expect(result.snapshot.strategy).toBe("exact");
+      expect(result.snapshot.timestamp).toBe("20240101000000");
+      expect(result.additionalSnapshots).toEqual([
+        expect.objectContaining({
+          providerId: "wayback",
+          strategy: "cleaned",
+          timestamp: "20240202000000",
+          matchedUrl: "https://example.com/story"
+        })
+      ]);
+      expect(result.checked.filter((attempt) => attempt.providerId === "wayback")).toEqual([
+        expect.objectContaining({ strategy: "exact", outcome: "hit" }),
+        expect.objectContaining({ strategy: "cleaned", outcome: "hit" })
       ]);
     }
   });
@@ -750,6 +832,126 @@ describe("lookupArchives", () => {
       "web-gyotaku",
       "webcite"
     ]);
+
+    const canadaFetch = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "webarchiveweb.wayback.bac-lac.canada.ca": () => emptyCanadaGovResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+    const canadaSteps: string[] = [];
+
+    await lookupArchives(
+      "https://www.canada.ca/en.html",
+      "exact-only",
+      canadaFetch as unknown as typeof fetch,
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") canadaSteps.push(step.providerId);
+      }
+    );
+
+    expect(Array.from(new Set(canadaSteps))).toEqual([
+      "wayback",
+      "archive-today",
+      "canada-gov-web-archive",
+      "ghostarchive",
+      "perma-cc",
+      "web-gyotaku",
+      "webcite"
+    ]);
+
+    const icelandFetch = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "vefsafn.is": () => emptyPywbCdxResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+    const icelandSteps: string[] = [];
+
+    await lookupArchives(
+      "https://www.stjornarradid.is/",
+      "exact-only",
+      icelandFetch as unknown as typeof fetch,
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") icelandSteps.push(step.providerId);
+      }
+    );
+
+    expect(Array.from(new Set(icelandSteps))).toEqual([
+      "wayback",
+      "archive-today",
+      "vefsafn",
+      "ghostarchive",
+      "perma-cc",
+      "web-gyotaku",
+      "webcite"
+    ]);
+
+    const taiwanFetch = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "webarchive.lib.ntu.edu.tw": () => emptyNtuwasResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+    const taiwanSteps: string[] = [];
+
+    await lookupArchives(
+      "https://www.ntu.edu.tw/",
+      "exact-only",
+      taiwanFetch as unknown as typeof fetch,
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") taiwanSteps.push(step.providerId);
+      }
+    );
+
+    expect(Array.from(new Set(taiwanSteps))).toEqual([
+      "wayback",
+      "archive-today",
+      "ntuwas",
+      "ghostarchive",
+      "perma-cc",
+      "web-gyotaku",
+      "webcite"
+    ]);
+
+    const cataloniaFetch = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "wayback.padicat.cat": () => emptyPywbCdxResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+    const cataloniaSteps: string[] = [];
+
+    await lookupArchives(
+      "https://www.vilaweb.cat/",
+      "exact-only",
+      cataloniaFetch as unknown as typeof fetch,
+      (step: LookupProgressStep) => {
+        if (step.phase === "querying") cataloniaSteps.push(step.providerId);
+      }
+    );
+
+    expect(Array.from(new Set(cataloniaSteps))).toEqual([
+      "wayback",
+      "archive-today",
+      "padicat",
+      "ghostarchive",
+      "perma-cc",
+      "web-gyotaku",
+      "webcite"
+    ]);
   });
 
   it("returns eligible direct links, including manual-only providers, and highlights provider failures", async () => {
@@ -785,6 +987,30 @@ describe("lookupArchives", () => {
         "web-gyotaku",
         "webcite"
       ]);
+    }
+  });
+
+  it("adds cleaned manual source links when the requested URL has query parameters", async () => {
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": () => emptyWaybackResponse(),
+      "archive.ph": () => emptyArchiveTodayResponse(),
+      "ghostarchive.org": () => emptyGhostarchiveResponse(),
+      "api.perma.cc": () => emptyPermaCcResponse(),
+      "arquivo.pt": () => emptyArquivoPtResponse(),
+      "megalodon.jp": () => emptyWebGyotakuResponse()
+    });
+
+    const result = await lookupArchives(
+      "https://example.com/story?utm_source=chatgpt.com",
+      "exact-only",
+      fetchImpl as unknown as typeof fetch
+    );
+
+    expect(result.status).toBe("not-found");
+    if (result.status === "not-found") {
+      const ghostarchive = result.manualSources.find((source) => source.providerId === "ghostarchive");
+      expect(ghostarchive?.url).toContain("utm_source");
+      expect(ghostarchive?.cleanedUrl).toBe("https://ghostarchive.org/search?term=https%3A%2F%2Fexample.com%2Fstory");
     }
   });
 

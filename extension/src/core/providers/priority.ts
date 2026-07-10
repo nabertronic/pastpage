@@ -33,6 +33,11 @@ function isExactHostOrSubdomain(hostname: string, suffix: string): boolean {
   return hostname === suffix || hostname.endsWith(`.${suffix}`);
 }
 
+function promoteProvider(order: ProviderId[], providerId: ProviderId): void {
+  if (order.includes(providerId)) return;
+  order.splice(2, 0, providerId);
+}
+
 function isRepositoryUrl(url: URL): boolean {
   const host = url.hostname.toLowerCase();
   const pathParts = url.pathname.split("/").filter(Boolean);
@@ -72,6 +77,18 @@ export function classifyArchivePriority(rawUrl: string): ArchivePriorityContext 
       hostname.endsWith(".congress.gov") ||
       hostname.endsWith(".gov") ||
       hostname.endsWith(".mil"),
+    isCanadaGov:
+      hostname === "canada.ca" ||
+      hostname.endsWith(".canada.ca") ||
+      hostname === "gc.ca" ||
+      hostname.endsWith(".gc.ca"),
+    isIcelandTld: hostname === "is" || hostname.endsWith(".is"),
+    isTaiwanTld:
+      hostname === "tw" ||
+      hostname.endsWith(".tw") ||
+      isExactHostOrSubdomain(hostname, "gov.tw") ||
+      isExactHostOrSubdomain(hostname, "edu.tw"),
+    isCataloniaTld: hostname === "cat" || hostname.endsWith(".cat"),
     isPortugalTld:
       hostname.endsWith(".pt") ||
       hostname === "pt" ||
@@ -93,11 +110,28 @@ export function buildAutomaticProviderOrder(context: ArchivePriorityContext): Pr
   }
 
   if (context.isUkGov) {
-    order.splice(2, 0, "uk-gov-web-archive");
+    promoteProvider(order, "uk-gov-web-archive");
+  }
+
+  if (context.isCanadaGov) {
+    promoteProvider(order, "canada-gov-web-archive");
+  }
+
+  if (context.isIcelandTld) {
+    promoteProvider(order, "vefsafn");
+  }
+
+  if (context.isTaiwanTld) {
+    promoteProvider(order, "ntuwas");
+  }
+
+  if (context.isCataloniaTld) {
+    promoteProvider(order, "padicat");
   }
 
   if (context.isUsGov) {
-    order.splice(3, 0, "loc-web-archives");
+    const insertAt = Math.max(order.indexOf("ghostarchive") + 1, 0);
+    order.splice(insertAt, 0, "loc-web-archives");
   }
 
   if (context.isRepositoryUrl) {

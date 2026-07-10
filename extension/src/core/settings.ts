@@ -4,7 +4,7 @@ import {
   DEFAULT_PROVIDER_HOST_SETTINGS,
   WaybackHostSchema
 } from "./providerHosts";
-import { ALL_PROVIDER_IDS, ProviderIdSchema } from "./providers/types";
+import { ALL_PROVIDER_IDS, ProviderIdSchema, type ProviderId } from "./providers/types";
 
 export const ArchiveOpenBehaviorSchema = z.enum([
   "current-tab",
@@ -113,9 +113,7 @@ export const DEFAULT_SETTINGS: Settings = {
   openBehavior: "new-tab-foreground",
   providerMenuOpenBehavior: "new-tab-foreground",
   brokenPageAssistEnabled: true,
-  enabledProviders: ALL_PROVIDER_IDS.filter(
-    (providerId) => providerId !== "arquivo-pt" && providerId !== "perma-cc"
-  ),
+  enabledProviders: ALL_PROVIDER_IDS.filter((providerId) => providerId !== "perma-cc"),
   archiveDisplayOrder: [
     "wayback",
     "archive-today",
@@ -123,6 +121,10 @@ export const DEFAULT_SETTINGS: Settings = {
     "webcite",
     "uk-gov-web-archive",
     "loc-web-archives",
+    "canada-gov-web-archive",
+    "vefsafn",
+    "ntuwas",
+    "padicat",
     "arquivo-pt",
     "web-gyotaku",
     "yandex-cache",
@@ -148,6 +150,56 @@ export const DEFAULT_SETTINGS: Settings = {
   historyFilterPresets: []
 };
 
+const DEFAULT_ENABLED_PROVIDER_UPGRADES = new Set<ProviderId>(["arquivo-pt"]);
+
+function mergeProviderListWithDefaults(
+  storedProviderIds: ProviderId[] | undefined,
+  defaultProviderIds: ProviderId[]
+): ProviderId[] {
+  const stored = storedProviderIds?.filter((providerId, index, list) => list.indexOf(providerId) === index) ?? [];
+  const merged = [...stored];
+  const defaultOrderIndex = new Map(defaultProviderIds.map((providerId, index) => [providerId, index]));
+
+  for (const providerId of defaultProviderIds) {
+    if (merged.includes(providerId)) continue;
+
+    const targetOrderIndex = defaultOrderIndex.get(providerId) ?? Number.MAX_SAFE_INTEGER;
+    let insertAfterIndex = -1;
+
+    for (let index = 0; index < merged.length; index += 1) {
+      const currentOrderIndex = defaultOrderIndex.get(merged[index]) ?? Number.MAX_SAFE_INTEGER;
+      if (currentOrderIndex < targetOrderIndex) {
+        insertAfterIndex = index;
+      }
+    }
+
+    merged.splice(insertAfterIndex + 1, 0, providerId);
+  }
+
+  return merged;
+}
+
+function mergeEnabledProvidersWithNewDefaults(
+  storedEnabledProviderIds: ProviderId[] | undefined,
+  storedDisplayOrder: ProviderId[] | undefined
+): ProviderId[] {
+  if (!storedEnabledProviderIds) return DEFAULT_SETTINGS.enabledProviders;
+
+  const enabled = storedEnabledProviderIds.filter(
+    (providerId, index, list) => list.indexOf(providerId) === index
+  );
+  if (!storedDisplayOrder) return enabled;
+
+  const storedDisplayOrderSet = new Set(storedDisplayOrder);
+  for (const providerId of DEFAULT_SETTINGS.enabledProviders) {
+    if (enabled.includes(providerId)) continue;
+    if (storedDisplayOrderSet.has(providerId) && !DEFAULT_ENABLED_PROVIDER_UPGRADES.has(providerId)) continue;
+    enabled.push(providerId);
+  }
+
+  return enabled;
+}
+
 export function parseSettings(value: unknown): Settings {
   const partial = SettingsSchema.partial()
     .catch({})
@@ -172,9 +224,20 @@ export function parseSettings(value: unknown): Settings {
       ? partial.brokenPageAssistSnoozedUntil
       : undefined;
 
+  const archiveDisplayOrder = mergeProviderListWithDefaults(
+    partial.archiveDisplayOrder,
+    DEFAULT_SETTINGS.archiveDisplayOrder
+  );
+  const enabledProviders = mergeEnabledProvidersWithNewDefaults(
+    partial.enabledProviders,
+    partial.archiveDisplayOrder
+  );
+
   return SettingsSchema.parse({
     ...DEFAULT_SETTINGS,
     ...partial,
+    enabledProviders,
+    archiveDisplayOrder,
     urlMatchingMode,
     providerTimeoutSeconds,
     brokenPageAssistSnoozedUntil

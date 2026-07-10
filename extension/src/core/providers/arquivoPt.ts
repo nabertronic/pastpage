@@ -24,6 +24,17 @@ type ArquivoPtResult = {
   timestamp: string;
 };
 
+export function buildArquivoPtUrlSearchQuery(originalUrl: string): string {
+  try {
+    const parsed = new URL(originalUrl);
+    const pathname = parsed.pathname === "/" ? "" : parsed.pathname;
+    return `${parsed.host}${pathname}`;
+  } catch {
+    const withoutProtocol = originalUrl.replace(/^https?:\/\//i, "");
+    return withoutProtocol.split(/[?#]/, 1)[0] ?? withoutProtocol;
+  }
+}
+
 export function buildArquivoPtUrlSearchUrl(targetUrl: string): string {
   const params = new URLSearchParams({
     query: `closestdate:19960101000000+exacturlexpand:${targetUrl}`,
@@ -34,6 +45,15 @@ export function buildArquivoPtUrlSearchUrl(targetUrl: string): string {
   });
 
   return `https://arquivo.pt/opensearch?${params.toString()}`;
+}
+
+export function buildArquivoPtPageVersionsUrl(originalUrl: string): string {
+  const params = new URLSearchParams({
+    q: buildArquivoPtUrlSearchQuery(originalUrl),
+    l: "en"
+  });
+
+  return `https://arquivo.pt/url/search?${params.toString()}`;
 }
 
 export function pickArquivoPtLatest(value: unknown): ArquivoPtResult | null {
@@ -126,7 +146,6 @@ export const arquivoPtProvider: AutomaticArchiveProvider = {
   isRelevant: isPortugalRelevant,
   lookup,
   buildDirectLinkUrl(originalUrl: string): string {
-    const params = new URLSearchParams({ q: originalUrl, l: "en" });
-    return `https://arquivo.pt/page/search?${params.toString()}`;
+    return buildArquivoPtPageVersionsUrl(originalUrl);
   }
 };

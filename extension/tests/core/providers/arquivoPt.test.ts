@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   arquivoPtProvider,
+  buildArquivoPtPageVersionsUrl,
+  buildArquivoPtUrlSearchQuery,
   buildArquivoPtUrlSearchUrl,
   pickArquivoPtLatest
 } from "@/core/providers/arquivoPt";
@@ -11,6 +13,23 @@ describe("arquivoPtProvider", () => {
     expect(url).toContain("opensearch?");
     expect(url).toContain("waybackQuery=true");
     expect(url).toContain("exacturlexpand%3Ahttps%3A%2F%2Fexample.pt%2F");
+  });
+
+  it("builds a page-versions UI link", () => {
+    expect(arquivoPtProvider.buildDirectLinkUrl("https://www.publico.pt/")).toBe(
+      "https://arquivo.pt/url/search?q=www.publico.pt&l=en"
+    );
+    expect(arquivoPtProvider.buildDirectLinkUrl("https://www.publico.pt/politica?utm_source=test")).toBe(
+      "https://arquivo.pt/url/search?q=www.publico.pt%2Fpolitica&l=en"
+    );
+    expect(buildArquivoPtPageVersionsUrl("https://ua.pt/")).toBe(
+      "https://arquivo.pt/url/search?q=ua.pt&l=en"
+    );
+  });
+
+  it("uses Arquivo.pt URL-search handles without the protocol", () => {
+    expect(buildArquivoPtUrlSearchQuery("https://www.publico.pt/politica?utm_source=test")).toBe("www.publico.pt/politica");
+    expect(buildArquivoPtUrlSearchQuery("https://www.publico.pt/?cb=1783676128675")).toBe("www.publico.pt");
   });
 
   it("picks the newest entry from the API response", () => {
