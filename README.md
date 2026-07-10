@@ -26,8 +26,8 @@ PastPage does that work for you.
 - It notices when a page is gone, broken, blocked, or no longer loading normally.
 - It checks the current page in one click from the toolbar, popup, or context menu.
 - It can search up to 15 archive and cache providers, prioritizing the ones that fit the URL.
-- It keeps looking and shows confirmed matches, unverified archive candidates, and follow-up links.
-- It remembers your past searches so you can revisit successful recoveries later.
+- It shows confirmed matches, unverified archive candidates, provider failures, and follow-up links as results arrive.
+- It remembers your past searches locally so you can revisit, filter, export, or rerun recovery checks later.
 
 ## What Makes PastPage Different
 
@@ -57,18 +57,19 @@ General archives stay available for broad lookups, while regional and specialist
 
 PastPage can react when a page breaks and help you recover it from a `web archive` right away. It is designed for the cases where people usually start hunting manually through `archive.org` or other `archives`:
 
+- `403 Forbidden`
 - `404 Not Found`
 - `410 Gone`
 - `451 Unavailable For Legal Reasons`
 - common `5xx` server failures
-- DNS, timeout, connection, and certificate-related load failures
 
 ### Better URL Matching
 
 Archived pages are often stored under a cleaner version of the URL than the one in your tab. PastPage accounts for that automatically.
 
-- It can retry a cleaned version of the URL.
-- It removes common tracking parameters before follow-up searches when needed.
+- It can check both the original URL and a cleaned version.
+- It removes common tracking, referrer, and sensitive parameters before follow-up searches when needed.
+- It can offer provider-specific `Check cleaned URL` follow-up links when a query-heavy URL needs a simpler archive search.
 - It ignores fragments that usually do not matter for archived captures.
 
 That means you do not have to manually trim links before checking the `Wayback Machine`, `archive.org`, or another `web archive`.
@@ -78,10 +79,10 @@ That means you do not have to manually trim links before checking the `Wayback M
 - One-click lookup from the current page
 - Broken-page recovery for disappeared sites
 - Archive lookup from the context menu for pages, links, and selected URLs
-- Additional archive matches when more than one source has the page
-- A searchable local history of previous recovery runs with CSV export
+- Confirmed and unverified archive matches, including multiple captures from the same provider
+- A searchable local history with saved filters, sorting, CSV export, bulk deletion, and reruns
 - Interface languages: English, German, Spanish, French, Italian, Polish, Portuguese, and Ukrainian
-- Customizable archive providers, archive order, resolver behavior, and ignored domains
+- Customizable archive providers, archive order, provider timeout, tab-opening behavior, and ignored domains
 
 ## Privacy
 
@@ -89,7 +90,9 @@ PastPage is built around a simple rule:
 
 `No tracking. No analytics. No telemetry.`
 
-Broken-page detection stays local in your browser. URLs are only sent to archive providers after you explicitly start a lookup yourself.
+Broken-page detection and lookup history stay local in your browser. URLs are only sent to archive providers after you explicitly start a lookup yourself.
+
+PastPage also keeps extension permissions narrow and avoids background tracking scripts or analytics services.
 
 Full details: [Privacy](docs/PRIVACY.md)
 
