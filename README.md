@@ -1,6 +1,6 @@
 # PastPage
 
-PastPage helps you recover missing pages, changed pages, and broken links by checking the Wayback Machine on `archive.org` and other relevant web archives for you.
+PastPage helps you recover missing pages, changed pages, and broken links by checking the Wayback Machine on `archive.org` and other relevant archive and cache providers for you.
 
 If an archived version of a disappeared or changed page still exists in a relevant archive, PastPage is built to find it fast.
 
@@ -25,7 +25,7 @@ PastPage does that work for you.
 
 - It notices when a page is gone, broken, blocked, or no longer loading normally.
 - It checks the current page in one click from the toolbar, popup, or context menu.
-- It searches multiple relevant `web archives` in parallel.
+- It can search up to 15 archive and cache providers, prioritizing the ones that fit the URL.
 - It keeps looking and shows confirmed matches, unverified archive candidates, and follow-up links.
 - It remembers your past searches so you can revisit successful recoveries later.
 
@@ -33,7 +33,7 @@ PastPage does that work for you.
 
 ### Smarter Than A Single `archive.org` Lookup
 
-PastPage does not stop at the first `Wayback Machine` query. It checks multiple archives and adapts the search to the URL:
+PastPage does not stop at the first `Wayback Machine` query. It can check up to 15 archive and cache providers and adapts the search to the URL:
 
 - `Wayback Machine` on `archive.org`
 - `Archive.today`
@@ -43,9 +43,15 @@ PastPage does not stop at the first `Wayback Machine` query. It checks multiple 
 - `Megalodon/Web Gyotaku`
 - `UK Government Web Archive` for `gov.uk`
 - `Library of Congress Web Archives` for `gov`, `mil`, `loc.gov`, and `congress.gov`
+- `Government of Canada Web Archive` for `canada.ca` and `gc.ca`
+- `Icelandic Web Archive / Vefsafn` for `.is`
+- `NTU Web Archiving System / NTUWAS` for `.tw`, `gov.tw`, and `edu.tw`
+- `PADICAT / Web Archive of Catalonia` for `.cat`
 - `Software Heritage` for repository URLs and supported code pages
 - `WebCite`
 - `Yandex Cache`
+
+General archives stay available for broad lookups, while regional and specialist archives are promoted only when they are relevant to the current URL. You can also customize which providers PastPage uses and the order in which they appear.
 
 ### Built For Missing Pages, Not Just Manual Searching
 
@@ -75,7 +81,7 @@ That means you do not have to manually trim links before checking the `Wayback M
 - Additional archive matches when more than one source has the page
 - A searchable local history of previous recovery runs with CSV export
 - Interface languages: English, German, Spanish, French, Italian, Polish, Portuguese, and Ukrainian
-- Customizable archive order, resolver behavior, and ignored domains
+- Customizable archive providers, archive order, resolver behavior, and ignored domains
 
 ## Privacy
 
