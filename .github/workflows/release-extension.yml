@@ -94,9 +94,9 @@ jobs:
           FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
         run: |
           submit_args=(
-            --chrome-zip .output/*-chrome.zip
-            --firefox-zip .output/*-firefox.zip
-            --firefox-sources-zip .output/*-sources.zip
+            --chrome-zip "$GITHUB_WORKSPACE"/extension/.output/*-chrome.zip
+            --firefox-zip "$GITHUB_WORKSPACE"/extension/.output/*-firefox.zip
+            --firefox-sources-zip "$GITHUB_WORKSPACE"/extension/.output/*-sources.zip
             --firefox-channel listed
           )
 
