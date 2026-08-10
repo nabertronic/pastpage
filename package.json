@@ -10,6 +10,8 @@
     "dev:firefox": "pnpm --dir extension dev:firefox",
     "build": "pnpm --dir extension build",
     "build:firefox": "pnpm --dir extension build:firefox",
+    "zip": "pnpm --dir extension zip",
+    "zip:firefox": "pnpm --dir extension zip:firefox",
     "test": "pnpm --dir extension test",
     "typecheck": "pnpm --dir extension typecheck"
   },

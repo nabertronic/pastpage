@@ -1,5 +1,31 @@
 # Release
 
+## Automated Store Submission
+
+The GitHub Actions workflow `Release extension` builds and submits Chrome and Firefox releases without a manual ZIP upload. It is intentionally triggered from the Actions page rather than on every push.
+
+Before using it, create these repository secrets:
+
+- `CHROME_EXTENSION_ID`
+- `CHROME_CLIENT_ID`
+- `CHROME_CLIENT_SECRET`
+- `CHROME_REFRESH_TOKEN`
+- `FIREFOX_EXTENSION_ID`
+- `FIREFOX_JWT_ISSUER`
+- `FIREFOX_JWT_SECRET`
+
+The Chrome values come from the Chrome Web Store API OAuth setup. The Firefox issuer and secret come from the AMO API credentials page. `FIREFOX_EXTENSION_ID` must match `browser_specific_settings.gecko.id` in `extension/wxt.config.ts`.
+
+To verify the setup:
+
+1. Open **Actions → Release extension → Run workflow**.
+2. Leave **dry_run** enabled and start the workflow.
+3. Confirm that tests, packaging, package verification, and credential validation succeed.
+
+For a real release, repeat the workflow with **dry_run** disabled. WXT uploads both packages and submits them for store review. Generated ZIP files are also retained as workflow artifacts for 30 days.
+
+The initial Chrome Web Store and Firefox Add-ons listings still need to exist before this update workflow can publish releases.
+
 ## Release Checklist
 
 1. Run `pnpm test`.
@@ -25,6 +51,7 @@ Update the release version consistently in:
 ## Current Packaging Notes
 
 - Chrome and Firefox builds are generated separately.
+- `pnpm zip` and `pnpm zip:firefox` create the store submission packages locally.
 - Store metadata, screenshots, and support links must all use the `PastPage` name.
 - Do not ship placeholder or guessed store URLs in the extension UI.
 - Keep `extension/src/core/constants.ts` aligned with the live store listings.

@@ -1,0 +1,103 @@
+name: Release extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate store credentials without uploading packages
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extension-store-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Test, package, and submit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Run typecheck
+        run: pnpm typecheck
+
+      - name: Create Chrome and Firefox packages
+        run: |
+          pnpm zip
+          pnpm zip:firefox
+
+      - name: Verify release packages
+        shell: bash
+        run: |
+          shopt -s nullglob
+          chrome_packages=(extension/.output/*-chrome.zip)
+          firefox_packages=(extension/.output/*-firefox.zip)
+          firefox_sources=(extension/.output/*-sources.zip)
+
+          [[ ${#chrome_packages[@]} -eq 1 ]] || {
+            echo "Expected one Chrome package, found ${#chrome_packages[@]}" >&2
+            exit 1
+          }
+          [[ ${#firefox_packages[@]} -eq 1 ]] || {
+            echo "Expected one Firefox package, found ${#firefox_packages[@]}" >&2
+            exit 1
+          }
+          [[ ${#firefox_sources[@]} -eq 1 ]] || {
+            echo "Expected one Firefox source package, found ${#firefox_sources[@]}" >&2
+            exit 1
+          }
+
+      - name: Upload packages as workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pastpage-store-packages
+          path: extension/.output/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Submit packages to browser stores
+        shell: bash
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          FIREFOX_EXTENSION_ID: ${{ secrets.FIREFOX_EXTENSION_ID }}
+          FIREFOX_JWT_ISSUER: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.FIREFOX_JWT_SECRET }}
+        run: |
+          submit_args=(
+            --chrome-zip extension/.output/*-chrome.zip
+            --firefox-zip extension/.output/*-firefox.zip
+            --firefox-sources-zip extension/.output/*-sources.zip
+            --firefox-channel listed
+          )
+
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            submit_args+=(--dry-run)
+          fi
+
+          pnpm --dir extension exec wxt submit "${submit_args[@]}"
