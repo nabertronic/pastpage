@@ -5,7 +5,7 @@
 The complete release is started locally with:
 
 ```sh
-pnpm deploy
+pnpm run deploy
 ```
 
 This command verifies that the working tree is clean, `main` is synchronized with `origin/main`, all version declarations match, the changelog contains release notes, and the GitHub release does not already exist. It then starts and monitors the `Release extension` GitHub Actions workflow.
@@ -27,10 +27,10 @@ The Chrome values come from the Chrome Web Store API OAuth setup. The Firefox is
 To verify the setup without uploading or publishing anything:
 
 ```sh
-pnpm deploy:dry-run
+pnpm run deploy:dry-run
 ```
 
-For a real release, `pnpm deploy` uploads both packages and submits them for store review. Generated ZIP files are also retained as workflow artifacts for 30 days and attached to the GitHub Release.
+For a real release, `pnpm run deploy` uploads both packages and submits them for store review. Generated ZIP files are also retained as workflow artifacts for 30 days and attached to the GitHub Release.
 
 The initial Chrome Web Store and Firefox Add-ons listings still need to exist before this update workflow can publish releases.
 

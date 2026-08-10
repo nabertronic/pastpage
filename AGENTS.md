@@ -8,8 +8,8 @@ When the user asks to deploy, publish, or release PastPage:
 2. Add a matching `## vX.Y.Z` section to `docs/CHANGELOG.md`; these entries become the GitHub Release notes.
 3. Run the relevant tests and builds.
 4. Commit all intended release changes and push `main`.
-5. Run `pnpm deploy` and monitor it until completion.
+5. Run `pnpm run deploy` and monitor it until completion.
 
-`pnpm deploy` requires a clean, synchronized `main` branch. It triggers the GitHub Actions workflow that builds and submits Chrome and Firefox packages, then creates the matching Git tag and GitHub Release with all ZIP artifacts. Do not upload ZIP files or create the GitHub Release separately.
+`pnpm run deploy` requires a clean, synchronized `main` branch. It triggers the GitHub Actions workflow that builds and submits Chrome and Firefox packages, then creates the matching Git tag and GitHub Release with all ZIP artifacts. Do not upload ZIP files or create the GitHub Release separately.
 
-Use `pnpm deploy:dry-run` when only validating the workflow and store credentials.
+Use `pnpm run deploy:dry-run` when only validating the workflow and store credentials.
