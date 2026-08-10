@@ -79,6 +79,7 @@ jobs:
           name: pastpage-store-packages
           path: extension/.output/*.zip
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 30
 
       - name: Submit packages to browser stores
