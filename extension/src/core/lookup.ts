@@ -8,13 +8,23 @@ import {
 } from "./providers";
 import { ProviderLookupError, type ProviderFailureReason, type ProviderId } from "./providers/types";
 import type { UrlMatchingMode } from "./settings";
-import type { ArchiveSnapshot, FailedProvider, ManualArchiveSource } from "./tabState";
-import { buildSearchCandidates, getUrlEligibility, type SearchCandidate } from "./urlPolicy";
+import type {
+  ArchiveCheckStrategy,
+  ArchiveSnapshot,
+  FailedProvider,
+  ManualArchiveSource
+} from "./tabState";
+import {
+  buildSearchCandidates,
+  buildUrlVariantCandidates,
+  getUrlEligibility,
+  type SearchCandidate
+} from "./urlPolicy";
 import type { PhaseAwareFetch } from "./providers/common";
 
 export type ProviderAttempt = {
   providerId: ProviderId;
-  strategy: "exact" | "cleaned";
+  strategy: ArchiveCheckStrategy;
   url: string;
   outcome: "hit" | "miss" | "error";
 };
@@ -22,7 +32,7 @@ export type ProviderAttempt = {
 export type LookupProgressStep = {
   providerId: ProviderId;
   phase: "querying" | "verifying";
-  strategy: "exact" | "cleaned";
+  strategy: ArchiveCheckStrategy;
   url: string;
 };
 
@@ -107,7 +117,9 @@ export async function lookupArchives(
   const order = buildAutomaticProviderOrder(rawUrl).filter(
     (providerId) => !allowedProviderIds || allowedProviderIds.has(providerId)
   );
-  const candidates: SearchCandidate[] = buildSearchCandidates(rawUrl, matchingMode);
+  const primaryCandidates = buildSearchCandidates(rawUrl, matchingMode);
+  const variantCandidates = buildUrlVariantCandidates(rawUrl, matchingMode);
+  const candidates: SearchCandidate[] = [...primaryCandidates, ...variantCandidates];
   const providerOrderIndex = new Map(order.map((providerId, index) => [providerId, index]));
   const candidateOrderIndex = new Map(
     candidates.map((candidate, index) => [`${candidate.strategy}:${candidate.url}`, index] as const)
@@ -215,9 +227,27 @@ export async function lookupArchives(
       const provider = getAutomaticProvider(providerId);
       let providerHadError = false;
       let providerHadSuccess = false;
+      let variantStageDeadline: number | undefined;
 
       for (const candidate of candidates) {
-        const providerFetchImpl = createAttemptFetch(effectiveFetchImpl, providerTimeoutMs);
+        if (candidate.strategy === "variant" && (providerHadSuccess || providerHadError)) {
+          break;
+        }
+
+        if (
+          candidate.strategy === "variant" &&
+          variantStageDeadline === undefined &&
+          providerTimeoutMs &&
+          Number.isFinite(providerTimeoutMs) &&
+          providerTimeoutMs > 0
+        ) {
+          variantStageDeadline = Date.now() + providerTimeoutMs;
+        }
+        const providerFetchImpl = createAttemptFetch(
+          effectiveFetchImpl,
+          providerTimeoutMs,
+          candidate.strategy === "variant" ? variantStageDeadline : undefined
+        );
         const stepKey = getStepKey(providerId, candidate);
         const step = {
           providerId,
@@ -427,16 +457,21 @@ function createTimedFetchWithDeadline(fetchImpl: typeof fetch, deadline: number)
   }) as typeof fetch;
 }
 
-function createAttemptFetch(fetchImpl: typeof fetch, timeoutMs?: number): typeof fetch {
+function createAttemptFetch(
+  fetchImpl: typeof fetch,
+  timeoutMs?: number,
+  absoluteDeadline?: number
+): typeof fetch {
   if (!timeoutMs || !Number.isFinite(timeoutMs) || timeoutMs <= 0) {
     return fetchImpl;
   }
 
   const startedAt = Date.now();
-  const providerDeadline = startedAt + timeoutMs;
+  const providerDeadline = absoluteDeadline ?? startedAt + timeoutMs;
+  const remainingMs = Math.max(0, providerDeadline - startedAt);
   const queryBudgetMs = Math.max(
     MIN_QUERY_TIMEOUT_MS,
-    Math.min(timeoutMs, Math.floor(timeoutMs * DEFAULT_QUERY_TIMEOUT_RATIO))
+    Math.min(remainingMs, Math.floor(remainingMs * DEFAULT_QUERY_TIMEOUT_RATIO))
   );
   const replayDeadline = providerDeadline;
   const queryDeadline = Math.min(providerDeadline, startedAt + queryBudgetMs);

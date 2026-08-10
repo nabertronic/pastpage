@@ -176,7 +176,7 @@ function stripSearchAndHash(rawUrl: string): string {
 }
 
 export type SearchCandidate = {
-  strategy: "exact" | "cleaned";
+  strategy: "exact" | "cleaned" | "variant";
   url: string;
 };
 
@@ -197,4 +197,67 @@ export function buildSearchCandidates(rawUrl: string, mode: UrlMatchingMode): Se
   }
 
   return [{ strategy: "exact", url: rawUrl }, ...cleaned];
+}
+
+function canToggleWww(hostname: string): boolean {
+  return hostname.includes(".") && !/^\d{1,3}(?:\.\d{1,3}){3}$/.test(hostname) && !hostname.includes(":");
+}
+
+function toggleVariant(url: URL, toggle: "protocol" | "www" | "slash"): boolean {
+  if (toggle === "protocol") {
+    url.protocol = url.protocol === "https:" ? "http:" : "https:";
+    return true;
+  }
+
+  if (toggle === "www") {
+    if (!canToggleWww(url.hostname)) return false;
+    url.hostname = url.hostname.toLowerCase().startsWith("www.")
+      ? url.hostname.slice(4)
+      : `www.${url.hostname}`;
+    return true;
+  }
+
+  if (url.pathname === "/") return false;
+  url.pathname = url.pathname.endsWith("/")
+    ? url.pathname.replace(/\/+$/, "") || "/"
+    : `${url.pathname}/`;
+  return true;
+}
+
+export function buildUrlVariantCandidates(
+  rawUrl: string,
+  mode: UrlMatchingMode
+): SearchCandidate[] {
+  if (mode === "exact-only") return [];
+
+  const primaryCandidates = buildSearchCandidates(rawUrl, mode);
+  const baseUrl = [...primaryCandidates].reverse().find((candidate) => candidate.strategy === "cleaned")?.url
+    ?? primaryCandidates[0]?.url
+    ?? rawUrl;
+  const primaryUrls = new Set(primaryCandidates.map((candidate) => candidate.url));
+  const seen = new Set(primaryUrls);
+  const variants: SearchCandidate[] = [];
+  const toggles = ["protocol", "www", "slash"] as const;
+
+  // Try one changed URL component before combinations of two or three. Using
+  // the final cleaned candidate as the base keeps this stage query-free and
+  // caps it at seven additional requests per provider.
+  for (let changedComponents = 1; changedComponents <= toggles.length; changedComponents += 1) {
+    for (let mask = 1; mask < 1 << toggles.length; mask += 1) {
+      const enabledToggles = toggles.filter((_, index) => (mask & (1 << index)) !== 0);
+      if (enabledToggles.length !== changedComponents) continue;
+
+      const url = new URL(baseUrl);
+      const changed = enabledToggles.every((toggle) => toggleVariant(url, toggle));
+      if (!changed) continue;
+
+      url.hash = "";
+      const candidateUrl = url.toString();
+      if (seen.has(candidateUrl)) continue;
+      seen.add(candidateUrl);
+      variants.push({ strategy: "variant", url: candidateUrl });
+    }
+  }
+
+  return variants;
 }

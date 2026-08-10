@@ -15,6 +15,7 @@ import {
   X
 } from "lucide-react";
 import { Button } from "./Button";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { PageShell } from "./PageShell";
 import { ResearcherFooter } from "./AppLinks";
 import { SelectField } from "./FieldControls";
@@ -118,6 +119,12 @@ function HistoryContent({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [sortMode, setSortMode] = useState<HistorySortMode>("startedAtDesc");
   const [viewMode, setViewMode] = useState<HistoryViewMode>("compact");
+  const [confirmation, setConfirmation] = useState<{
+    title: string;
+    message: string;
+    confirmLabel: string;
+    action: () => Promise<void>;
+  } | null>(null);
 
   const stats = useMemo(
     () => ({
@@ -291,10 +298,17 @@ function HistoryContent({
 
   async function handleDeleteSelected() {
     if (selectedIds.length === 0) return;
-    if (!window.confirm(t("historyPage.delete.bulkConfirm", { count: String(selectedIds.length) }))) return;
-    const nextHistory = await deleteHistoryEntries(selectedIds);
-    setHistory(nextHistory);
-    setSelectedIds([]);
+    const idsToDelete = [...selectedIds];
+    setConfirmation({
+      title: t("historyPage.delete.bulkAction"),
+      message: t("historyPage.delete.bulkConfirm", { count: String(idsToDelete.length) }),
+      confirmLabel: t("historyPage.delete.bulkAction"),
+      action: async () => {
+        const nextHistory = await deleteHistoryEntries(idsToDelete);
+        setHistory(nextHistory);
+        setSelectedIds([]);
+      }
+    });
   }
 
   function buildFiltersApplied(mode: "full" | "current-view" | "selected"): string {
@@ -313,21 +327,25 @@ function HistoryContent({
 
   async function handleRerunSelected() {
     if (selectedEntries.length === 0) return;
-    if (!window.confirm(t("historyPage.selection.rerunConfirm", { count: String(selectedEntries.length) }))) {
-      return;
-    }
-
-    for (const [index, entry] of selectedEntries.entries()) {
-      const historyEntry = await createHistoryEntry({
-        targetUrl: entry.targetUrl,
-        trigger: "manual-page",
-        requestTrigger: "manual-page"
-      });
-      await browser.tabs.create({
-        url: resolverUrl(createManualPageLookupRequest(entry.targetUrl), undefined, undefined, historyEntry?.id),
-        active: index === 0
-      });
-    }
+    const entriesToRerun = [...selectedEntries];
+    setConfirmation({
+      title: t("historyPage.selection.rerunSelected"),
+      message: t("historyPage.selection.rerunConfirm", { count: String(entriesToRerun.length) }),
+      confirmLabel: t("historyPage.selection.rerunSelected"),
+      action: async () => {
+        for (const [index, entry] of entriesToRerun.entries()) {
+          const historyEntry = await createHistoryEntry({
+            targetUrl: entry.targetUrl,
+            trigger: "manual-page",
+            requestTrigger: "manual-page"
+          });
+          await browser.tabs.create({
+            url: resolverUrl(createManualPageLookupRequest(entry.targetUrl), undefined, undefined, historyEntry?.id),
+            active: index === 0
+          });
+        }
+      }
+    });
   }
 
   const hasActiveFilters = activeFilterCount > 0 || !!query;
@@ -710,6 +728,20 @@ function HistoryContent({
 
         <ResearcherFooter />
       </div>
+      {confirmation ? (
+        <ConfirmDialog
+          title={confirmation.title}
+          message={confirmation.message}
+          confirmLabel={confirmation.confirmLabel}
+          cancelLabel={t("common.cancel")}
+          onCancel={() => setConfirmation(null)}
+          onConfirm={() => {
+            const action = confirmation.action;
+            setConfirmation(null);
+            void action();
+          }}
+        />
+      ) : null}
     </PageShell>
   );
 }

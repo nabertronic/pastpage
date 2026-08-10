@@ -1,8 +1,13 @@
 import type { TranslationKey } from "../i18n/messages";
 import type { UrlMatchingMode } from "./settings";
-import type { ArchiveSnapshot } from "./tabState";
+import type { ArchiveCheckStrategy, ArchiveSnapshot } from "./tabState";
 import { waybackProvider } from "./providers/wayback";
-import { buildSearchCandidates, getUrlEligibility, type SearchCandidate } from "./urlPolicy";
+import {
+  buildSearchCandidates,
+  buildUrlVariantCandidates,
+  getUrlEligibility,
+  type SearchCandidate
+} from "./urlPolicy";
 
 export {
   buildCdxUrl,
@@ -22,12 +27,12 @@ export type ArchiveLookupResult =
   | { status: "provider-error"; message: string; checked: SearchCandidate[] };
 
 export type LookupProgressStep = {
-  strategy: "exact" | "cleaned";
+  strategy: ArchiveCheckStrategy;
   url: string;
 };
 
 export type WaybackCaptureCountResult =
-  | { status: "counted"; count: number; strategy: "exact" | "cleaned"; checked: SearchCandidate[] }
+  | { status: "counted"; count: number; strategy: ArchiveCheckStrategy; checked: SearchCandidate[] }
   | { status: "not-eligible"; reasonKey: TranslationKey }
   | { status: "provider-error"; message: string; checked: SearchCandidate[] };
 
@@ -43,7 +48,10 @@ export async function lookupWayback(
   }
 
   const checked: SearchCandidate[] = [];
-  const candidates = buildSearchCandidates(rawUrl, mode);
+  const candidates = [
+    ...buildSearchCandidates(rawUrl, mode),
+    ...buildUrlVariantCandidates(rawUrl, mode)
+  ];
 
   try {
     for (const candidate of candidates) {
@@ -87,7 +95,10 @@ export async function lookupWaybackCaptureCount(
   }
 
   const checked: SearchCandidate[] = [];
-  const candidates = buildSearchCandidates(rawUrl, mode);
+  const candidates = [
+    ...buildSearchCandidates(rawUrl, mode),
+    ...buildUrlVariantCandidates(rawUrl, mode)
+  ];
 
   try {
     for (const [index, candidate] of candidates.entries()) {

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ResolverApp, resetResolverAutoOpenStateForTests } from "@/components/ResolverApp";
 import { DEFAULT_SETTINGS } from "@/core/settings";
 import { resetStorageCachesForTests } from "@/platform/storage";
+import { expectNoA11yViolations } from "../a11y";
 
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
 
@@ -58,6 +59,38 @@ describe("ResolverApp", () => {
     storageGetMock.mockResolvedValue({
       "pastPage.settings": DEFAULT_SETTINGS
     });
+  });
+
+  it("labels snapshots found through a protocol URL variant", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/web/")) return archiveHtmlResponse("Wayback variant");
+
+        const requestedUrl = new URL(url).searchParams.get("url") ?? "";
+        return {
+          ok: true,
+          status: 200,
+          json: vi.fn().mockResolvedValue(
+            requestedUrl === "http://example.com/story"
+              ? [
+                  ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+                  ["20240203040506", requestedUrl, "text/html", "200", "variant", "100"]
+                ]
+              : [["timestamp", "original", "mimetype", "statuscode", "digest", "length"]]
+          )
+        };
+      })
+    );
+    window.history.replaceState(
+      {},
+      "",
+      "?trigger=manual-page&url=https%3A%2F%2Fexample.com%2Fstory&providerId=wayback"
+    );
+
+    render(<ResolverApp />);
+
+    expect(await screen.findByText("Found via URL variant.")).toBeInTheDocument();
   });
 
   it("renders a not-found state for a broken-page lookup", async () => {
@@ -339,6 +372,8 @@ describe("ResolverApp", () => {
     expect(
       screen.queryByText(/No archived HTML snapshot could be confirmed automatically/i)
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/Checking Archive\.today/i);
+    await expectNoA11yViolations();
 
     await act(async () => {
       resolveArchiveToday({
@@ -1412,6 +1447,10 @@ describe("ResolverApp", () => {
 
     await waitFor(() => expect(screen.getByRole("heading", { name: /Archived versions found/i })).toBeInTheDocument());
     expect(screen.getAllByText(/Ghostarchive/i).length).toBeGreaterThan(0);
+    const liveResult = screen.getByText(/archive\.ph\/20240203040506/);
+    expect(liveResult.closest('[aria-live="polite"]')).toHaveAttribute("aria-relevant", "additions text");
+    expect(screen.getByRole("status")).toHaveTextContent(/Checking (Wayback Machine|Arquivo\.pt)/i);
+    await expectNoA11yViolations();
     await waitFor(() =>
       expect(createSpy).toHaveBeenCalledWith({
         url: "https://archive.ph/20240203040506/https://example.com/missing",

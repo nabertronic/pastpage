@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildSearchCandidates, cleanUrl, getUrlEligibility } from "@/core/urlPolicy";
+import {
+  buildSearchCandidates,
+  buildUrlVariantCandidates,
+  cleanUrl,
+  getUrlEligibility
+} from "@/core/urlPolicy";
 
 describe("urlPolicy", () => {
   it("excludes local, private, internal, and archive URLs", () => {
@@ -91,5 +96,39 @@ describe("urlPolicy", () => {
         url: "https://jungefreiheit.de/politik/2026/prozessstart-saechsische-separatisten-wer-sind-die-terroristen/"
       }
     ]);
+  });
+
+  it("builds staged protocol, www, and trailing-slash variants from the query-free URL", () => {
+    expect(
+      buildUrlVariantCandidates(
+        "https://example.com/story?utm_source=test",
+        "exact-then-cleaned"
+      ).map((candidate) => candidate.url)
+    ).toEqual([
+      "http://example.com/story",
+      "https://www.example.com/story",
+      "https://example.com/story/",
+      "http://www.example.com/story",
+      "http://example.com/story/",
+      "https://www.example.com/story/",
+      "http://www.example.com/story/"
+    ]);
+  });
+
+  it("removes www and a trailing slash when those forms were requested", () => {
+    expect(
+      buildUrlVariantCandidates("http://www.example.com/story/", "exact-then-cleaned").map(
+        (candidate) => candidate.url
+      )
+    ).toContain("https://example.com/story");
+  });
+
+  it("does not expand variants in exact-only mode or add www to IP addresses", () => {
+    expect(buildUrlVariantCandidates("https://example.com/story", "exact-only")).toEqual([]);
+    expect(
+      buildUrlVariantCandidates("https://203.0.113.1/story", "exact-then-cleaned").some(
+        (candidate) => candidate.url.includes("www.")
+      )
+    ).toBe(false);
   });
 });

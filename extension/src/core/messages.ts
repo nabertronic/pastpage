@@ -12,7 +12,7 @@ const ArchiveSnapshotSchema = z.object({
   timestamp: z.string(),
   statusCode: z.string(),
   mimeType: z.string(),
-  strategy: z.enum(["exact", "cleaned"]),
+  strategy: z.enum(["exact", "cleaned", "variant"]),
   providerId: ProviderIdSchema,
   verification: z.enum(["confirmed", "unverified"]).optional(),
   verificationNote: z.string().optional()
@@ -42,7 +42,7 @@ const LookupStatusSchema = z.union([
   }),
   z.object({
     status: z.literal("not-found"),
-    checked: z.array(z.enum(["exact", "cleaned"])),
+    checked: z.array(z.enum(["exact", "cleaned", "variant"])),
     failedProviders: z.array(FailedProviderSchema)
   }),
   z.object({ status: z.literal("provider-error"), message: z.string() })

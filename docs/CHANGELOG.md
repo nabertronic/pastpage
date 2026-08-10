@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.11
+
+- Automatic broken-page help now recognizes Cloudflare verification and challenge pages across arbitrary domains from Cloudflare's dedicated response marker, so Turnstile-style security checks are no longer mistaken for offline or broken pages.
+- Completed the localized History interface in French, Spanish, Italian, Polish, Portuguese, and Ukrainian, including selection, deletion, export, sorting, view, preset, rerun, and result-detail controls.
+- Added automated accessibility checks for resolver progress, live archive results, and History bulk actions, plus accessible bulk-confirmation dialogs with trapped focus, Escape handling, and focus restoration.
+- Added a bounded URL-variant fallback after primary archive misses, covering HTTP/HTTPS, with/without `www`, and trailing-slash combinations while sharing one timeout window and stopping after the first variant hit per provider.
+
 ## v1.0.10
 
 - New archive providers: `Government of Canada Web Archive` for `gc.ca` and `canada.ca` URLs, `Icelandic Web Archive / Vefsafn` for `.is` URLs, `NTU Web Archiving System / NTUWAS` for `.tw` URLs, and `PADICAT / Web Archive of Catalonia` for `.cat` URLs; each includes automatic resolver lookups, direct links, settings support, and matching provider icons.

@@ -120,7 +120,7 @@ test("subresource 404 does not show the top bar", async () => {
   await expect(page.getByRole("button", { name: "Find Archived Version" })).toHaveCount(0);
 });
 
-test("clicking Find Archived Version opens resolver and opens Wayback in a separate tab", async () => {
+test("clicking Find Archived Version opens the resolver and lets the user open Wayback", async () => {
   const page = await newPage();
   await page.goto(`${baseUrl}/missing?case=topbar`);
   await expect(page.getByRole("button", { name: "Find Archived Version" }).first()).toBeVisible();
@@ -132,17 +132,15 @@ test("clicking Find Archived Version opens resolver and opens Wayback in a separ
   await expect(resolver).toHaveURL(/resolver\.html/);
   await expect(resolver.getByText(/Checking archived versions/i)).toBeVisible();
   await expect(resolver.getByText(/Archived version found/i)).toBeVisible({ timeout: 10_000 });
-  await expect
-    .poll(() => context.pages().map((currentPage) => currentPage.url()))
-    .toContainEqual(expect.stringMatching(/web\.archive\.org\/web\/20240102030405/));
+  const openArchivedVersion = resolver.getByRole("link", { name: "Open archived version" }).first();
+  await expect(openArchivedVersion).toHaveAttribute("href", /web\.archive\.org\/web\/20240102030405/);
 
-  const archive = context
-    .pages()
-    .find((currentPage) => /web\.archive\.org\/web\/20240102030405/.test(currentPage.url()));
-
-  if (!archive) {
-    throw new Error("Expected an archive tab to open.");
-  }
+  const archivePromise = context.waitForEvent(
+    "page",
+    (newPage) => /web\.archive\.org\/web\/20240102030405/.test(newPage.url())
+  );
+  await openArchivedVersion.click();
+  const archive = await archivePromise;
 
   await expect(archive).toHaveURL(/web\.archive\.org\/web\/20240102030405/);
   await expect(resolver).toHaveURL(/resolver\.html/);

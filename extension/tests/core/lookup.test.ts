@@ -296,6 +296,63 @@ describe("lookupArchives", () => {
     }
   });
 
+  it("tries URL variants only after primary candidates miss and stops at the first variant hit", async () => {
+    const requestedUrls: string[] = [];
+    const fetchImpl = dispatchByHost({
+      "web.archive.org": (url: string) => {
+        if (url.includes("/web/")) return archiveHtmlResponse("Wayback variant");
+
+        const requestedUrl = new URL(url).searchParams.get("url") ?? "";
+        requestedUrls.push(requestedUrl);
+        if (requestedUrl !== "http://www.example.com/story/") {
+          return emptyWaybackResponse();
+        }
+
+        return {
+          ok: true,
+          status: 200,
+          json: vi.fn().mockResolvedValue([
+            ["timestamp", "original", "mimetype", "statuscode", "digest", "length"],
+            ["20240202000000", requestedUrl, "text/html", "200", "variant", "100"]
+          ])
+        };
+      }
+    });
+
+    const result = await lookupArchives(
+      "https://example.com/story",
+      "exact-then-cleaned",
+      fetchImpl as unknown as typeof fetch,
+      undefined,
+      undefined,
+      undefined,
+      ["wayback"]
+    );
+
+    expect(requestedUrls).toEqual([
+      "https://example.com/story",
+      "http://example.com/story",
+      "https://www.example.com/story",
+      "https://example.com/story/",
+      "http://www.example.com/story",
+      "http://example.com/story/",
+      "https://www.example.com/story/",
+      "http://www.example.com/story/"
+    ]);
+    expect(result.status).toBe("found");
+    if (result.status === "found") {
+      expect(result.snapshot).toEqual(
+        expect.objectContaining({
+          strategy: "variant",
+          matchedUrl: "http://www.example.com/story/"
+        })
+      );
+      expect(result.checked.at(-1)).toEqual(
+        expect.objectContaining({ strategy: "variant", outcome: "hit" })
+      );
+    }
+  });
+
   it("includes unverified candidates after confirmed snapshots in the result list", async () => {
     const fetchImpl = dispatchByHost({
       "web.archive.org": (url: string) =>
@@ -1125,7 +1182,7 @@ describe("lookupArchives", () => {
     }
   });
 
-  it("finishes exact before starting cleaned for the same provider", async () => {
+  it("finishes exact before starting cleaned and URL variants for the same provider", async () => {
     const waybackRequests: string[] = [];
     let resolveExactLookup: (value: unknown) => void = () => {};
     const exactLookup = new Promise((resolve) => {
@@ -1188,10 +1245,11 @@ describe("lookupArchives", () => {
       json: vi.fn().mockResolvedValue([["timestamp", "original", "mimetype", "statuscode", "digest", "length"]])
     });
 
-    await vi.waitFor(() => expect(waybackRequests).toHaveLength(2));
+    await vi.waitFor(() => expect(waybackRequests.length).toBeGreaterThanOrEqual(2));
     expect(decodeURIComponent(waybackRequests[1])).toContain("https://example.com/missing");
 
     await lookupPromise;
+    expect(new URL(waybackRequests[2]!).searchParams.get("url")).toBe("http://example.com/missing");
   });
 
   it("marks a provider as failed when one candidate errors and another only misses", async () => {
@@ -1348,6 +1406,56 @@ describe("lookupArchives", () => {
         expect.objectContaining({ providerId: "wayback", strategy: "cleaned", outcome: "hit" })
       ]);
     }
+
+    vi.useRealTimers();
+  });
+
+  it("shares one timeout window across all URL variants", async () => {
+    vi.useFakeTimers();
+    const requestedUrls: string[] = [];
+
+    const fetchImpl = vi.fn((url: RequestInfo | URL, init?: RequestInit) => {
+      const requestUrl = String(url);
+      const requestedUrl = new URL(requestUrl).searchParams.get("url") ?? "";
+      requestedUrls.push(requestedUrl);
+
+      if (requestedUrl === "https://example.com/story") {
+        return Promise.resolve(emptyWaybackResponse());
+      }
+
+      if (requestedUrl === "http://example.com/story") {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(emptyWaybackResponse()), 30);
+        });
+      }
+
+      return new Promise((_, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+      });
+    });
+
+    const lookupPromise = lookupArchives(
+      "https://example.com/story",
+      "exact-then-cleaned",
+      fetchImpl as unknown as typeof fetch,
+      undefined,
+      undefined,
+      undefined,
+      ["wayback"],
+      undefined,
+      50
+    );
+
+    await vi.advanceTimersByTimeAsync(30);
+    await vi.advanceTimersByTimeAsync(20);
+    const result = await lookupPromise;
+
+    expect(result.status).toBe("not-found");
+    expect(requestedUrls).toEqual([
+      "https://example.com/story",
+      "http://example.com/story",
+      "https://www.example.com/story"
+    ]);
 
     vi.useRealTimers();
   });

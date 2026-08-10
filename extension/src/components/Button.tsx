@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type AnchorHTMLAttributes, type ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 type Variant = "primary" | "secondary" | "ghost" | "quiet" | "action";
@@ -26,14 +26,12 @@ const sizes: Record<Size, string> = {
   lg: "h-11 px-4 text-sm"
 };
 
-export function Button({
-  className,
-  variant = "primary",
-  size = "md",
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }) {
-  return <button className={cn(base, variants[variant], sizes[size], className)} {...props} />;
-}
+export const Button = forwardRef<
+  HTMLButtonElement,
+  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }
+>(function Button({ className, variant = "primary", size = "md", ...props }, ref) {
+  return <button ref={ref} className={cn(base, variants[variant], sizes[size], className)} {...props} />;
+});
 
 export function LinkButton({
   className,

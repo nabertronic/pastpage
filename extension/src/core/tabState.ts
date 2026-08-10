@@ -18,7 +18,7 @@ export type ArchiveSnapshot = {
   timestamp: string;
   statusCode: string;
   mimeType: string;
-  strategy: "exact" | "cleaned";
+  strategy: ArchiveCheckStrategy;
   providerId: ProviderId;
   verification: "confirmed" | "unverified";
   verificationNote?: string;
@@ -40,7 +40,7 @@ export type FailedProvider = {
   technicalDetail?: string;
 };
 
-export type ArchiveCheckStrategy = "exact" | "cleaned";
+export type ArchiveCheckStrategy = "exact" | "cleaned" | "variant";
 
 export type LookupStatus =
   | { status: "idle" }
@@ -49,7 +49,7 @@ export type LookupStatus =
   | { status: "unverified"; snapshot: ArchiveSnapshot }
   | {
       status: "not-found";
-      checked: Array<"exact" | "cleaned">;
+      checked: ArchiveCheckStrategy[];
       failedProviders: FailedProvider[];
     }
   | { status: "provider-error"; message: string };

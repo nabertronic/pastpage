@@ -1,7 +1,8 @@
 import {
   explainHttpStatus,
   explainNavigationError,
-  isRelevantHttpStatus
+  isRelevantHttpStatus,
+  isSecurityVerificationHttpError
 } from "../src/core/errors";
 import { lookupArchives } from "../src/core/lookup";
 import { createManualPageLookupRequest, type LookupRequest } from "../src/core/lookupRequest";
@@ -778,6 +779,10 @@ export default defineBackground(() => {
       if (details.tabId < 0 || details.type !== "main_frame") return;
 
       if (isRelevantHttpStatus(details.statusCode)) {
+        if (isSecurityVerificationHttpError(details.url, details.statusCode, details.responseHeaders)) {
+          void clearState(details.tabId);
+          return;
+        }
         void recordBrokenPage(details.tabId, detectedHttpError(details.url, details.statusCode));
         return;
       }
@@ -786,7 +791,8 @@ export default defineBackground(() => {
         void clearState(details.tabId);
       }
     },
-    { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] }
+    { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] },
+    ["responseHeaders"]
   );
 
   browser.tabs.onRemoved.addListener((tabId) => {

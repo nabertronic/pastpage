@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HistoryApp } from "@/components/HistoryApp";
 import { DEFAULT_SETTINGS } from "@/core/settings";
+import { expectNoA11yViolations } from "../a11y";
 
 const storageGetMock = browser.storage.local.get as unknown as ReturnType<typeof vi.fn>;
 const storageSetMock = browser.storage.local.set as unknown as ReturnType<typeof vi.fn>;
@@ -573,7 +574,6 @@ describe("HistoryApp", () => {
 
   it("exports selected entries as csv and reruns selected entries", async () => {
     const exportCapture = setupCsvExportCapture();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const storedHistories: Array<Array<Record<string, unknown>>> = [];
     storageSetMock.mockImplementation(async (next: Record<string, unknown>) => {
       if (Array.isArray(next["pastPage.history"])) {
@@ -609,6 +609,7 @@ describe("HistoryApp", () => {
 
     await userEvent.click(await screen.findByRole("checkbox", { name: "Select history entry for https://example.com/two" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Select history entry for https://example.com/one" }));
+    await expectNoA11yViolations();
     await userEvent.click(screen.getByRole("button", { name: "Export selected CSV" }));
 
     const rows = parseCsv(exportCapture.getCsv());
@@ -616,9 +617,25 @@ describe("HistoryApp", () => {
     expect(rows[1]).toEqual(expect.arrayContaining(["hist_2"]));
     expect(rows[2]).toEqual(expect.arrayContaining(["hist_1"]));
 
-    await userEvent.click(screen.getByRole("button", { name: "Rerun selected" }));
+    const rerunButton = screen.getByRole("button", { name: "Rerun selected" });
+    await userEvent.click(rerunButton);
 
-    expect(confirmSpy).toHaveBeenCalledWith("Rerun 2 selected history entries?");
+    let dialog = screen.getByRole("dialog", { name: "Rerun selected" });
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await userEvent.tab({ shift: true });
+    expect(within(dialog).getByRole("button", { name: "Rerun selected" })).toHaveFocus();
+    await userEvent.tab();
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await expectNoA11yViolations();
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(rerunButton).toHaveFocus();
+
+    await userEvent.click(rerunButton);
+    dialog = screen.getByRole("dialog", { name: "Rerun selected" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Rerun selected" }));
+
     expect(browser.tabs.create).toHaveBeenCalledTimes(2);
     const firstNewEntryId = String(storedHistories[0]?.[0]?.id ?? "");
     const secondNewEntryId = String(storedHistories[1]?.[0]?.id ?? "");
@@ -857,7 +874,6 @@ describe("HistoryApp", () => {
   });
 
   it("deletes multiple selected history entries in bulk", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     storageGetMock.mockResolvedValue({
       "pastPage.settings": DEFAULT_SETTINGS,
       "pastPage.history": [
@@ -897,7 +913,11 @@ describe("HistoryApp", () => {
     await userEvent.click(screen.getByRole("checkbox", { name: "Select history entry for https://example.com/one" }));
     await userEvent.click(screen.getByRole("button", { name: "Delete selected" }));
 
-    expect(confirmSpy).toHaveBeenCalledWith("Delete 2 selected history entries?");
+    const dialog = screen.getByRole("dialog", { name: "Delete selected" });
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await expectNoA11yViolations();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete selected" }));
+
     await waitFor(() =>
       expect(browser.storage.local.set).toHaveBeenCalledWith({
         "pastPage.history": [

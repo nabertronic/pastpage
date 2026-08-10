@@ -55,10 +55,11 @@ The product is centered around three ideas:
 1. The background script detects a relevant broken-page condition locally or the user starts a manual lookup.
 2. A history entry is created if history is enabled.
 3. The resolver opens with the target URL, trigger metadata, and optional provider scope.
-4. `lookupArchives()` builds one or two search candidates depending on URL matching mode:
+4. `lookupArchives()` builds staged search candidates depending on URL matching mode:
    - exact URL
    - cleaned URL with common tracking parameters removed and hash stripped
-5. Automatic providers are queried in parallel.
+   - after primary misses, up to seven deduplicated protocol, `www`, and trailing-slash variants
+5. Automatic providers are queried in parallel; candidates for each provider are checked in stages, URL variants share one provider timeout window, and variant checks stop after the first hit.
 6. The resolver uses the first confirmed snapshot returned by any provider, without favoring a specific provider.
 7. Additional snapshots are collected and shown even after the first confirmed hit is found.
 8. Manual follow-up sources are generated for relevant providers that were not already satisfied by an automatic hit.

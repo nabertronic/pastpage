@@ -115,6 +115,34 @@ export function isRelevantHttpStatus(statusCode: number): statusCode is Relevant
   return RELEVANT_HTTP_STATUS_CODES.includes(statusCode as RelevantHttpStatus);
 }
 
+type ResponseHeader = {
+  name: string;
+  value?: string;
+};
+
+export function isSecurityVerificationHttpError(
+  rawUrl: string,
+  statusCode: number,
+  responseHeaders: ResponseHeader[] = []
+): boolean {
+  const isCloudflareChallenge = responseHeaders.some(
+    ({ name, value }) =>
+      name.toLowerCase() === "cf-mitigated" && value?.trim().toLowerCase() === "challenge"
+  );
+  if (isCloudflareChallenge) return true;
+
+  // Some browsers or privacy configurations do not expose response headers to extensions.
+  // Keep the dedicated verification-host marker as a narrow fallback for those cases.
+  if (statusCode !== 403) return false;
+
+  try {
+    const hostnameLabels = new URL(rawUrl).hostname.toLowerCase().split(".");
+    return hostnameLabels.includes("authenticator");
+  } catch {
+    return false;
+  }
+}
+
 export function explainHttpStatus(statusCode: number, translate: Translator = english): ErrorExplanation {
   const explanation = HTTP_EXPLANATIONS[statusCode];
   if (explanation) return translateDescriptor(explanation, translate);

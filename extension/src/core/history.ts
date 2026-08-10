@@ -15,7 +15,7 @@ export type HistoryOutcome = z.infer<typeof HistoryOutcomeSchema>;
 
 export const HistoryAttemptSchema = z.object({
   providerId: ProviderIdSchema,
-  strategy: z.enum(["exact", "cleaned"]),
+  strategy: z.enum(["exact", "cleaned", "variant"]),
   url: z.string(),
   outcome: z.enum(["hit", "miss", "error"])
 });
@@ -37,7 +37,7 @@ export const HistorySnapshotSchema = z.object({
   timestamp: z.string(),
   statusCode: z.string(),
   mimeType: z.string(),
-  strategy: z.enum(["exact", "cleaned"]),
+  strategy: z.enum(["exact", "cleaned", "variant"]),
   providerId: ProviderIdSchema,
   verification: z.enum(["confirmed", "unverified"]).optional(),
   verificationNote: z.string().optional()

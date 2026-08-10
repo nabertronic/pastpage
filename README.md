@@ -69,6 +69,7 @@ Archived pages are often stored under a cleaner version of the URL than the one 
 
 - It can check both the original URL and a cleaned version.
 - It removes common tracking, referrer, and sensitive parameters before follow-up searches when needed.
+- After primary checks miss, it can try protocol, `www`, and trailing-slash URL variants in a bounded fallback stage.
 - It can offer provider-specific `Check cleaned URL` follow-up links when a query-heavy URL needs a simpler archive search.
 - It ignores fragments that usually do not matter for archived captures.
 

@@ -15,6 +15,7 @@ import type { ProviderId } from "../core/providers/types";
 import { DEFAULT_SETTINGS, type Settings, type UrlMatchingMode } from "../core/settings";
 import type {
   ArchiveSnapshot,
+  ArchiveCheckStrategy,
   DetectedError,
   FailedProvider,
   ManualArchiveSource
@@ -42,11 +43,19 @@ function snapshotTargetUrl(snapshot: ArchiveSnapshot) {
   return snapshot.openUrl ?? snapshot.archiveUrl;
 }
 
+function strategyTranslationKey(strategy: ArchiveCheckStrategy): TranslationKey {
+  if (strategy === "exact") return "resolver.strategy.exact";
+  if (strategy === "cleaned") return "resolver.strategy.cleaned";
+  return "resolver.strategy.variant";
+}
+
 function snapshotCardDescription(t: ReturnType<typeof useI18n>["t"], snapshot: ArchiveSnapshot) {
   const parts: string[] = [];
 
   if (snapshot.strategy === "cleaned") {
     parts.push(t("resolver.found.cleanedHint"));
+  } else if (snapshot.strategy === "variant") {
+    parts.push(t("resolver.found.variantHint"));
   }
 
   if (snapshot.verification === "unverified") {
@@ -186,7 +195,7 @@ function mergeUniqueSnapshots(
 type PendingLookupStep = {
   providerId: ProviderId;
   phase: "querying" | "verifying";
-  strategy: "exact" | "cleaned";
+  strategy: ArchiveCheckStrategy;
   url: string;
 };
 
@@ -217,7 +226,7 @@ type ResolverStatus =
     }
   | {
       kind: "not-found";
-      checked: Array<"exact" | "cleaned">;
+      checked: ArchiveCheckStrategy[];
       failedProviders: FailedProvider[];
       manualSources: ManualArchiveSource[];
     }
@@ -658,15 +667,14 @@ function ResolverContent({
   const checkedStrategies = status.kind === "not-found" ? status.checked : [];
   const showStrategyDetails =
     urlMatchingMode !== "exact-only" &&
-    (pendingSteps.some((step) => step.strategy === "cleaned") || checkedStrategies.includes("cleaned"));
+    (pendingSteps.some((step) => step.strategy !== "exact") ||
+      checkedStrategies.some((strategy) => strategy !== "exact"));
   const activeStep = pendingSteps.length > 0 ? pendingSteps[pendingStepIndex % pendingSteps.length] : null;
   const activeStepLabel = activeStep
     ? showStrategyDetails
       ? t(activeStep.phase === "verifying" ? "resolver.verifyingProvider" : "resolver.checkingProvider", {
           provider: getProvider(activeStep.providerId).displayName,
-          strategy: t(
-            activeStep.strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned"
-          )
+          strategy: t(strategyTranslationKey(activeStep.strategy))
         })
       : t(activeStep.phase === "verifying" ? "resolver.verifyingProviderSimple" : "resolver.checkingProviderSimple", {
           provider: getProvider(activeStep.providerId).displayName
@@ -697,7 +705,7 @@ function ResolverContent({
           <section className="rounded-md border border-[var(--wf-border)] bg-[var(--wf-surface)] p-4 shadow-[0_1px_0_rgba(17,17,17,0.04),0_12px_30px_rgba(17,17,17,0.05)] backdrop-blur dark:border-stone-800 dark:bg-stone-950/92">
           {status.kind === "loading" ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-3 text-sm" role="status" aria-live="polite" aria-atomic="true">
                 <Search aria-hidden="true" className="text-yellow-700 dark:text-yellow-300" size={18} />
                 <Spinner label={activeStepLabel} />
               </div>
@@ -729,13 +737,18 @@ function ResolverContent({
                         })}
                   </h2>
                   {status.isCheckingMore ? (
-                    <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+                    <div
+                      className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400"
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
                       <Spinner
                         label={activeStep ? activeStepLabel : t("resolver.found.checkingMore")}
                       />
                     </div>
                   ) : null}
-                  <div className="space-y-2">
+                  <div className="space-y-2" aria-live="polite" aria-relevant="additions text">
                     {foundSnapshots.map((snapshot) => (
                       <ArchiveSnapshotCard
                         key={snapshotTargetUrl(snapshot)}
@@ -775,13 +788,18 @@ function ResolverContent({
                     {t("resolver.unverified.description")}
                   </p>
                   {status.isCheckingMore ? (
-                    <div className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+                    <div
+                      className="mt-2 flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400"
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
                       <Spinner
                         label={activeStep ? activeStepLabel : t("resolver.found.checkingMore")}
                       />
                     </div>
                   ) : null}
-                  <div className="space-y-2">
+                  <div className="space-y-2" aria-live="polite" aria-relevant="additions text">
                     {foundSnapshots.map((snapshot) => (
                       <ArchiveSnapshotCard
                         key={snapshotTargetUrl(snapshot)}
@@ -818,7 +836,7 @@ function ResolverContent({
                             provider: scopedProviderName,
                             strategies: strategyList.format(
                               checkedStrategies.map((strategy) =>
-                                t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                                t(strategyTranslationKey(strategy))
                               )
                             )
                           })
@@ -829,7 +847,7 @@ function ResolverContent({
                         ? t("resolver.notFound.description", {
                             strategies: strategyList.format(
                               checkedStrategies.map((strategy) =>
-                                t(strategy === "exact" ? "resolver.strategy.exact" : "resolver.strategy.cleaned")
+                                t(strategyTranslationKey(strategy))
                               )
                             )
                           })
