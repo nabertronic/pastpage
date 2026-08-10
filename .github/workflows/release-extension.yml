@@ -10,7 +10,7 @@ on:
         default: true
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: extension-store-release
@@ -46,6 +46,27 @@ jobs:
 
       - name: Run typecheck
         run: pnpm typecheck
+
+      - name: Validate release metadata
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v${version}"
+
+          node scripts/extract-release-notes.mjs "$tag" "$RUNNER_TEMP/release-notes.md"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "GitHub release $tag already exists" >&2
+            exit 1
+          fi
+
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+            echo "Git tag $tag already exists" >&2
+            exit 1
+          fi
 
       - name: Create Chrome and Firefox packages
         run: |
@@ -105,3 +126,22 @@ jobs:
           fi
 
           pnpm --dir extension exec wxt submit "${submit_args[@]}"
+
+      - name: Create GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v${version}"
+
+          gh release create "$tag" \
+            extension/.output/*-chrome.zip \
+            extension/.output/*-firefox.zip \
+            extension/.output/*-sources.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$tag" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --latest

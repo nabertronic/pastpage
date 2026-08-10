@@ -2,7 +2,15 @@
 
 ## Automated Store Submission
 
-The GitHub Actions workflow `Release extension` builds and submits Chrome and Firefox releases without a manual ZIP upload. It is intentionally triggered from the Actions page rather than on every push.
+The complete release is started locally with:
+
+```sh
+pnpm deploy
+```
+
+This command verifies that the working tree is clean, `main` is synchronized with `origin/main`, all version declarations match, the changelog contains release notes, and the GitHub release does not already exist. It then starts and monitors the `Release extension` GitHub Actions workflow.
+
+The workflow builds and submits Chrome and Firefox releases without a manual ZIP upload. After both store submissions succeed, it creates the matching Git tag and GitHub Release, uses the changelog section as release notes, attaches all three ZIP packages, and marks the release as latest.
 
 Before using it, create these repository secrets:
 
@@ -16,13 +24,13 @@ Before using it, create these repository secrets:
 
 The Chrome values come from the Chrome Web Store API OAuth setup. The Firefox issuer and secret come from the AMO API credentials page. `FIREFOX_EXTENSION_ID` must match `browser_specific_settings.gecko.id` in `extension/wxt.config.ts`.
 
-To verify the setup:
+To verify the setup without uploading or publishing anything:
 
-1. Open **Actions → Release extension → Run workflow**.
-2. Leave **dry_run** enabled and start the workflow.
-3. Confirm that tests, packaging, package verification, and credential validation succeed.
+```sh
+pnpm deploy:dry-run
+```
 
-For a real release, repeat the workflow with **dry_run** disabled. WXT uploads both packages and submits them for store review. Generated ZIP files are also retained as workflow artifacts for 30 days.
+For a real release, `pnpm deploy` uploads both packages and submits them for store review. Generated ZIP files are also retained as workflow artifacts for 30 days and attached to the GitHub Release.
 
 The initial Chrome Web Store and Firefox Add-ons listings still need to exist before this update workflow can publish releases.
 
